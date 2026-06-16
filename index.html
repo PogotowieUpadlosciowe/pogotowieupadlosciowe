@@ -1,37 +1,250 @@
-```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pogotowie Upadłościowe</title>
+<title>Pogotowie Upadłościowe | Wsparcie w przygotowaniu dokumentów do upadłości konsumenckiej</title>
+
+<meta name="description" content="Wsparcie w przygotowaniu dokumentów do upadłości konsumenckiej dla klientów z całej Polski. Kontakt telefoniczny i online.">
+
 <style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
 body{
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f5f7fb;
+    color:#1f2937;
+    line-height:1.6;
+}
+
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+}
+
+header{
+    background:#0f2d52;
+    color:white;
+    padding:20px 0;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+.nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo-text{
+    font-size:1.2rem;
+    font-weight:bold;
+}
+
+.phone{
+    font-weight:bold;
+}
+
+.hero{
+    padding:80px 20px;
+    text-align:center;
+    background:white;
+}
+
+.hero img{
+    width:220px;
+    max-width:90%;
+    margin-bottom:30px;
+}
+
+.hero h1{
+    font-size:2.3rem;
+    color:#0f2d52;
+    margin-bottom:20px;
+}
+
+.hero p{
+    max-width:800px;
+    margin:auto;
+    font-size:1.1rem;
+}
+
+.buttons{
+    margin-top:35px;
     display:flex;
     justify-content:center;
-    align-items:center;
-    height:100vh;
-    margin:0;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    text-decoration:none;
+    padding:14px 26px;
+    border-radius:8px;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+.btn-primary{
+    background:#0f2d52;
+    color:white;
+}
+
+.btn-primary:hover{
+    opacity:0.9;
+}
+
+.btn-secondary{
+    border:2px solid #0f2d52;
+    color:#0f2d52;
+}
+
+section{
+    padding:70px 0;
+}
+
+.section-title{
+    text-align:center;
+    color:#0f2d52;
+    margin-bottom:40px;
+    font-size:2rem;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.card h3{
+    color:#0f2d52;
+    margin-bottom:10px;
+}
+
+.contact{
+    background:white;
+    text-align:center;
+}
+
+.contact p{
+    margin:10px 0;
+    font-size:1.1rem;
+}
+
+footer{
     background:#0f2d52;
     color:white;
     text-align:center;
+    padding:30px 20px;
 }
-h1{
-    font-size:3rem;
+
+footer p{
+    margin:5px 0;
 }
-p{
-    font-size:1.2rem;
+
+@media(max-width:768px){
+
+.hero h1{
+    font-size:1.8rem;
+}
+
+.nav{
+    flex-direction:column;
+    gap:10px;
+}
 }
 </style>
 </head>
+
 <body>
-<div>
-    <h1>Pogotowie Upadłościowe</h1>
-    <p>Strona została poprawnie opublikowana.</p>
-    <p>Telefon: 574 650 730</p>
+
+<header>
+<div class="container nav">
+<div class="logo-text">Pogotowie Upadłościowe</div>
+<div class="phone">📞 574 650 730</div>
 </div>
+</header>
+
+<section class="hero">
+
+<img src="images/logo.jpg" alt="Pogotowie Upadłościowe Logo">
+
+<h1>Wsparcie w przygotowaniu dokumentów do upadłości konsumenckiej dla klientów z całej Polski</h1>
+
+<p>
+Pomagamy uporządkować dokumentację, przygotować niezbędne informacje
+oraz przejść przez proces kompletowania dokumentów związanych z
+upadłością konsumencką.
+</p>
+
+<div class="buttons">
+<a href="tel:+48574650730" class="btn btn-primary">Zadzwoń teraz</a>
+<a href="mailto:pogotowieupadlosciowe@gmail.com" class="btn btn-secondary">Napisz e-mail</a>
+</div>
+
+</section>
+
+<section>
+<div class="container">
+
+<h2 class="section-title">Jak możemy pomóc?</h2>
+
+<div class="cards">
+
+<div class="card">
+<h3>Analiza sytuacji</h3>
+<p>Omówienie sytuacji finansowej oraz wstępna ocena dokumentacji.</p>
+</div>
+
+<div class="card">
+<h3>Kompletowanie dokumentów</h3>
+<p>Wsparcie w przygotowaniu wymaganych informacji i dokumentów.</p>
+</div>
+
+<div class="card">
+<h3>Przygotowanie materiałów</h3>
+<p>Pomoc w uporządkowaniu danych niezbędnych do sporządzenia wniosku.</p>
+</div>
+
+</div>
+
+</div>
+</section>
+
+<section class="contact">
+
+<div class="container">
+
+<h2 class="section-title">Kontakt</h2>
+
+<p><strong>Telefon:</strong> 574 650 730</p>
+<p><strong>E-mail:</strong> pogotowieupadlosciowe@gmail.com</p>
+<p><strong>Obsługa:</strong> Cała Polska Online</p>
+
+</div>
+
+</section>
+
+<footer>
+
+<p><strong>Pogotowie Upadłościowe</strong></p>
+<p>Wsparcie w przygotowaniu dokumentów do upadłości konsumenckiej.</p>
+<p>© 2025 Wszelkie prawa zastrzeżone.</p>
+
+</footer>
+
 </body>
 </html>
-```
-
