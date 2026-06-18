@@ -178,8 +178,9 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const data = Object.fromEntries(new FormData(form).entries());
+  
 
-  const res = await fetch("https://pogotowieupadlosciowe-api.workers.dev", {
+  const res = await fetch("https://pogotowieupadlosciowe-api.pogotowieupadlosciowe.workers.dev/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
