@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Ankieta upadłościowa</title>
+</head>
+<body>
+
+<h2>Ankieta po konsultacji</h2>
+
+<form id="ankietaForm">
+
+  <input name="full_name" placeholder="Imię i nazwisko" required><br>
+  <input name="pesel" placeholder="PESEL"><br>
+  <input name="nip" placeholder="NIP"><br>
+  <input name="address" placeholder="Adres"><br>
+
+  <textarea name="assets" placeholder="Majątek"></textarea><br>
+  <input name="cash" placeholder="Gotówka"><br>
+  <input name="bank_accounts" placeholder="Konta bankowe"><br>
+
+  <input name="debtors" placeholder="Twoi dłużnicy"><br>
+  <textarea name="creditors_list" placeholder="Wierzyciele"></textarea><br>
+  <textarea name="disputed_debts" placeholder="Sporne długi"></textarea><br>
+
+  <input name="income_6m" placeholder="Dochód 6 miesięcy"><br>
+  <input name="expenses_6m" placeholder="Koszty 6 miesięcy"><br>
+
+  <textarea name="legal_actions_property" placeholder="Czynności - nieruchomości"></textarea><br>
+  <textarea name="legal_actions_assets" placeholder="Czynności - majątek"></textarea><br>
+
+  <textarea name="family_situation" placeholder="Sytuacja rodzinna"></textarea><br>
+  <textarea name="insolvency_story" placeholder="Jak doszło do niewypłacalności"></textarea><br>
+
+  <button type="submit">Wyślij</button>
+</form>
+
+<p id="status"></p>
+
+<script>
+const form = document.getElementById("ankietaForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  const res = await fetch("https://pogotowieupadlosciowe-api.workers.dev", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  document.getElementById("status").innerText = await res.text();
+});
+</script>
+
+</body>
+</html>
