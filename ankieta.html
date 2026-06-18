@@ -1,38 +1,154 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Ankieta upadłościowa</title>
+<meta charset="UTF-8">
+<title>Ankieta upadłościowa</title>
+
+<style>
+body {
+  font-family: Arial;
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.question {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: black;
+  color: white;
+  padding: 12px;
+  border: none;
+  width: 100%;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #333;
+}
+
+#status {
+  text-align: center;
+  margin-top: 15px;
+}
+</style>
+
 </head>
+
 <body>
 
-<h2>Ankieta po konsultacji</h2>
+<h1>Ankieta upadłościowa</h1>
 
 <form id="ankietaForm">
 
-  <input name="full_name" placeholder="Imię i nazwisko" required><br>
-  <input name="pesel" placeholder="PESEL"><br>
-  <input name="nip" placeholder="NIP"><br>
-  <input name="address" placeholder="Adres"><br>
+<div class="question">
+<label>1. Imię i nazwisko</label>
+<input name="full_name" required>
+</div>
 
-  <textarea name="assets" placeholder="Majątek"></textarea><br>
-  <input name="cash" placeholder="Gotówka"><br>
-  <input name="bank_accounts" placeholder="Konta bankowe"><br>
+<div class="question">
+<label>2. PESEL</label>
+<input name="pesel">
+</div>
 
-  <input name="debtors" placeholder="Twoi dłużnicy"><br>
-  <textarea name="creditors_list" placeholder="Wierzyciele"></textarea><br>
-  <textarea name="disputed_debts" placeholder="Sporne długi"></textarea><br>
+<div class="question">
+<label>3. NIP (jeśli posiadałeś w ciągu ostatnich 10 lat)</label>
+<input name="nip">
+</div>
 
-  <input name="income_6m" placeholder="Dochód 6 miesięcy"><br>
-  <input name="expenses_6m" placeholder="Koszty 6 miesięcy"><br>
+<div class="question">
+<label>4. Miejsce zamieszkania i adres do doręczeń (jeśli inny)</label>
+<textarea name="address"></textarea>
+</div>
 
-  <textarea name="legal_actions_property" placeholder="Czynności - nieruchomości"></textarea><br>
-  <textarea name="legal_actions_assets" placeholder="Czynności - majątek"></textarea><br>
+<div class="question">
+<label>5. Składniki majątku (nieruchomości, ruchomości, sprzęty o większej wartości)</label>
+<textarea name="assets"></textarea>
+</div>
 
-  <textarea name="family_situation" placeholder="Sytuacja rodzinna"></textarea><br>
-  <textarea name="insolvency_story" placeholder="Jak doszło do niewypłacalności"></textarea><br>
+<div class="question">
+<label>6. Posiadana gotówka</label>
+<input name="cash">
+</div>
 
-  <button type="submit">Wyślij</button>
+<div class="question">
+<label>7. Środki na rachunkach bankowych (kwota i bank)</label>
+<textarea name="bank_accounts"></textarea>
+</div>
+
+<div class="question">
+<label>8. Czy ktoś jest Twoim dłużnikiem? (wierzytelności)</label>
+textarea name="debtors"></textarea>
+</div>
+
+<div class="question">
+<label>9. Lista wierzycieli z kwotami i datami wymagalności</label>
+<textarea name="creditors_list"></textarea>
+</div>
+
+<div class="question">
+<label>10. Czy są sporne długi?</label>
+<textarea name="disputed_debts"></textarea>
+</div>
+
+<div class="question">
+<label>11. Dochody z ostatnich 6 miesięcy (łączna kwota)</label>
+<input name="income_6m">
+</div>
+
+<div class="question">
+<label>12. Koszty utrzymania w ostatnich 6 miesiącach</label>
+<input name="expenses_6m">
+</div>
+
+<div class="question">
+<label>13. Czynności prawne dotyczące nieruchomości / udziałów (12 miesięcy)</label>
+<textarea name="legal_actions_property"></textarea>
+</div>
+
+<div class="question">
+<label>14. Czynności dotyczące majątku >10 000 zł (12 miesięcy)</label>
+<textarea name="legal_actions_assets"></textarea>
+</div>
+
+<div class="question">
+<label>15. Sytuacja rodzinna i życiowa</label>
+<textarea name="family_situation"></textarea>
+</div>
+
+<div class="question">
+<label>16. Jak doszło do niewypłacalności?</label>
+<textarea name="insolvency_story"></textarea>
+</div>
+
+<button type="submit">Wyślij formularz</button>
+
 </form>
 
 <p id="status"></p>
