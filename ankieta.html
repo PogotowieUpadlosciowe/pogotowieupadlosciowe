@@ -10,6 +10,7 @@ body {
   max-width: 900px;
   margin: auto;
   padding: 20px;
+  background: #f7f7f7;
 }
 
 h1 {
@@ -18,34 +19,40 @@ h1 {
 }
 
 .question {
-  margin-bottom: 20px;
+  background: white;
   padding: 15px;
-  border: 1px solid #ddd;
+  margin-bottom: 15px;
   border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 label {
   font-weight: bold;
   display: block;
   margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 input, textarea {
   width: 100%;
   padding: 10px;
-  font-size: 14px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+textarea {
+  min-height: 80px;
 }
 
 button {
-  background: black;
-  color: white;
-  padding: 12px;
-  border: none;
   width: 100%;
+  padding: 15px;
   font-size: 16px;
-  border-radius: 8px;
+  background: #111;
+  color: white;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
 }
 
@@ -56,6 +63,7 @@ button:hover {
 #status {
   text-align: center;
   margin-top: 15px;
+  font-weight: bold;
 }
 </style>
 
@@ -83,71 +91,81 @@ button:hover {
 </div>
 
 <div class="question">
-<label>4. Miejsce zamieszkania i adres do doręczeń (jeśli inny)</label>
+<label>4. Numer telefonu</label>
+<input name="phone">
+</div>
+
+<div class="question">
+<label>5. Adres e-mail</label>
+<input name="email">
+</div>
+
+<div class="question">
+<label>6. Miejsce zamieszkania i adres do doręczeń (jeśli inny)</label>
 <textarea name="address"></textarea>
 </div>
 
 <div class="question">
-<label>5. Składniki majątku (nieruchomości, ruchomości, sprzęty o większej wartości)</label>
+<label>7. Składniki majątku (nieruchomości, ruchomości, sprzęty o większej wartości)</label>
 <textarea name="assets"></textarea>
 </div>
 
 <div class="question">
-<label>6. Posiadana gotówka</label>
+<label>8. Posiadana gotówka</label>
 <input name="cash">
 </div>
 
 <div class="question">
-<label>7. Środki na rachunkach bankowych (kwota i bank)</label>
+<label>9. Środki na rachunkach bankowych (kwota i bank)</label>
 <textarea name="bank_accounts"></textarea>
 </div>
 
 <div class="question">
-<label>8. Czy ktoś jest Twoim dłużnikiem? (wierzytelności)</label>
-textarea name="debtors"></textarea>
+<label>10. Czy ktoś jest Twoim dłużnikiem?</label>
+<textarea name="debtors"></textarea>
 </div>
 
 <div class="question">
-<label>9. Lista wierzycieli z kwotami i datami wymagalności</label>
+<label>11. Wierzyciele z kwotami i datami wymagalności</label>
 <textarea name="creditors_list"></textarea>
 </div>
 
 <div class="question">
-<label>10. Czy są sporne długi?</label>
+<label>12. Czy są sporne długi?</label>
 <textarea name="disputed_debts"></textarea>
 </div>
 
 <div class="question">
-<label>11. Dochody z ostatnich 6 miesięcy (łączna kwota)</label>
+<label>13. Dochody z ostatnich 6 miesięcy (łączna kwota)</label>
 <input name="income_6m">
 </div>
 
 <div class="question">
-<label>12. Koszty utrzymania w ostatnich 6 miesiącach</label>
+<label>14. Koszty utrzymania w ostatnich 6 miesiącach</label>
 <input name="expenses_6m">
 </div>
 
 <div class="question">
-<label>13. Czynności prawne dotyczące nieruchomości / udziałów (12 miesięcy)</label>
+<label>15. Czynności prawne – nieruchomości / udziały (12 miesięcy)</label>
 <textarea name="legal_actions_property"></textarea>
 </div>
 
 <div class="question">
-<label>14. Czynności dotyczące majątku >10 000 zł (12 miesięcy)</label>
+<label>16. Czynności prawne – majątek powyżej 10 000 zł (12 miesięcy)</label>
 <textarea name="legal_actions_assets"></textarea>
 </div>
 
 <div class="question">
-<label>15. Sytuacja rodzinna i życiowa</label>
+<label>17. Sytuacja rodzinna i zawodowa</label>
 <textarea name="family_situation"></textarea>
 </div>
 
 <div class="question">
-<label>16. Jak doszło do niewypłacalności?</label>
+<label>18. Jak doszło do niewypłacalności?</label>
 <textarea name="insolvency_story"></textarea>
 </div>
 
-<button type="submit">Wyślij formularz</button>
+<button type="submit">Wyślij ankietę</button>
 
 </form>
 
@@ -163,7 +181,9 @@ form.addEventListener("submit", async (e) => {
 
   const res = await fetch("https://pogotowieupadlosciowe-api.workers.dev", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify(data)
   });
 
