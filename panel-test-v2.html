@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Test panelu v2 | Pogotowie Upadłościowe</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f4f6f8}
+    *{box-sizing:border-box}body{margin:0;padding:32px 16px}.wrap{max-width:1100px;margin:auto}.card{background:#fff;border:1px solid #dbe1e8;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+    h1,h2{margin-top:0}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.toolbar input{flex:1;min-width:260px;padding:12px;border:1px solid #b8c1cc;border-radius:10px}.toolbar button{padding:12px 16px;border:0;border-radius:10px;cursor:pointer;font-weight:700}.primary{background:#183f66;color:#fff}.secondary{background:#e7ebef;color:#172033}
+    #status{min-height:24px;margin:10px 0;font-weight:700}.ok{color:#18723d}.err{color:#a22626}.grid{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:16px}.list,.details{min-height:280px}.item{display:block;width:100%;text-align:left;border:1px solid #dbe1e8;background:#fff;border-radius:10px;padding:12px;margin:0 0 8px;cursor:pointer}.item.active{border-color:#183f66;background:#eef5fb}.item strong,.item span{display:block}.item span{font-size:.85rem;color:#5e6874;margin-top:4px}.row{padding:10px 0;border-bottom:1px solid #e5e9ee}.row dt{font-weight:700}.row dd{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <section class="card">
+    <h1>Test panelu administracyjnego v2</h1>
+    <p>Token jest używany tylko w pamięci tej karty i nie jest zapisywany w pliku ani w przeglądarce.</p>
+    <div class="toolbar">
+      <input id="token" type="password" autocomplete="off" placeholder="ADMIN_TOKEN" aria-label="Token administratora">
+      <button id="load" class="primary" type="button">Pobierz zgłoszenia</button>
+      <button id="clear" class="secondary" type="button">Wyczyść</button>
+    </div>
+    <div id="status" role="status" aria-live="polite"></div>
+    <div class="grid">
+      <section class="card list"><h2>Zgłoszenia</h2><div id="list"></div></section>
+      <section class="card details"><h2>Szczegóły</h2><dl id="details"><p>Najpierw pobierz zgłoszenia.</p></dl></section>
+    </div>
+  </section>
+</main>
+<script>
+'use strict';
+const API='https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev';
+const labels={full_name:'Imię i nazwisko',pesel:'PESEL',nip:'NIP',phone:'Telefon',email:'E-mail',address:'Adres',assets:'Majątek',cash:'Gotówka',bank_accounts:'Rachunki bankowe',debtors:'Dłużnicy',creditors_list:'Wierzyciele',disputed_debts:'Długi sporne',income_6m:'Dochody za 6 miesięcy',expenses_6m:'Koszty za 6 miesięcy',legal_actions_property:'Czynności dotyczące nieruchomości',legal_actions_assets:'Czynności dotyczące majątku',family_situation:'Sytuacja rodzinna i zawodowa',insolvency_story:'Historia niewypłacalności',created_at:'Data utworzenia'};
+const tokenEl=document.querySelector('#token');const listEl=document.querySelector('#list');const detailsEl=document.querySelector('#details');const statusEl=document.querySelector('#status');let items=[];
+const text=v=>v===null||v===undefined||v===''?'—':String(v);
+function status(message,ok=false){statusEl.textContent=message;statusEl.className=ok?'ok':'err'}
+function show(index){detailsEl.replaceChildren();const item=items[index];for(const [key,label] of Object.entries(labels)){const row=document.createElement('div');row.className='row';const dt=document.createElement('dt');const dd=document.createElement('dd');dt.textContent=label;dd.textContent=text(item[key]);row.append(dt,dd);detailsEl.append(row)}document.querySelectorAll('.item').forEach((el,i)=>el.classList.toggle('active',i===index))}
+async function load(){const token=tokenEl.value.trim();if(!token){status('Wpisz ADMIN_TOKEN.');return}status('Pobieranie…',true);try{const response=await fetch(`${API}/submissions`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.error||`Błąd HTTP ${response.status}`);items=Array.isArray(body.items)?body.items:[];listEl.replaceChildren();items.forEach((item,index)=>{const button=document.createElement('button');button.type='button';button.className='item';const name=document.createElement('strong');name.textContent=text(item.full_name);const meta=document.createElement('span');meta.textContent=`${text(item.phone)} · ${text(item.created_at)}`;button.append(name,meta);button.addEventListener('click',()=>show(index));listEl.append(button)});status(`Pobrano zgłoszenia: ${items.length}.`,true);if(items.length)show(0);else detailsEl.textContent='Brak zgłoszeń.'}catch(error){items=[];listEl.replaceChildren();detailsEl.textContent='Nie udało się pobrać danych.';status(error.message)}}
+document.querySelector('#load').addEventListener('click',load);
+document.querySelector('#clear').addEventListener('click',()=>{tokenEl.value='';items=[];listEl.replaceChildren();detailsEl.textContent='Wyczyszczono dane z widoku.';statusEl.textContent='';statusEl.className=''});
+tokenEl.addEventListener('keydown',event=>{if(event.key==='Enter')load()});
+</script>
+</body>
+</html>
