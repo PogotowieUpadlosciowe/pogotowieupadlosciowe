@@ -43,6 +43,32 @@
 
       <div class="form-status" id="admin-status" role="status" aria-live="polite"></div>
 
+      <section class="admin-data-tools" id="admin-data-tools" hidden aria-labelledby="data-tools-title">
+        <div>
+          <p class="eyebrow">BEZPIECZEŃSTWO DANYCH</p>
+          <h2 id="data-tools-title">Kopie i retencja</h2>
+          <p>Pobierz zaszyfrowaną kopię rekordów albo sprawdź, ile zamkniętych spraw osiągnęło określony wiek. Raport nie usuwa danych.</p>
+        </div>
+        <div class="admin-data-tool-actions">
+          <button class="button button-primary" id="download-backup" type="button">Pobierz zaszyfrowaną kopię</button>
+          <button class="button button-secondary" id="load-retention-report" type="button">Pokaż raport retencji</button>
+        </div>
+        <div class="retention-report" id="retention-report" hidden>
+          <div class="retention-report-heading">
+            <strong>Raport retencji — tryb informacyjny</strong>
+            <span id="retention-generated-at"></span>
+          </div>
+          <div class="retention-report-grid">
+            <article><span>Blokady retencji</span><strong id="retention-holds">0</strong></article>
+            <article><span>Zamknięte ponad 30 dni</span><strong id="retention-30">0</strong></article>
+            <article><span>Zamknięte ponad 90 dni</span><strong id="retention-90">0</strong></article>
+            <article><span>Zamknięte ponad 180 dni</span><strong id="retention-180">0</strong></article>
+            <article><span>Zamknięte ponad 365 dni</span><strong id="retention-365">0</strong></article>
+          </div>
+          <p id="retention-note"></p>
+        </div>
+      </section>
+
       <section class="admin-stats" id="admin-stats" aria-label="Podsumowanie zgłoszeń" hidden>
         <article class="admin-stat-card">
           <span>Wszystkie</span>
@@ -148,6 +174,14 @@
                 <div class="admin-field">
                   <label>Stan odczytu</label>
                   <button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
+                </div>
+                <div class="admin-field admin-retention-field">
+                  <label for="retention-hold">Blokada retencji</label>
+                  <label class="retention-hold-control" for="retention-hold">
+                    <input id="retention-hold" type="checkbox">
+                    <span>Nie kwalifikuj sprawy do przyszłego automatycznego usunięcia</span>
+                  </label>
+                  <p class="field-help">Obecnie działa wyłącznie raport. Automatyczne usuwanie pozostaje wyłączone.</p>
                 </div>
               </div>
               <div class="admin-field admin-notes-field">
