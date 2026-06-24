@@ -40,6 +40,17 @@ const elements = {
   load: document.getElementById('load'),
   clear: document.getElementById('clear'),
   refresh: document.getElementById('refresh'),
+  downloadBackup: document.getElementById('download-backup'),
+  loadRetentionReport: document.getElementById('load-retention-report'),
+  dataTools: document.getElementById('admin-data-tools'),
+  retentionReport: document.getElementById('retention-report'),
+  retentionGeneratedAt: document.getElementById('retention-generated-at'),
+  retentionHolds: document.getElementById('retention-holds'),
+  retention30: document.getElementById('retention-30'),
+  retention90: document.getElementById('retention-90'),
+  retention180: document.getElementById('retention-180'),
+  retention365: document.getElementById('retention-365'),
+  retentionNote: document.getElementById('retention-note'),
   statusBox: document.getElementById('admin-status'),
   stats: document.getElementById('admin-stats'),
   filters: document.getElementById('admin-filters'),
@@ -67,6 +78,7 @@ const elements = {
   copyPhone: document.getElementById('copy-phone'),
   caseStatus: document.getElementById('case-status'),
   toggleRead: document.getElementById('toggle-read'),
+  retentionHold: document.getElementById('retention-hold'),
   notes: document.getElementById('admin-notes'),
   notesCounter: document.getElementById('notes-counter'),
   saveCase: document.getElementById('save-case'),
@@ -130,7 +142,9 @@ function setBusy(isBusy) {
     elements.refresh,
     elements.saveCase,
     elements.toggleRead,
-    elements.deleteCase
+    elements.deleteCase,
+    elements.downloadBackup,
+    elements.loadRetentionReport
   ].forEach((button) => {
     if (button) button.disabled = isBusy;
   });
@@ -335,9 +349,14 @@ function renderDetails() {
   elements.detailContent.hidden = false;
   elements.caseReference.textContent = text(item.reference);
   elements.caseName.textContent = text(item.full_name);
+  const closedInfo = item.closed_at
+    ? ` · Zamknięto: ${formatDate(item.closed_at)}`
+    : '';
+
   elements.caseDates.textContent =
     `Utworzono: ${formatDate(item.created_at)} · ` +
-    `Ostatnia zmiana: ${formatDate(item.updated_at || item.created_at)}`;
+    `Ostatnia zmiana: ${formatDate(item.updated_at || item.created_at)}` +
+    closedInfo;
 
   elements.caseStatusBadge.className =
     `status-badge status-${item.status}`;
@@ -347,6 +366,8 @@ function renderDetails() {
   elements.toggleRead.textContent = item.is_read
     ? 'Oznacz jako nieprzeczytane'
     : 'Oznacz jako przeczytane';
+
+  elements.retentionHold.checked = Boolean(item.retention_hold);
 
   elements.notes.value = String(item.admin_notes || '');
   elements.notesCounter.textContent = String(elements.notes.value.length);
@@ -385,6 +406,7 @@ async function loadSubmissions({ preserveSelection = true } = {}) {
       ? previousId
       : null;
 
+    elements.dataTools.hidden = false;
     elements.stats.hidden = false;
     elements.filters.hidden = false;
     elements.workspace.hidden = false;
@@ -440,6 +462,7 @@ async function saveCase() {
         body: JSON.stringify({
           status: elements.caseStatus.value,
           is_read: item.is_read,
+          retention_hold: elements.retentionHold.checked,
           admin_notes: elements.notes.value
         })
       }
@@ -531,6 +554,103 @@ async function copyValue(value, label) {
   }
 }
 
+function filenameFromDisposition(value) {
+  const match = String(value || '').match(/filename="?([^";]+)"?/i);
+  return match ? match[1] : `pogotowie-upadlosciowe-kopia-${Date.now()}.json`;
+}
+
+async function downloadEncryptedBackup() {
+  if (requestInProgress) return;
+
+  const secret = currentToken();
+  if (!secret) {
+    setStatus('Wpisz token administratora.');
+    return;
+  }
+
+  setBusy(true);
+  setStatus('Przygotowywanie zaszyfrowanej kopii…', 'success');
+
+  try {
+    const response = await fetch(`${API_BASE}/admin/backup`, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${secret}`
+      }
+    });
+
+    if (!response.ok) {
+      let payload = {};
+      try {
+        payload = await response.json();
+      } catch {
+        // Użyj komunikatu ogólnego.
+      }
+      throw new Error(payload.error || `Błąd serwera (HTTP ${response.status}).`);
+    }
+
+    const blob = await response.blob();
+    const filename = filenameFromDisposition(
+      response.headers.get('Content-Disposition')
+    );
+    const checksum = response.headers.get('X-Backup-Checksum') || '';
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    setStatus(
+      checksum
+        ? `Kopia została pobrana. Suma kontrolna: ${checksum}`
+        : 'Kopia została pobrana.',
+      'success'
+    );
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function renderRetentionReport(payload) {
+  const summary = payload.summary || {};
+  const ages = payload.closed_without_hold_older_than_days || {};
+
+  elements.retentionGeneratedAt.textContent = formatDate(payload.generated_at);
+  elements.retentionHolds.textContent = String(summary.holds || 0);
+  elements.retention30.textContent = String(ages[30] || 0);
+  elements.retention90.textContent = String(ages[90] || 0);
+  elements.retention180.textContent = String(ages[180] || 0);
+  elements.retention365.textContent = String(ages[365] || 0);
+  elements.retentionNote.textContent = payload.note || '';
+  elements.retentionReport.hidden = false;
+}
+
+async function loadRetentionReport() {
+  if (requestInProgress) return;
+
+  setBusy(true);
+  setStatus('Przygotowywanie raportu retencji…', 'success');
+
+  try {
+    const payload = await apiRequest('/admin/retention-report');
+    renderRetentionReport(payload);
+    setStatus('Raport retencji został zaktualizowany.', 'success');
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
 function clearSession() {
   elements.token.value = '';
   submissions = [];
@@ -539,6 +659,8 @@ function clearSession() {
   elements.statusFilter.value = 'all';
   elements.readFilter.value = 'all';
   elements.sortOrder.value = 'newest';
+  elements.dataTools.hidden = true;
+  elements.retentionReport.hidden = true;
   elements.stats.hidden = true;
   elements.filters.hidden = true;
   elements.workspace.hidden = true;
@@ -549,6 +671,8 @@ function clearSession() {
 elements.load.addEventListener('click', () => loadSubmissions({ preserveSelection: false }));
 elements.refresh.addEventListener('click', () => loadSubmissions({ preserveSelection: true }));
 elements.clear.addEventListener('click', clearSession);
+elements.downloadBackup.addEventListener('click', downloadEncryptedBackup);
+elements.loadRetentionReport.addEventListener('click', loadRetentionReport);
 elements.saveCase.addEventListener('click', saveCase);
 elements.toggleRead.addEventListener('click', toggleRead);
 elements.deleteCase.addEventListener('click', deleteCase);

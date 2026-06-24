@@ -67,3 +67,23 @@
 @media(max-width:1180px){.admin-auth-card{grid-template-columns:1fr}.admin-filters{grid-template-columns:repeat(2,1fr)}.admin-refresh{width:100%}.admin-workspace{grid-template-columns:330px minmax(0,1fr)}}
 @media(max-width:900px){.admin-container{width:min(100% - 24px,1480px)}.admin-heading{flex-direction:column}.admin-auth-controls{grid-template-columns:1fr}.admin-stats{grid-template-columns:repeat(2,1fr)}.admin-workspace{grid-template-columns:1fr}.admin-list-panel{position:static}.submission-list{max-height:390px}.case-data dl{grid-template-columns:1fr}.case-data .detail-row{grid-column:1!important}}
 @media(max-width:620px){.admin-main{padding-top:28px}.admin-stats,.admin-filters,.case-workflow-grid{grid-template-columns:1fr}.admin-detail-panel{padding:17px}.case-header{flex-direction:column}.case-contact-actions .button{width:100%}.case-workflow-actions .button{width:100%}}
+
+/* Etap 10 — kopie bezpieczeństwa i raport retencji */
+.admin-data-tools{display:grid;grid-template-columns:minmax(280px,1fr) auto;gap:20px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin:22px 0;box-shadow:0 8px 26px rgba(11,45,92,.05)}
+.admin-data-tools h2{font-size:1.35rem;margin:4px 0 7px}
+.admin-data-tools p{margin:0;color:var(--muted)}
+.admin-data-tool-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.retention-report{grid-column:1/-1;border-top:1px solid var(--line);padding-top:18px}
+.retention-report-heading{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:12px;color:var(--navy)}
+.retention-report-heading span{font-size:.86rem;color:var(--muted)}
+.retention-report-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.retention-report-grid article{border:1px solid var(--line);border-radius:14px;padding:13px;background:#f7f9fc}
+.retention-report-grid span{display:block;color:var(--muted);font-size:.8rem;font-weight:700}
+.retention-report-grid strong{display:block;color:var(--navy);font-size:1.6rem;margin-top:4px}
+.retention-report>p{margin-top:12px;font-size:.88rem}
+.case-workflow-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.retention-hold-control{display:flex!important;align-items:flex-start;gap:9px;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font-weight:650!important;line-height:1.35}
+.retention-hold-control input{width:auto;margin:2px 0 0;flex:0 0 auto}
+.admin-retention-field .field-help{margin:7px 0 0;font-size:.78rem}
+@media(max-width:1180px){.admin-data-tools{grid-template-columns:1fr}.admin-data-tool-actions{justify-content:flex-start}.retention-report-grid{grid-template-columns:repeat(3,1fr)}.case-workflow-grid{grid-template-columns:1fr 1fr}.admin-retention-field{grid-column:1/-1}}
+@media(max-width:620px){.admin-data-tool-actions .button{width:100%}.retention-report-heading{align-items:flex-start;flex-direction:column}.retention-report-grid{grid-template-columns:1fr}.case-workflow-grid{grid-template-columns:1fr}.admin-retention-field{grid-column:auto}}
