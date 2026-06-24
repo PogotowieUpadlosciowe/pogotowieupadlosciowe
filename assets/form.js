@@ -23,7 +23,7 @@ form.addEventListener('submit', async (event) => {
   button.textContent = 'Wysyłanie…';
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
     const response = await fetch(`${API_BASE}/submissions`, {
@@ -48,10 +48,14 @@ form.addEventListener('submit', async (event) => {
     }
 
     form.reset();
-    showStatus('Dziękujemy. Testowa ankieta została zapisana w bazie.', 'success');
+    const reference = payload.reference ? ` Numer zgłoszenia: ${payload.reference}.` : '';
+    const emailInfo = payload.confirmation_email_sent
+      ? ' Potwierdzenie wysłaliśmy na podany adres e-mail.'
+      : ' Zgłoszenie zostało zapisane, ale nie udało się wysłać potwierdzenia e-mail.';
+    showStatus(`Dziękujemy. Ankieta została zapisana.${reference}${emailInfo}`, 'success');
   } catch (error) {
     const message = error.name === 'AbortError'
-      ? 'Przekroczono czas oczekiwania. Spróbuj ponownie.'
+      ? 'Przekroczono czas oczekiwania. Sprawdź panel przed ponownym wysłaniem, aby nie utworzyć duplikatu.'
       : error.message;
     showStatus(message, 'error');
   } finally {
