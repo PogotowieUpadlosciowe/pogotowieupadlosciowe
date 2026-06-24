@@ -82,6 +82,7 @@ const elements = {
   notes: document.getElementById('admin-notes'),
   notesCounter: document.getElementById('notes-counter'),
   saveCase: document.getElementById('save-case'),
+  saveFeedback: document.getElementById('case-save-feedback'),
   deleteCase: document.getElementById('delete-case'),
   details: document.getElementById('submission-details')
 };
@@ -94,6 +95,44 @@ function setStatus(message, type = 'error') {
 function clearStatus() {
   elements.statusBox.textContent = '';
   elements.statusBox.className = 'form-status';
+}
+
+function setSaveFeedback(message = '', type = '') {
+  if (!elements.saveFeedback || !elements.saveCase) return;
+
+  elements.saveFeedback.textContent = message;
+  elements.saveFeedback.className = type
+    ? `case-save-feedback ${type}`
+    : 'case-save-feedback';
+  elements.saveFeedback.hidden = !message;
+
+  elements.saveCase.classList.remove(
+    'save-pending',
+    'save-success',
+    'save-error',
+    'has-unsaved-changes'
+  );
+
+  if (type === 'pending') {
+    elements.saveCase.textContent = 'Zapisywanie…';
+    elements.saveCase.classList.add('save-pending');
+  } else if (type === 'success') {
+    elements.saveCase.textContent = '✓ Zapisano';
+    elements.saveCase.classList.add('save-success');
+  } else if (type === 'error') {
+    elements.saveCase.textContent = 'Spróbuj ponownie';
+    elements.saveCase.classList.add('save-error');
+  } else if (type === 'dirty') {
+    elements.saveCase.textContent = 'Zapisz zmiany';
+    elements.saveCase.classList.add('has-unsaved-changes');
+  } else {
+    elements.saveCase.textContent = 'Zapisz zmiany';
+  }
+}
+
+function markCaseDirty() {
+  if (!selectedSubmission() || requestInProgress) return;
+  setSaveFeedback('Masz niezapisane zmiany.', 'dirty');
 }
 
 function currentToken() {
@@ -342,6 +381,7 @@ function renderDetails() {
   if (!item) {
     elements.detailEmpty.hidden = false;
     elements.detailContent.hidden = true;
+    setSaveFeedback();
     return;
   }
 
@@ -423,6 +463,7 @@ async function loadSubmissions({ preserveSelection = true } = {}) {
 }
 
 async function selectSubmission(id) {
+  if (selectedId !== id) setSaveFeedback();
   selectedId = id;
   renderAll();
 
@@ -452,6 +493,7 @@ async function saveCase() {
   if (!item || requestInProgress) return;
 
   setBusy(true);
+  setSaveFeedback('Trwa zapisywanie zmian…', 'pending');
   setStatus('Zapisywanie zmian…', 'success');
 
   try {
@@ -470,8 +512,18 @@ async function saveCase() {
 
     replaceSubmission(payload.item);
     renderAll();
+
+    const savedAt = new Intl.DateTimeFormat('pl-PL', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Europe/Warsaw'
+    }).format(new Date());
+
+    setSaveFeedback(`Zmiany zostały zapisane o ${savedAt}.`, 'success');
     setStatus('Zmiany zostały zapisane.', 'success');
   } catch (error) {
+    setSaveFeedback(`Nie udało się zapisać zmian: ${error.message}`, 'error');
     setStatus(error.message);
   } finally {
     setBusy(false);
@@ -686,7 +738,10 @@ elements.copyPhone.addEventListener('click', () => {
 });
 elements.notes.addEventListener('input', () => {
   elements.notesCounter.textContent = String(elements.notes.value.length);
+  markCaseDirty();
 });
+elements.caseStatus.addEventListener('change', markCaseDirty);
+elements.retentionHold.addEventListener('change', markCaseDirty);
 elements.token.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') loadSubmissions({ preserveSelection: false });
 });

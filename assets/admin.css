@@ -87,3 +87,23 @@
 .admin-retention-field .field-help{margin:7px 0 0;font-size:.78rem}
 @media(max-width:1180px){.admin-data-tools{grid-template-columns:1fr}.admin-data-tool-actions{justify-content:flex-start}.retention-report-grid{grid-template-columns:repeat(3,1fr)}.case-workflow-grid{grid-template-columns:1fr 1fr}.admin-retention-field{grid-column:1/-1}}
 @media(max-width:620px){.admin-data-tool-actions .button{width:100%}.retention-report-heading{align-items:flex-start;flex-direction:column}.retention-report-grid{grid-template-columns:1fr}.case-workflow-grid{grid-template-columns:1fr}.admin-retention-field{grid-column:auto}}
+
+
+/* Etap 10.1 — czytelne potwierdzenie zapisu zmian */
+.case-save-feedback{display:flex;align-items:center;gap:10px;margin-top:12px;padding:11px 13px;border:1px solid transparent;border-radius:12px;font-size:.9rem;font-weight:750;line-height:1.4}
+.case-save-feedback[hidden]{display:none}
+.case-save-feedback::before{display:grid;place-items:center;width:23px;height:23px;border-radius:999px;flex:0 0 auto;font-size:.84rem;font-weight:900}
+.case-save-feedback.pending{background:#eef5ff;color:#174a87;border-color:#c9dcf7}
+.case-save-feedback.pending::before{content:'';width:18px;height:18px;border:3px solid rgba(23,74,135,.22);border-top-color:#174a87;animation:admin-save-spin .75s linear infinite}
+.case-save-feedback.success{background:#eaf7f0;color:#146c43;border-color:#b9dfca}
+.case-save-feedback.success::before{content:'✓';background:#18794e;color:#fff}
+.case-save-feedback.error{background:#fff0ef;color:#b42318;border-color:#f2c1bc}
+.case-save-feedback.error::before{content:'!';background:#b42318;color:#fff}
+.case-save-feedback.dirty{background:#fff7e6;color:#8a5200;border-color:#f1d49b}
+.case-save-feedback.dirty::before{content:'•';background:#d68a00;color:#fff;font-size:1.1rem}
+#save-case.save-success{background:#18794e;color:#fff}
+#save-case.save-error{background:#b42318;color:#fff}
+#save-case.has-unsaved-changes{box-shadow:0 0 0 4px rgba(214,138,0,.16)}
+#save-case.save-pending{position:relative}
+@keyframes admin-save-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.case-save-feedback.pending::before{animation:none}}
