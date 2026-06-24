@@ -17,3 +17,6 @@
 
 /assets/form.js
   Cache-Control: no-store, max-age=0
+
+/assets/admin.css
+  Cache-Control: no-store, max-age=0

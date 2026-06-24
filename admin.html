@@ -1,2 +1,175 @@
 <!DOCTYPE html>
-<html lang="pl"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Panel ankiet – testy | Pogotowie Upadłościowe</title><meta content="Panel administracyjny do obsługi zgłoszeń." name="description"/><meta content="noindex,nofollow,noarchive" name="robots"/><link href="images/logo/favicon.ico" rel="icon"/><link href="images/logo/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/><link href="images/logo/favicon-180x180.png" rel="apple-touch-icon"/><link href="assets/styles.css" rel="stylesheet"/></head><body><main class="section section-alt"><div class="container"><h1>Panel ankiet</h1><p><a class="button button-secondary" href="index.html">Wróć do strony</a></p><p class="notice">Panel jest aktywny i chroniony dwiema warstwami: Cloudflare Access oraz tokenem administratora Workera. Token pozostaje wyłącznie w pamięci bieżącej karty.</p><div class="toolbar"><input aria-label="Token administratora" autocomplete="current-password" id="token" placeholder="Token administratora" type="password"/><button class="button button-primary" id="load" type="button">Pobierz zgłoszenia</button><button class="button button-secondary" id="clear" type="button">Wyczyść</button></div><div class="form-status" id="admin-status" role="status"></div><div class="admin-shell"><aside class="admin-panel"><h2>Zgłoszenia</h2><div class="submission-list" id="submission-list"></div></aside><section class="admin-panel"><h2>Szczegóły</h2><dl id="submission-details"><p>Wybierz zgłoszenie z listy.</p></dl></section></div></div></main><script defer="" src="assets/admin.js"></script></body></html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel zgłoszeń | Pogotowie Upadłościowe</title>
+  <meta name="description" content="Chroniony panel administracyjny do obsługi zgłoszeń.">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <link rel="icon" href="images/logo/favicon.ico">
+  <link rel="icon" href="images/logo/favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="images/logo/favicon-180x180.png">
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body class="admin-page">
+  <main class="section section-alt admin-main">
+    <div class="container admin-container">
+      <header class="admin-heading">
+        <div>
+          <p class="eyebrow">CHRONIONY PANEL</p>
+          <h1>Obsługa zgłoszeń</h1>
+          <p class="lead">Zarządzaj statusem spraw, notatkami i danymi przesłanymi przez ankietę.</p>
+        </div>
+        <a class="button button-secondary" href="index.html">Wróć do strony</a>
+      </header>
+
+      <p class="notice">
+        Panel jest chroniony przez Cloudflare Access i token administratora. Token nie jest zapisywany w przeglądarce.
+      </p>
+
+      <section class="admin-auth-card" aria-labelledby="auth-title">
+        <div>
+          <h2 id="auth-title">Dostęp do zgłoszeń</h2>
+          <p>Wpisz token administratora, aby pobrać i aktualizować dane.</p>
+        </div>
+        <div class="admin-auth-controls">
+          <label class="sr-only" for="token">Token administratora</label>
+          <input id="token" type="password" autocomplete="current-password" placeholder="Token administratora">
+          <button class="button button-primary" id="load" type="button">Pobierz zgłoszenia</button>
+          <button class="button button-secondary" id="clear" type="button">Wyczyść sesję</button>
+        </div>
+      </section>
+
+      <div class="form-status" id="admin-status" role="status" aria-live="polite"></div>
+
+      <section class="admin-stats" id="admin-stats" aria-label="Podsumowanie zgłoszeń" hidden>
+        <article class="admin-stat-card">
+          <span>Wszystkie</span>
+          <strong id="stat-total">0</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>Nieprzeczytane</span>
+          <strong id="stat-unread">0</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>Aktywne</span>
+          <strong id="stat-active">0</strong>
+        </article>
+        <article class="admin-stat-card">
+          <span>Zakończone</span>
+          <strong id="stat-completed">0</strong>
+        </article>
+      </section>
+
+      <section class="admin-filters" id="admin-filters" hidden aria-label="Filtrowanie zgłoszeń">
+        <div class="admin-field admin-search-field">
+          <label for="search">Szukaj</label>
+          <input id="search" type="search" placeholder="Imię, numer, telefon lub e-mail">
+        </div>
+        <div class="admin-field">
+          <label for="status-filter">Status</label>
+          <select id="status-filter">
+            <option value="all">Wszystkie statusy</option>
+            <option value="new">Nowe</option>
+            <option value="contacted">Kontakt wykonany</option>
+            <option value="analysis">W analizie</option>
+            <option value="waiting_documents">Oczekiwanie na dokumenty</option>
+            <option value="completed">Zakończone</option>
+            <option value="rejected">Odrzucone</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label for="read-filter">Odczyt</label>
+          <select id="read-filter">
+            <option value="all">Wszystkie</option>
+            <option value="unread">Nieprzeczytane</option>
+            <option value="read">Przeczytane</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label for="sort-order">Sortowanie</label>
+          <select id="sort-order">
+            <option value="newest">Najnowsze</option>
+            <option value="oldest">Najstarsze</option>
+            <option value="name">Imię i nazwisko</option>
+          </select>
+        </div>
+        <button class="button button-secondary admin-refresh" id="refresh" type="button">Odśwież</button>
+      </section>
+
+      <div class="admin-workspace" id="admin-workspace" hidden>
+        <aside class="admin-panel admin-list-panel" aria-labelledby="list-title">
+          <div class="admin-panel-heading">
+            <h2 id="list-title">Zgłoszenia</h2>
+            <span id="visible-count">0</span>
+          </div>
+          <div class="submission-list" id="submission-list"></div>
+          <p class="admin-empty" id="list-empty" hidden>Brak zgłoszeń pasujących do filtrów.</p>
+        </aside>
+
+        <section class="admin-panel admin-detail-panel" aria-labelledby="details-title">
+          <div class="admin-empty-state" id="detail-empty">
+            <h2 id="details-title">Szczegóły sprawy</h2>
+            <p>Wybierz zgłoszenie z listy.</p>
+          </div>
+
+          <div id="detail-content" hidden>
+            <header class="case-header">
+              <div>
+                <p class="case-reference" id="case-reference"></p>
+                <h2 id="case-name"></h2>
+                <p class="case-dates" id="case-dates"></p>
+              </div>
+              <span class="status-badge" id="case-status-badge"></span>
+            </header>
+
+            <div class="case-contact-actions">
+              <a class="button button-secondary" id="case-email-link" href="#">Napisz e-mail</a>
+              <a class="button button-secondary" id="case-phone-link" href="#">Zadzwoń</a>
+              <button class="button button-secondary" id="copy-email" type="button">Kopiuj e-mail</button>
+              <button class="button button-secondary" id="copy-phone" type="button">Kopiuj telefon</button>
+            </div>
+
+            <section class="case-workflow" aria-labelledby="workflow-title">
+              <h3 id="workflow-title">Obsługa sprawy</h3>
+              <div class="case-workflow-grid">
+                <div class="admin-field">
+                  <label for="case-status">Status sprawy</label>
+                  <select id="case-status">
+                    <option value="new">Nowe</option>
+                    <option value="contacted">Kontakt wykonany</option>
+                    <option value="analysis">W analizie</option>
+                    <option value="waiting_documents">Oczekiwanie na dokumenty</option>
+                    <option value="completed">Zakończone</option>
+                    <option value="rejected">Odrzucone</option>
+                  </select>
+                </div>
+                <div class="admin-field">
+                  <label>Stan odczytu</label>
+                  <button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
+                </div>
+              </div>
+              <div class="admin-field admin-notes-field">
+                <label for="admin-notes">Notatki wewnętrzne</label>
+                <textarea id="admin-notes" maxlength="8000" placeholder="Notatki są szyfrowane razem z ankietą i nie są wysyłane e-mailem."></textarea>
+                <p class="field-help"><span id="notes-counter">0</span>/8000 znaków</p>
+              </div>
+              <div class="case-workflow-actions">
+                <button class="button button-primary" id="save-case" type="button">Zapisz zmiany</button>
+                <button class="button admin-danger-button" id="delete-case" type="button">Usuń zgłoszenie</button>
+              </div>
+            </section>
+
+            <section class="case-data" aria-labelledby="data-title">
+              <h3 id="data-title">Dane z ankiety</h3>
+              <dl id="submission-details"></dl>
+            </section>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script defer src="assets/admin.js"></script>
+</body>
+</html>
