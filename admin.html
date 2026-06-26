@@ -1,308 +1,290 @@
 <!DOCTYPE html>
+
 <html lang="pl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Panel zgłoszeń | Pogotowie Upadłościowe</title>
-  <meta name="description" content="Chroniony panel administracyjny do obsługi zgłoszeń.">
-  <meta name="robots" content="noindex,nofollow,noarchive">
-  <link rel="icon" href="images/logo/favicon.ico">
-  <link rel="icon" href="images/logo/favicon-32x32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="images/logo/favicon-180x180.png">
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/admin.css">
-</head>
-<body class="admin-page">
-  <main class="section section-alt admin-main">
-    <div class="container admin-container">
-      <header class="admin-heading">
-        <div>
-          <p class="eyebrow">CHRONIONY PANEL</p>
-          <h1>Obsługa zgłoszeń</h1>
-          <p class="lead">Zarządzaj statusem spraw, notatkami i danymi przesłanymi przez ankietę.</p>
-        </div>
-        <a class="button button-secondary" href="index.html">Wróć do strony</a>
-      </header>
-
-      <p class="notice">
-        Panel jest chroniony przez Cloudflare Access i token administratora. Token nie jest zapisywany w przeglądarce.
-      </p>
-
-      <section class="admin-auth-card" aria-labelledby="auth-title">
-        <div>
-          <h2 id="auth-title">Dostęp do zgłoszeń</h2>
-          <p>Wpisz token administratora, aby pobrać i aktualizować dane.</p>
-        </div>
-        <div class="admin-auth-controls">
-          <label class="sr-only" for="token">Token administratora</label>
-          <input id="token" type="password" autocomplete="current-password" placeholder="Token administratora">
-          <button class="button button-primary" id="load" type="button">Pobierz zgłoszenia</button>
-          <button class="button button-secondary" id="clear" type="button">Wyczyść sesję</button>
-        </div>
-      </section>
-
-      <div class="form-status" id="admin-status" role="status" aria-live="polite"></div>
-
-      <section class="admin-data-tools" id="admin-data-tools" hidden aria-labelledby="data-tools-title">
-        <div>
-          <p class="eyebrow">BEZPIECZEŃSTWO DANYCH</p>
-          <h2 id="data-tools-title">Kopie i retencja</h2>
-          <p>Pobierz zaszyfrowaną kopię rekordów albo sprawdź, ile zamkniętych spraw osiągnęło określony wiek. Raport nie usuwa danych.</p>
-        </div>
-        <div class="admin-data-tool-actions">
-          <button class="button button-primary" id="download-backup" type="button">Pobierz zaszyfrowaną kopię</button>
-          <button class="button button-secondary" id="load-retention-report" type="button">Pokaż raport retencji</button>
-          <button class="button button-secondary" id="process-archive" type="button">Uruchom archiwizację należnych spraw</button>
-          <button class="button button-secondary" id="open-archive" type="button">Otwórz archiwum</button>
-        </div>
-        <div class="retention-report" id="retention-report" hidden>
-          <div class="retention-report-heading">
-            <strong>Raport retencji — tryb informacyjny</strong>
-            <span id="retention-generated-at"></span>
-          </div>
-          <div class="retention-report-grid">
-            <article><span>Blokady retencji</span><strong id="retention-holds">0</strong></article>
-            <article><span>Zamknięte ponad 30 dni</span><strong id="retention-30">0</strong></article>
-            <article><span>Zamknięte ponad 90 dni</span><strong id="retention-90">0</strong></article>
-            <article><span>Zamknięte ponad 180 dni</span><strong id="retention-180">0</strong></article>
-            <article><span>Zamknięte ponad 365 dni</span><strong id="retention-365">0</strong></article>
-          </div>
-          <p id="retention-note"></p>
-        </div>
-      </section>
-
-      <section class="admin-stats" id="admin-stats" aria-label="Podsumowanie zgłoszeń" hidden>
-        <article class="admin-stat-card">
-          <span>Wszystkie</span>
-          <strong id="stat-total">0</strong>
-        </article>
-        <article class="admin-stat-card">
-          <span>Nieprzeczytane</span>
-          <strong id="stat-unread">0</strong>
-        </article>
-        <article class="admin-stat-card">
-          <span>Aktywne</span>
-          <strong id="stat-active">0</strong>
-        </article>
-        <article class="admin-stat-card">
-          <span>Zakończone</span>
-          <strong id="stat-completed">0</strong>
-        </article>
-      </section>
-
-      <section class="admin-filters" id="admin-filters" hidden aria-label="Filtrowanie zgłoszeń">
-        <div class="admin-field admin-search-field">
-          <label for="search">Szukaj</label>
-          <input id="search" type="search" placeholder="Imię, numer, telefon lub e-mail">
-        </div>
-        <div class="admin-field">
-          <label for="status-filter">Status</label>
-          <select id="status-filter">
-            <option value="all">Wszystkie statusy</option>
-            <option value="new">Nowe</option>
-            <option value="contacted">Kontakt wykonany</option>
-            <option value="analysis">W analizie</option>
-            <option value="waiting_documents">Oczekiwanie na dokumenty</option>
-            <option value="completed">Zakończone</option>
-            <option value="rejected">Odrzucone</option>
-          </select>
-        </div>
-        <div class="admin-field">
-          <label for="read-filter">Odczyt</label>
-          <select id="read-filter">
-            <option value="all">Wszystkie</option>
-            <option value="unread">Nieprzeczytane</option>
-            <option value="read">Przeczytane</option>
-          </select>
-        </div>
-        <div class="admin-field">
-          <label for="sort-order">Sortowanie</label>
-          <select id="sort-order">
-            <option value="newest">Najnowsze</option>
-            <option value="oldest">Najstarsze</option>
-            <option value="name">Imię i nazwisko</option>
-          </select>
-        </div>
-        <button class="button button-secondary admin-refresh" id="refresh" type="button">Odśwież</button>
-      </section>
-
-      <div class="admin-workspace" id="admin-workspace" hidden>
-        <aside class="admin-panel admin-list-panel" aria-labelledby="list-title">
-          <div class="admin-panel-heading">
-            <h2 id="list-title">Zgłoszenia</h2>
-            <span id="visible-count">0</span>
-          </div>
-          <div class="submission-list" id="submission-list"></div>
-          <p class="admin-empty" id="list-empty" hidden>Brak zgłoszeń pasujących do filtrów.</p>
-        </aside>
-
-        <section class="admin-panel admin-detail-panel" aria-labelledby="details-title">
-          <div class="admin-empty-state" id="detail-empty">
-            <h2 id="details-title">Szczegóły sprawy</h2>
-            <p>Wybierz zgłoszenie z listy.</p>
-          </div>
-
-          <div id="detail-content" hidden>
-            <header class="case-header">
-              <div>
-                <p class="case-reference" id="case-reference"></p>
-                <h2 id="case-name"></h2>
-                <p class="case-dates" id="case-dates"></p>
-              </div>
-              <span class="status-badge" id="case-status-badge"></span>
-            </header>
-
-            <div class="case-contact-actions">
-              <a class="button button-secondary" id="case-email-link" href="#">Napisz e-mail</a>
-              <a class="button button-secondary" id="case-phone-link" href="#">Zadzwoń</a>
-              <button class="button button-secondary" id="copy-email" type="button">Kopiuj e-mail</button>
-              <button class="button button-secondary" id="copy-phone" type="button">Kopiuj telefon</button>
-            </div>
-
-            <section class="case-workflow" aria-labelledby="workflow-title">
-              <h3 id="workflow-title">Obsługa sprawy</h3>
-              <div class="case-workflow-grid">
-                <div class="admin-field">
-                  <label for="case-status">Status sprawy</label>
-                  <select id="case-status">
-                    <option value="new">Nowe</option>
-                    <option value="contacted">Kontakt wykonany</option>
-                    <option value="analysis">W analizie</option>
-                    <option value="waiting_documents">Oczekiwanie na dokumenty</option>
-                    <option value="completed">Zakończone</option>
-                    <option value="rejected">Odrzucone</option>
-                  </select>
-                </div>
-                <div class="admin-field">
-                  <label for="payment-status">Status płatności</label>
-                  <select id="payment-status">
-                    <option value="not_set">Nie ustawiono</option>
-                    <option value="awaiting">Oczekuje na płatność</option>
-                    <option value="paid">Opłacona</option>
-                    <option value="refunded">Zwrócona</option>
-                  </select>
-                </div>
-                <div class="admin-field">
-                  <label for="closure-reason">Sposób zamknięcia</label>
-                  <select id="closure-reason">
-                    <option value="none">Nie dotyczy</option>
-                    <option value="service_completed">Usługa wykonana</option>
-                    <option value="no_purchase">Nie rozpoczęto płatnej współpracy</option>
-                    <option value="cancelled">Rezygnacja / anulowanie</option>
-                    <option value="refunded">Zwrot płatności</option>
-                    <option value="dispute">Spór / reklamacja</option>
-                  </select>
-                </div>
-                <div class="admin-field">
-                  <label>Stan odczytu</label>
-                  <button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
-                </div>
-                <div class="admin-field admin-retention-field">
-                  <label for="retention-hold">Blokada retencji</label>
-                  <label class="retention-hold-control" for="retention-hold">
-                    <input id="retention-hold" type="checkbox">
-                    <span>Nie kwalifikuj sprawy do przyszłego automatycznego usunięcia</span>
-                  </label>
-                  <p class="field-help">Obecnie działa wyłącznie raport. Automatyczne usuwanie pozostaje wyłączone.</p>
-                </div>
-              </div>
-              <div class="case-archive-status" id="case-archive-status" hidden>
-                <strong id="case-archive-status-title"></strong>
-                <span id="case-archive-status-details"></span>
-              </div>
-              <div class="admin-field admin-notes-field">
-                <label for="admin-notes">Notatki wewnętrzne</label>
-                <textarea id="admin-notes" maxlength="8000" placeholder="Notatki są szyfrowane razem z ankietą i nie są wysyłane e-mailem."></textarea>
-                <p class="field-help"><span id="notes-counter">0</span>/8000 znaków</p>
-              </div>
-              <div class="case-workflow-actions">
-                <button class="button button-primary" id="save-case" type="button">Zapisz zmiany</button>
-                <button class="button admin-danger-button" id="delete-case" type="button">Usuń zgłoszenie</button>
-              </div>
-              <div class="case-save-feedback" id="case-save-feedback" role="status" aria-live="polite" hidden></div>
-            </section>
-
-            <section class="case-attachments" aria-labelledby="attachments-title">
-              <div class="case-section-heading">
-                <div>
-                  <h3 id="attachments-title">Dokumenty sprawy</h3>
-                  <p>Pliki są szyfrowane przed zapisaniem w prywatnym R2. Dozwolone: PDF, JPG, PNG, DOCX; maksymalnie 10 MB.</p>
-                </div>
-              </div>
-              <div class="attachment-upload-controls">
-                <input id="attachment-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                <button class="button button-secondary" id="upload-attachment" type="button">Dodaj załącznik</button>
-              </div>
-              <div class="attachment-status" id="attachment-status" role="status" aria-live="polite"></div>
-              <div class="attachment-list" id="attachment-list"></div>
-              <p class="admin-empty" id="attachment-empty">Brak załączników.</p>
-            </section>
-
-            <section class="case-data" aria-labelledby="data-title">
-              <h3 id="data-title">Dane z ankiety</h3>
-              <dl id="submission-details"></dl>
-            </section>
-          </div>
-        </section>
-      </div>
-
-      <section class="admin-archive-section" id="archive-section" hidden aria-labelledby="archive-title">
-        <div class="archive-heading">
-          <div>
-            <p class="eyebrow">PRYWATNE ARCHIWUM R2</p>
-            <h2 id="archive-title">Archiwum spraw</h2>
-            <p>Wyszukuj po pełnym nazwisku, pełnym imieniu i nazwisku, numerze sprawy, adresie e-mail albo numerze telefonu.</p>
-          </div>
-          <button class="button button-secondary" id="close-archive" type="button">Wróć do aktywnych spraw</button>
-        </div>
-
-        <div class="archive-search-controls">
-          <label class="sr-only" for="archive-search">Szukaj w archiwum</label>
-          <input id="archive-search" type="search" placeholder="Np. Kowalski lub PU-2026-XXXXXXXX">
-          <button class="button button-primary" id="search-archive" type="button">Szukaj</button>
-        </div>
-        <p class="field-help">Wyszukiwanie częściowego fragmentu nazwiska, np. „Kow”, jest celowo wyłączone. Wpisz całe nazwisko.</p>
-
-        <div class="archive-workspace">
-          <aside class="admin-panel archive-list-panel">
-            <div class="admin-panel-heading">
-              <h3>Wyniki</h3>
-              <span id="archive-count">0</span>
-            </div>
-            <div id="archive-list" class="submission-list"></div>
-            <p class="admin-empty" id="archive-empty">Brak zarchiwizowanych spraw.</p>
-          </aside>
-
-          <section class="admin-panel archive-detail-panel">
-            <div class="admin-empty-state" id="archive-detail-empty">
-              <h3>Szczegóły archiwalne</h3>
-              <p>Wybierz sprawę z listy.</p>
-            </div>
-            <div id="archive-detail" hidden>
-              <header class="case-header">
-                <div>
-                  <p class="case-reference" id="archive-reference"></p>
-                  <h3 id="archive-name"></h3>
-                  <p class="case-dates" id="archive-dates"></p>
-                </div>
-                <span class="status-badge status-completed">Archiwum</span>
-              </header>
-              <dl id="archive-summary" class="archive-summary"></dl>
-              <section class="case-attachments">
-                <h3>Załączniki archiwalne</h3>
-                <div id="archive-attachments" class="attachment-list"></div>
-                <p class="admin-empty" id="archive-attachments-empty">Brak załączników.</p>
-              </section>
-              <section class="case-data">
-                <h3>Dane z ankiety</h3>
-                <dl id="archive-details"></dl>
-              </section>
-            </div>
-          </section>
-        </div>
-      </section>
-    </div>
-  </main>
-  <script defer src="assets/admin.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Panel zgłoszeń | Pogotowie Upadłościowe</title>
+<meta content="Chroniony panel administracyjny do obsługi zgłoszeń." name="description"/>
+<meta content="noindex,nofollow,noarchive" name="robots"/>
+<link href="images/logo/favicon.ico" rel="icon"/>
+<link href="images/logo/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="images/logo/favicon-180x180.png" rel="apple-touch-icon"/>
+<link href="assets/styles.css" rel="stylesheet"/>
+<link href="assets/admin.css" rel="stylesheet"/>
+<meta content="#092348" name="theme-color"/></head>
+<body class="admin-page"><header class="admin-topbar"><div class="container admin-container admin-topbar-inner"><a aria-label="Pogotowie Upadłościowe — strona główna" class="admin-brand" href="index.html"><img alt="" height="42" src="images/logo/logo-mark.png" width="42"/><span><strong>Pogotowie Upadłościowe</strong><span>Panel administracyjny</span></span></a><span class="admin-security-badge">Chroniony dostęp</span></div></header>
+<main class="admin-main">
+<div class="container admin-container">
+<header class="admin-heading">
+<div>
+<p class="eyebrow">CHRONIONY PANEL</p>
+<h1>Obsługa zgłoszeń</h1>
+<p class="lead">Zarządzaj zgłoszeniami, dokumentami, statusem płatności, retencją i prywatnym archiwum R2.</p>
+</div>
+<a class="button button-secondary" href="index.html">Wróć do strony publicznej</a>
+</header>
+<p class="notice"><strong>Dwie warstwy ochrony: </strong>Cloudflare Access zabezpiecza stronę panelu, a token administratora autoryzuje operacje na danych.</p>
+<section aria-labelledby="auth-title" class="admin-auth-card">
+<div>
+<h2 id="auth-title">Dostęp do zgłoszeń</h2>
+<p>Wpisz token administratora, aby pobrać i aktualizować dane.</p>
+</div>
+<div class="admin-auth-controls">
+<label class="sr-only" for="token">Token administratora</label>
+<input autocomplete="current-password" id="token" placeholder="Token administratora" type="password"/>
+<button class="button button-primary" id="load" type="button">Pobierz zgłoszenia</button>
+<button class="button button-secondary" id="clear" type="button">Wyczyść sesję</button>
+</div>
+</section>
+<div aria-live="polite" class="form-status" id="admin-status" role="status"></div>
+<section aria-labelledby="data-tools-title" class="admin-data-tools" hidden="" id="admin-data-tools">
+<div>
+<p class="eyebrow">BEZPIECZEŃSTWO DANYCH</p>
+<h2 id="data-tools-title">Kopie i retencja</h2>
+<p>Pobierz zaszyfrowaną kopię rekordów albo sprawdź, ile zamkniętych spraw osiągnęło określony wiek. Raport nie usuwa danych.</p>
+</div>
+<div class="admin-data-tool-actions">
+<button class="button button-primary" id="download-backup" type="button">Pobierz zaszyfrowaną kopię</button>
+<button class="button button-secondary" id="load-retention-report" type="button">Pokaż raport retencji</button>
+<button class="button button-secondary" id="process-archive" type="button">Uruchom archiwizację należnych spraw</button>
+<button class="button button-secondary" id="open-archive" type="button">Otwórz archiwum</button>
+</div>
+<div class="retention-report" hidden="" id="retention-report">
+<div class="retention-report-heading">
+<strong>Raport retencji — tryb informacyjny</strong>
+<span id="retention-generated-at"></span>
+</div>
+<div class="retention-report-grid">
+<article><span>Blokady retencji</span><strong id="retention-holds">0</strong></article>
+<article><span>Zamknięte ponad 30 dni</span><strong id="retention-30">0</strong></article>
+<article><span>Zamknięte ponad 90 dni</span><strong id="retention-90">0</strong></article>
+<article><span>Zamknięte ponad 180 dni</span><strong id="retention-180">0</strong></article>
+<article><span>Zamknięte ponad 365 dni</span><strong id="retention-365">0</strong></article>
+</div>
+<p id="retention-note"></p>
+</div>
+</section>
+<section aria-label="Podsumowanie zgłoszeń" class="admin-stats" hidden="" id="admin-stats">
+<article class="admin-stat-card">
+<span>Wszystkie</span>
+<strong id="stat-total">0</strong>
+</article>
+<article class="admin-stat-card">
+<span>Nieprzeczytane</span>
+<strong id="stat-unread">0</strong>
+</article>
+<article class="admin-stat-card">
+<span>Aktywne</span>
+<strong id="stat-active">0</strong>
+</article>
+<article class="admin-stat-card">
+<span>Zakończone</span>
+<strong id="stat-completed">0</strong>
+</article>
+</section>
+<section aria-label="Filtrowanie zgłoszeń" class="admin-filters" hidden="" id="admin-filters">
+<div class="admin-field admin-search-field">
+<label for="search">Szukaj</label>
+<input id="search" placeholder="Imię, numer, telefon lub e-mail" type="search"/>
+</div>
+<div class="admin-field">
+<label for="status-filter">Status</label>
+<select id="status-filter">
+<option value="all">Wszystkie statusy</option>
+<option value="new">Nowe</option>
+<option value="contacted">Kontakt wykonany</option>
+<option value="analysis">W analizie</option>
+<option value="waiting_documents">Oczekiwanie na dokumenty</option>
+<option value="completed">Zakończone</option>
+<option value="rejected">Odrzucone</option>
+</select>
+</div>
+<div class="admin-field">
+<label for="read-filter">Odczyt</label>
+<select id="read-filter">
+<option value="all">Wszystkie</option>
+<option value="unread">Nieprzeczytane</option>
+<option value="read">Przeczytane</option>
+</select>
+</div>
+<div class="admin-field">
+<label for="sort-order">Sortowanie</label>
+<select id="sort-order">
+<option value="newest">Najnowsze</option>
+<option value="oldest">Najstarsze</option>
+<option value="name">Imię i nazwisko</option>
+</select>
+</div>
+<button class="button button-secondary admin-refresh" id="refresh" type="button">Odśwież</button>
+</section>
+<div class="admin-workspace" hidden="" id="admin-workspace">
+<aside aria-labelledby="list-title" class="admin-panel admin-list-panel">
+<div class="admin-panel-heading">
+<h2 id="list-title">Zgłoszenia</h2>
+<span id="visible-count">0</span>
+</div>
+<div class="submission-list" id="submission-list"></div>
+<p class="admin-empty" hidden="" id="list-empty">Brak zgłoszeń pasujących do filtrów.</p>
+</aside>
+<section aria-labelledby="details-title" class="admin-panel admin-detail-panel">
+<div class="admin-empty-state" id="detail-empty">
+<h2 id="details-title">Szczegóły sprawy</h2>
+<p>Wybierz zgłoszenie z listy.</p>
+</div>
+<div hidden="" id="detail-content">
+<header class="case-header">
+<div>
+<p class="case-reference" id="case-reference"></p>
+<h2 id="case-name"></h2>
+<p class="case-dates" id="case-dates"></p>
+</div>
+<span class="status-badge" id="case-status-badge"></span>
+</header>
+<div class="case-contact-actions">
+<a class="button button-secondary" href="#" id="case-email-link">Napisz e-mail</a>
+<a class="button button-secondary" href="#" id="case-phone-link">Zadzwoń</a>
+<button class="button button-secondary" id="copy-email" type="button">Kopiuj e-mail</button>
+<button class="button button-secondary" id="copy-phone" type="button">Kopiuj telefon</button>
+</div>
+<section aria-labelledby="workflow-title" class="case-workflow">
+<h3 id="workflow-title">Obsługa sprawy</h3>
+<div class="case-workflow-grid">
+<div class="admin-field">
+<label for="case-status">Status sprawy</label>
+<select id="case-status">
+<option value="new">Nowe</option>
+<option value="contacted">Kontakt wykonany</option>
+<option value="analysis">W analizie</option>
+<option value="waiting_documents">Oczekiwanie na dokumenty</option>
+<option value="completed">Zakończone</option>
+<option value="rejected">Odrzucone</option>
+</select>
+</div>
+<div class="admin-field">
+<label for="payment-status">Status płatności</label>
+<select id="payment-status">
+<option value="not_set">Nie ustawiono</option>
+<option value="awaiting">Oczekuje na płatność</option>
+<option value="paid">Opłacona</option>
+<option value="refunded">Zwrócona</option>
+</select>
+</div>
+<div class="admin-field">
+<label for="closure-reason">Sposób zamknięcia</label>
+<select id="closure-reason">
+<option value="none">Nie dotyczy</option>
+<option value="service_completed">Usługa wykonana</option>
+<option value="no_purchase">Nie rozpoczęto płatnej współpracy</option>
+<option value="cancelled">Rezygnacja / anulowanie</option>
+<option value="refunded">Zwrot płatności</option>
+<option value="dispute">Spór / reklamacja</option>
+</select>
+</div>
+<div class="admin-field">
+<label>Stan odczytu</label>
+<button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
+</div>
+<div class="admin-field admin-retention-field">
+<label for="retention-hold">Blokada retencji</label>
+<label class="retention-hold-control" for="retention-hold">
+<input id="retention-hold" type="checkbox"/>
+<span>Nie kwalifikuj sprawy do przyszłego automatycznego usunięcia</span>
+</label>
+<p class="field-help">Obecnie działa wyłącznie raport. Automatyczne usuwanie pozostaje wyłączone.</p>
+</div>
+</div>
+<div class="case-archive-status" hidden="" id="case-archive-status">
+<strong id="case-archive-status-title"></strong>
+<span id="case-archive-status-details"></span>
+</div>
+<div class="admin-field admin-notes-field">
+<label for="admin-notes">Notatki wewnętrzne</label>
+<textarea id="admin-notes" maxlength="8000" placeholder="Notatki są szyfrowane razem z ankietą i nie są wysyłane e-mailem."></textarea>
+<p class="field-help"><span id="notes-counter">0</span>/8000 znaków</p>
+</div>
+<div class="case-workflow-actions">
+<button class="button button-primary" id="save-case" type="button">Zapisz zmiany</button>
+<button class="button admin-danger-button" id="delete-case" type="button">Usuń zgłoszenie</button>
+</div>
+<div aria-live="polite" class="case-save-feedback" hidden="" id="case-save-feedback" role="status"></div>
+</section>
+<section aria-labelledby="attachments-title" class="case-attachments">
+<div class="case-section-heading">
+<div>
+<h3 id="attachments-title">Dokumenty sprawy</h3>
+<p>Pliki są szyfrowane przed zapisaniem w prywatnym R2. Dozwolone: PDF, JPG, PNG, DOCX; maksymalnie 10 MB.</p>
+</div>
+</div>
+<div class="attachment-upload-controls">
+<input accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="attachment-file" type="file"/>
+<button class="button button-secondary" id="upload-attachment" type="button">Dodaj załącznik</button>
+</div>
+<div aria-live="polite" class="attachment-status" id="attachment-status" role="status"></div>
+<div class="attachment-list" id="attachment-list"></div>
+<p class="admin-empty" id="attachment-empty">Brak załączników.</p>
+</section>
+<section aria-labelledby="data-title" class="case-data">
+<h3 id="data-title">Dane z ankiety</h3>
+<dl id="submission-details"></dl>
+</section>
+</div>
+</section>
+</div>
+<section aria-labelledby="archive-title" class="admin-archive-section" hidden="" id="archive-section">
+<div class="archive-heading">
+<div>
+<p class="eyebrow">PRYWATNE ARCHIWUM R2</p>
+<h2 id="archive-title">Archiwum spraw</h2>
+<p>Wyszukuj po pełnym nazwisku, pełnym imieniu i nazwisku, numerze sprawy, adresie e-mail albo numerze telefonu.</p>
+</div>
+<button class="button button-secondary" id="close-archive" type="button">Wróć do aktywnych spraw</button>
+</div>
+<div class="archive-search-controls">
+<label class="sr-only" for="archive-search">Szukaj w archiwum</label>
+<input id="archive-search" placeholder="Np. Kowalski lub PU-2026-XXXXXXXX" type="search"/>
+<button class="button button-primary" id="search-archive" type="button">Szukaj</button>
+</div>
+<p class="field-help">Wyszukiwanie częściowego fragmentu nazwiska, np. „Kow”, jest celowo wyłączone. Wpisz całe nazwisko.</p>
+<div class="archive-workspace">
+<aside class="admin-panel archive-list-panel">
+<div class="admin-panel-heading">
+<h3>Wyniki</h3>
+<span id="archive-count">0</span>
+</div>
+<div class="submission-list" id="archive-list"></div>
+<p class="admin-empty" id="archive-empty">Brak zarchiwizowanych spraw.</p>
+</aside>
+<section class="admin-panel archive-detail-panel">
+<div class="admin-empty-state" id="archive-detail-empty">
+<h3>Szczegóły archiwalne</h3>
+<p>Wybierz sprawę z listy.</p>
+</div>
+<div hidden="" id="archive-detail">
+<header class="case-header">
+<div>
+<p class="case-reference" id="archive-reference"></p>
+<h3 id="archive-name"></h3>
+<p class="case-dates" id="archive-dates"></p>
+</div>
+<span class="status-badge status-completed">Archiwum</span>
+</header>
+<dl class="archive-summary" id="archive-summary"></dl>
+<section class="case-attachments">
+<h3>Załączniki archiwalne</h3>
+<div class="attachment-list" id="archive-attachments"></div>
+<p class="admin-empty" id="archive-attachments-empty">Brak załączników.</p>
+</section>
+<section class="case-data">
+<h3>Dane z ankiety</h3>
+<dl id="archive-details"></dl>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+</main>
+<script defer="" src="assets/admin.js"></script>
 </body>
 </html>
