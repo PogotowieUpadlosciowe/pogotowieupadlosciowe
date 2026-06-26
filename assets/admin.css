@@ -107,3 +107,192 @@
 #save-case.save-pending{position:relative}
 @keyframes admin-save-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.case-save-feedback.pending::before{animation:none}}
+
+/* Etap 11: R2, archiwum i załączniki */
+.case-workflow-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.case-archive-status {
+  display: grid;
+  gap: 0.3rem;
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid #d7e0ed;
+  border-radius: 12px;
+  background: #f7f9fc;
+}
+
+.case-archive-status strong {
+  color: #073269;
+}
+
+.case-archive-status span {
+  color: #5d6d82;
+  font-size: 0.92rem;
+}
+
+.case-archive-status.archive-scheduled {
+  border-color: #e5c66a;
+  background: #fff9e8;
+}
+
+.case-archive-status.archive-error {
+  border-color: #e2a0a0;
+  background: #fff1f1;
+}
+
+.case-archive-status.archive-archived {
+  border-color: #9dd2b2;
+  background: #eefaf2;
+}
+
+.case-attachments {
+  margin-top: 1.25rem;
+  padding: 1.1rem;
+  border: 1px solid #d7e0ed;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.case-section-heading h3,
+.case-attachments h3 {
+  margin: 0 0 0.35rem;
+}
+
+.case-section-heading p {
+  margin: 0;
+  color: #617087;
+}
+
+.attachment-upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+.attachment-upload-controls input[type="file"] {
+  flex: 1 1 320px;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid #bdc9da;
+  border-radius: 10px;
+  background: #f9fbfd;
+}
+
+.attachment-status {
+  min-height: 1.3rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.92rem;
+}
+
+.attachment-status.success { color: #11713b; }
+.attachment-status.error { color: #a32929; }
+.attachment-status.pending { color: #795d00; }
+
+.attachment-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.attachment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem;
+  border: 1px solid #dce4ef;
+  border-radius: 10px;
+  background: #f9fbfd;
+}
+
+.attachment-row > div:first-child {
+  display: grid;
+  min-width: 0;
+}
+
+.attachment-row strong {
+  overflow-wrap: anywhere;
+}
+
+.attachment-row span {
+  color: #66758a;
+  font-size: 0.88rem;
+}
+
+.attachment-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-archive-section {
+  margin-top: 1.5rem;
+  padding: 1.3rem;
+  border: 1px solid #d6e0ed;
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.archive-heading,
+.archive-search-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.archive-heading h2 {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.archive-heading p {
+  margin: 0;
+  color: #5d6d82;
+}
+
+.archive-search-controls {
+  margin-top: 1.2rem;
+  justify-content: flex-start;
+}
+
+.archive-search-controls input {
+  flex: 1 1 420px;
+  min-width: 220px;
+}
+
+.archive-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.8fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.archive-list-panel,
+.archive-detail-panel {
+  min-height: 420px;
+}
+
+.archive-summary {
+  margin: 1rem 0;
+}
+
+@media (max-width: 900px) {
+  .archive-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .attachment-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attachment-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

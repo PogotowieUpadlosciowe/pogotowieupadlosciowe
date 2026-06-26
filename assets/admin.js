@@ -9,6 +9,30 @@ const STATUS_LABELS = Object.freeze({
   rejected: 'Odrzucone'
 });
 
+const PAYMENT_LABELS = Object.freeze({
+  not_set: 'Nie ustawiono',
+  awaiting: 'Oczekuje na płatność',
+  paid: 'Opłacona',
+  refunded: 'Zwrócona'
+});
+
+const CLOSURE_LABELS = Object.freeze({
+  none: 'Nie dotyczy',
+  service_completed: 'Usługa wykonana',
+  no_purchase: 'Nie rozpoczęto płatnej współpracy',
+  cancelled: 'Rezygnacja / anulowanie',
+  refunded: 'Zwrot płatności',
+  dispute: 'Spór / reklamacja'
+});
+
+const ARCHIVE_STATUS_LABELS = Object.freeze({
+  not_scheduled: 'Archiwizacja nie jest zaplanowana',
+  scheduled: 'Archiwizacja zaplanowana',
+  archiving: 'Trwa archiwizacja',
+  archived: 'Sprawa zarchiwizowana',
+  error: 'Błąd archiwizacji'
+});
+
 const DETAIL_FIELDS = Object.freeze([
   ['full_name', 'Imię i nazwisko'],
   ['pesel', 'PESEL'],
@@ -34,6 +58,10 @@ const DETAIL_FIELDS = Object.freeze([
 let submissions = [];
 let selectedId = null;
 let requestInProgress = false;
+let currentAttachments = [];
+let archiveItems = [];
+let archiveSelectedId = null;
+let archiveSelectedItem = null;
 
 const elements = {
   token: document.getElementById('token'),
@@ -42,6 +70,8 @@ const elements = {
   refresh: document.getElementById('refresh'),
   downloadBackup: document.getElementById('download-backup'),
   loadRetentionReport: document.getElementById('load-retention-report'),
+  processArchive: document.getElementById('process-archive'),
+  openArchive: document.getElementById('open-archive'),
   dataTools: document.getElementById('admin-data-tools'),
   retentionReport: document.getElementById('retention-report'),
   retentionGeneratedAt: document.getElementById('retention-generated-at'),
@@ -77,6 +107,11 @@ const elements = {
   copyEmail: document.getElementById('copy-email'),
   copyPhone: document.getElementById('copy-phone'),
   caseStatus: document.getElementById('case-status'),
+  paymentStatus: document.getElementById('payment-status'),
+  closureReason: document.getElementById('closure-reason'),
+  caseArchiveStatus: document.getElementById('case-archive-status'),
+  caseArchiveStatusTitle: document.getElementById('case-archive-status-title'),
+  caseArchiveStatusDetails: document.getElementById('case-archive-status-details'),
   toggleRead: document.getElementById('toggle-read'),
   retentionHold: document.getElementById('retention-hold'),
   notes: document.getElementById('admin-notes'),
@@ -84,7 +119,28 @@ const elements = {
   saveCase: document.getElementById('save-case'),
   saveFeedback: document.getElementById('case-save-feedback'),
   deleteCase: document.getElementById('delete-case'),
-  details: document.getElementById('submission-details')
+  details: document.getElementById('submission-details'),
+  attachmentFile: document.getElementById('attachment-file'),
+  uploadAttachment: document.getElementById('upload-attachment'),
+  attachmentStatus: document.getElementById('attachment-status'),
+  attachmentList: document.getElementById('attachment-list'),
+  attachmentEmpty: document.getElementById('attachment-empty'),
+  archiveSection: document.getElementById('archive-section'),
+  closeArchive: document.getElementById('close-archive'),
+  archiveSearch: document.getElementById('archive-search'),
+  searchArchive: document.getElementById('search-archive'),
+  archiveCount: document.getElementById('archive-count'),
+  archiveList: document.getElementById('archive-list'),
+  archiveEmpty: document.getElementById('archive-empty'),
+  archiveDetailEmpty: document.getElementById('archive-detail-empty'),
+  archiveDetail: document.getElementById('archive-detail'),
+  archiveReference: document.getElementById('archive-reference'),
+  archiveName: document.getElementById('archive-name'),
+  archiveDates: document.getElementById('archive-dates'),
+  archiveSummary: document.getElementById('archive-summary'),
+  archiveAttachments: document.getElementById('archive-attachments'),
+  archiveAttachmentsEmpty: document.getElementById('archive-attachments-empty'),
+  archiveDetails: document.getElementById('archive-details')
 };
 
 function setStatus(message, type = 'error') {
@@ -162,6 +218,13 @@ function formatDate(value) {
   }
 }
 
+function formatBytes(value) {
+  const bytes = Number(value || 0);
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function normalize(value) {
   return String(value || '')
     .toLocaleLowerCase('pl-PL')
@@ -183,7 +246,12 @@ function setBusy(isBusy) {
     elements.toggleRead,
     elements.deleteCase,
     elements.downloadBackup,
-    elements.loadRetentionReport
+    elements.loadRetentionReport,
+    elements.processArchive,
+    elements.openArchive,
+    elements.uploadAttachment,
+    elements.searchArchive,
+    elements.closeArchive
   ].forEach((button) => {
     if (button) button.disabled = isBusy;
   });
@@ -381,6 +449,8 @@ function renderDetails() {
   if (!item) {
     elements.detailEmpty.hidden = false;
     elements.detailContent.hidden = true;
+    currentAttachments = [];
+    renderAttachmentList();
     setSaveFeedback();
     return;
   }
@@ -403,6 +473,19 @@ function renderDetails() {
   elements.caseStatusBadge.textContent = STATUS_LABELS[item.status] || 'Nowe';
 
   elements.caseStatus.value = item.status || 'new';
+  elements.paymentStatus.value = item.payment_status || 'not_set';
+  elements.closureReason.value = item.closure_reason || 'none';
+
+  const archiveStatus = item.archive_status || 'not_scheduled';
+  elements.caseArchiveStatus.hidden = false;
+  elements.caseArchiveStatusTitle.textContent = ARCHIVE_STATUS_LABELS[archiveStatus] || archiveStatus;
+  const archiveParts = [];
+  if (item.archive_at) archiveParts.push(`Plan archiwizacji: ${formatDate(item.archive_at)}`);
+  if (item.delete_after) archiveParts.push(`Planowane usunięcie: ${formatDate(item.delete_after)}`);
+  archiveParts.push(`Załączniki: ${Number(item.attachment_count || 0)}`);
+  elements.caseArchiveStatusDetails.textContent = archiveParts.join(' · ');
+  elements.caseArchiveStatus.className = `case-archive-status archive-${archiveStatus}`;
+
   elements.toggleRead.textContent = item.is_read
     ? 'Oznacz jako nieprzeczytane'
     : 'Oznacz jako przeczytane';
@@ -419,6 +502,7 @@ function renderDetails() {
 
   elements.details.replaceChildren();
   DETAIL_FIELDS.forEach(([key, label]) => appendDetailRow(label, item[key]));
+  renderAttachmentList();
 }
 
 function renderAll() {
@@ -427,8 +511,8 @@ function renderAll() {
   renderDetails();
 }
 
-async function loadSubmissions({ preserveSelection = true } = {}) {
-  if (requestInProgress) return;
+async function loadSubmissions({ preserveSelection = true, force = false } = {}) {
+  if (requestInProgress && !force) return;
 
   if (!currentToken()) {
     setStatus('Wpisz token administratora.');
@@ -465,21 +549,25 @@ async function loadSubmissions({ preserveSelection = true } = {}) {
 async function selectSubmission(id) {
   if (selectedId !== id) setSaveFeedback();
   selectedId = id;
+  currentAttachments = [];
   renderAll();
 
   const item = selectedSubmission();
-  if (!item || item.is_read || requestInProgress) return;
+  if (!item) return;
 
   try {
-    const payload = await apiRequest(`/submissions/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_read: true })
-    });
+    if (!item.is_read && !requestInProgress) {
+      const payload = await apiRequest(`/submissions/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_read: true })
+      });
+      replaceSubmission(payload.item);
+      renderAll();
+    }
 
-    replaceSubmission(payload.item);
-    renderAll();
+    await loadAttachments(id);
   } catch (error) {
-    setStatus(`Nie udało się oznaczyć jako przeczytane: ${error.message}`);
+    setStatus(`Nie udało się otworzyć pełnych danych sprawy: ${error.message}`);
   }
 }
 
@@ -503,6 +591,8 @@ async function saveCase() {
         method: 'PATCH',
         body: JSON.stringify({
           status: elements.caseStatus.value,
+          payment_status: elements.paymentStatus.value,
+          closure_reason: elements.closureReason.value,
           is_read: item.is_read,
           retention_hold: elements.retentionHold.checked,
           admin_notes: elements.notes.value
@@ -703,10 +793,352 @@ async function loadRetentionReport() {
   }
 }
 
+
+function setAttachmentStatus(message = '', type = '') {
+  elements.attachmentStatus.textContent = message;
+  elements.attachmentStatus.className = type
+    ? `attachment-status ${type}`
+    : 'attachment-status';
+}
+
+function renderAttachmentList() {
+  elements.attachmentList.replaceChildren();
+  elements.attachmentEmpty.hidden = currentAttachments.length !== 0;
+
+  currentAttachments.forEach((attachment) => {
+    const row = document.createElement('div');
+    row.className = 'attachment-row';
+
+    const info = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = attachment.name || 'Załącznik';
+    const meta = document.createElement('span');
+    meta.textContent = `${formatBytes(attachment.size_bytes)} · ${formatDate(attachment.created_at)}`;
+    info.append(name, meta);
+
+    const actions = document.createElement('div');
+    actions.className = 'attachment-actions';
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.className = 'button button-secondary';
+    download.textContent = 'Pobierz';
+    download.addEventListener('click', () => downloadAuthorizedFile(
+      `/submissions/${encodeURIComponent(attachment.submission_id)}/attachments/${encodeURIComponent(attachment.id)}`
+    ));
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'button admin-danger-button';
+    remove.textContent = 'Usuń';
+    remove.addEventListener('click', () => deleteAttachment(attachment));
+    actions.append(download, remove);
+    row.append(info, actions);
+    elements.attachmentList.append(row);
+  });
+}
+
+async function loadAttachments(submissionId) {
+  const payload = await apiRequest(`/submissions/${encodeURIComponent(submissionId)}/attachments`);
+  if (selectedId !== submissionId) return;
+  currentAttachments = Array.isArray(payload.items) ? payload.items : [];
+  renderAttachmentList();
+}
+
+function attachmentContentType(file) {
+  if (file.type) return file.type;
+  const extension = String(file.name || '').toLowerCase().split('.').pop();
+  const types = {
+    pdf: 'application/pdf',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  };
+  return types[extension] || 'application/octet-stream';
+}
+
+async function uploadAttachment() {
+  const item = selectedSubmission();
+  const file = elements.attachmentFile.files?.[0];
+
+  if (!item) {
+    setAttachmentStatus('Najpierw wybierz sprawę.', 'error');
+    return;
+  }
+  if (!file) {
+    setAttachmentStatus('Wybierz plik do dodania.', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    setAttachmentStatus('Plik przekracza limit 10 MB.', 'error');
+    return;
+  }
+
+  const secret = currentToken();
+  if (!secret || requestInProgress) return;
+
+  setBusy(true);
+  setAttachmentStatus('Szyfrowanie i wysyłanie załącznika…', 'pending');
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/submissions/${encodeURIComponent(item.id)}/attachments`,
+      {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        cache: 'no-store',
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          'Content-Type': attachmentContentType(file),
+          'X-File-Name': encodeURIComponent(file.name)
+        },
+        body: file
+      }
+    );
+
+    let payload = {};
+    try { payload = await response.json(); } catch { /* komunikat ogólny */ }
+    if (!response.ok) throw new Error(payload.error || `Błąd serwera (HTTP ${response.status}).`);
+
+    elements.attachmentFile.value = '';
+    await loadSubmissions({ preserveSelection: true, force: true });
+    await loadAttachments(item.id);
+    setAttachmentStatus('Załącznik został bezpiecznie zapisany.', 'success');
+  } catch (error) {
+    setAttachmentStatus(error.message, 'error');
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function deleteAttachment(attachment) {
+  const confirmation = window.confirm(`Trwale usunąć załącznik „${attachment.name}”?`);
+  if (!confirmation || requestInProgress) return;
+
+  setBusy(true);
+  setAttachmentStatus('Usuwanie załącznika…', 'pending');
+
+  try {
+    await apiRequest(
+      `/submissions/${encodeURIComponent(attachment.submission_id)}/attachments/${encodeURIComponent(attachment.id)}`,
+      {
+        method: 'DELETE',
+        headers: { 'X-Delete-Confirmation': attachment.id }
+      }
+    );
+    await loadSubmissions({ preserveSelection: true, force: true });
+    await loadAttachments(attachment.submission_id);
+    setAttachmentStatus('Załącznik został usunięty.', 'success');
+  } catch (error) {
+    setAttachmentStatus(error.message, 'error');
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function downloadAuthorizedFile(path) {
+  const secret = currentToken();
+  if (!secret) {
+    setStatus('Wpisz token administratora.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${secret}` }
+    });
+
+    if (!response.ok) {
+      let payload = {};
+      try { payload = await response.json(); } catch { /* komunikat ogólny */ }
+      throw new Error(payload.error || `Błąd serwera (HTTP ${response.status}).`);
+    }
+
+    const blob = await response.blob();
+    const filename = filenameFromDisposition(response.headers.get('Content-Disposition'));
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+async function processArchiveNow() {
+  if (requestInProgress) return;
+  setBusy(true);
+  setStatus('Sprawdzanie spraw oczekujących na archiwizację…', 'success');
+
+  try {
+    const payload = await apiRequest('/admin/archive/process', { method: 'POST' });
+    await loadSubmissions({ preserveSelection: false, force: true });
+    setStatus(
+      `Archiwizacja zakończona. Sprawdzono: ${payload.attempted || 0}, ` +
+      `zarchiwizowano: ${(payload.archived || []).length}, błędy: ${(payload.failed || []).length}.`,
+      (payload.failed || []).length ? 'error' : 'success'
+    );
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function showArchiveView() {
+  elements.archiveSection.hidden = false;
+  elements.stats.hidden = true;
+  elements.filters.hidden = true;
+  elements.workspace.hidden = true;
+  elements.archiveSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  searchArchiveCases();
+}
+
+function closeArchiveView() {
+  elements.archiveSection.hidden = true;
+  if (submissions.length || currentToken()) {
+    elements.stats.hidden = false;
+    elements.filters.hidden = false;
+    elements.workspace.hidden = false;
+  }
+}
+
+function renderArchiveList() {
+  elements.archiveList.replaceChildren();
+  elements.archiveCount.textContent = String(archiveItems.length);
+  elements.archiveEmpty.hidden = archiveItems.length !== 0;
+
+  archiveItems.forEach((item) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'submission-button submission-card';
+    button.classList.toggle('active', item.id === archiveSelectedId);
+
+    const name = document.createElement('strong');
+    name.textContent = text(item.full_name);
+    const reference = document.createElement('span');
+    reference.className = 'submission-reference';
+    reference.textContent = text(item.reference);
+    const meta = document.createElement('span');
+    meta.className = 'submission-meta';
+    meta.textContent = `Zarchiwizowano: ${formatDate(item.archived_at)} · ${item.attachment_count || 0} zał.`;
+    button.append(name, reference, meta);
+    button.addEventListener('click', () => loadArchiveDetail(item.id));
+    elements.archiveList.append(button);
+  });
+}
+
+function appendArchiveRow(container, label, value) {
+  const row = document.createElement('div');
+  row.className = 'detail-row';
+  const dt = document.createElement('dt');
+  dt.textContent = label;
+  const dd = document.createElement('dd');
+  dd.textContent = text(value);
+  row.append(dt, dd);
+  container.append(row);
+}
+
+function renderArchiveDetail(item) {
+  archiveSelectedItem = item;
+  elements.archiveDetailEmpty.hidden = Boolean(item);
+  elements.archiveDetail.hidden = !item;
+  if (!item) return;
+
+  elements.archiveReference.textContent = text(item.reference);
+  elements.archiveName.textContent = text(item.full_name);
+  elements.archiveDates.textContent =
+    `Zamknięto: ${formatDate(item.closed_at)} · Zarchiwizowano: ${formatDate(item.archived_at)} · ` +
+    `Planowane usunięcie: ${formatDate(item.delete_after)}`;
+
+  elements.archiveSummary.replaceChildren();
+  appendArchiveRow(elements.archiveSummary, 'E-mail', item.email);
+  appendArchiveRow(elements.archiveSummary, 'Telefon', item.phone);
+  appendArchiveRow(elements.archiveSummary, 'Numer sprawy', item.reference);
+  appendArchiveRow(elements.archiveSummary, 'Planowane usunięcie', formatDate(item.delete_after));
+
+  elements.archiveDetails.replaceChildren();
+  DETAIL_FIELDS.forEach(([key, label]) => appendArchiveRow(elements.archiveDetails, label, item[key]));
+
+  const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+  elements.archiveAttachments.replaceChildren();
+  elements.archiveAttachmentsEmpty.hidden = attachments.length !== 0;
+  attachments.forEach((attachment) => {
+    const row = document.createElement('div');
+    row.className = 'attachment-row';
+    const info = document.createElement('div');
+    const strong = document.createElement('strong');
+    strong.textContent = attachment.name || 'Załącznik';
+    const meta = document.createElement('span');
+    meta.textContent = formatBytes(attachment.size_bytes);
+    info.append(strong, meta);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'button button-secondary';
+    button.textContent = 'Pobierz';
+    button.addEventListener('click', () => downloadAuthorizedFile(
+      `/admin/archive/${encodeURIComponent(item.id)}/attachments/${encodeURIComponent(attachment.id)}`
+    ));
+    row.append(info, button);
+    elements.archiveAttachments.append(row);
+  });
+}
+
+async function searchArchiveCases() {
+  if (requestInProgress) return;
+  setBusy(true);
+  setStatus('Przeszukiwanie archiwum…', 'success');
+
+  try {
+    const query = elements.archiveSearch.value.trim();
+    const payload = await apiRequest(`/admin/archive?query=${encodeURIComponent(query)}`);
+    archiveItems = Array.isArray(payload.items) ? payload.items : [];
+    archiveSelectedId = null;
+    renderArchiveList();
+    renderArchiveDetail(null);
+    setStatus(`Znaleziono sprawy w archiwum: ${archiveItems.length}.`, 'success');
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function loadArchiveDetail(id) {
+  if (requestInProgress) return;
+  archiveSelectedId = id;
+  renderArchiveList();
+  setBusy(true);
+
+  try {
+    const payload = await apiRequest(`/admin/archive/${encodeURIComponent(id)}`);
+    renderArchiveDetail(payload.item || null);
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
 function clearSession() {
   elements.token.value = '';
   submissions = [];
   selectedId = null;
+  currentAttachments = [];
+  archiveItems = [];
+  archiveSelectedId = null;
+  archiveSelectedItem = null;
   elements.search.value = '';
   elements.statusFilter.value = 'all';
   elements.readFilter.value = 'all';
@@ -716,6 +1148,9 @@ function clearSession() {
   elements.stats.hidden = true;
   elements.filters.hidden = true;
   elements.workspace.hidden = true;
+  elements.archiveSection.hidden = true;
+  renderArchiveList();
+  renderArchiveDetail(null);
   renderAll();
   clearStatus();
 }
@@ -725,6 +1160,14 @@ elements.refresh.addEventListener('click', () => loadSubmissions({ preserveSelec
 elements.clear.addEventListener('click', clearSession);
 elements.downloadBackup.addEventListener('click', downloadEncryptedBackup);
 elements.loadRetentionReport.addEventListener('click', loadRetentionReport);
+elements.processArchive.addEventListener('click', processArchiveNow);
+elements.openArchive.addEventListener('click', showArchiveView);
+elements.closeArchive.addEventListener('click', closeArchiveView);
+elements.searchArchive.addEventListener('click', searchArchiveCases);
+elements.archiveSearch.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') searchArchiveCases();
+});
+elements.uploadAttachment.addEventListener('click', uploadAttachment);
 elements.saveCase.addEventListener('click', saveCase);
 elements.toggleRead.addEventListener('click', toggleRead);
 elements.deleteCase.addEventListener('click', deleteCase);
@@ -741,6 +1184,8 @@ elements.notes.addEventListener('input', () => {
   markCaseDirty();
 });
 elements.caseStatus.addEventListener('change', markCaseDirty);
+elements.paymentStatus.addEventListener('change', markCaseDirty);
+elements.closureReason.addEventListener('change', markCaseDirty);
 elements.retentionHold.addEventListener('change', markCaseDirty);
 elements.token.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') loadSubmissions({ preserveSelection: false });
