@@ -52,6 +52,8 @@
         <div class="admin-data-tool-actions">
           <button class="button button-primary" id="download-backup" type="button">Pobierz zaszyfrowaną kopię</button>
           <button class="button button-secondary" id="load-retention-report" type="button">Pokaż raport retencji</button>
+          <button class="button button-secondary" id="process-archive" type="button">Uruchom archiwizację należnych spraw</button>
+          <button class="button button-secondary" id="open-archive" type="button">Otwórz archiwum</button>
         </div>
         <div class="retention-report" id="retention-report" hidden>
           <div class="retention-report-heading">
@@ -172,6 +174,26 @@
                   </select>
                 </div>
                 <div class="admin-field">
+                  <label for="payment-status">Status płatności</label>
+                  <select id="payment-status">
+                    <option value="not_set">Nie ustawiono</option>
+                    <option value="awaiting">Oczekuje na płatność</option>
+                    <option value="paid">Opłacona</option>
+                    <option value="refunded">Zwrócona</option>
+                  </select>
+                </div>
+                <div class="admin-field">
+                  <label for="closure-reason">Sposób zamknięcia</label>
+                  <select id="closure-reason">
+                    <option value="none">Nie dotyczy</option>
+                    <option value="service_completed">Usługa wykonana</option>
+                    <option value="no_purchase">Nie rozpoczęto płatnej współpracy</option>
+                    <option value="cancelled">Rezygnacja / anulowanie</option>
+                    <option value="refunded">Zwrot płatności</option>
+                    <option value="dispute">Spór / reklamacja</option>
+                  </select>
+                </div>
+                <div class="admin-field">
                   <label>Stan odczytu</label>
                   <button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
                 </div>
@@ -183,6 +205,10 @@
                   </label>
                   <p class="field-help">Obecnie działa wyłącznie raport. Automatyczne usuwanie pozostaje wyłączone.</p>
                 </div>
+              </div>
+              <div class="case-archive-status" id="case-archive-status" hidden>
+                <strong id="case-archive-status-title"></strong>
+                <span id="case-archive-status-details"></span>
               </div>
               <div class="admin-field admin-notes-field">
                 <label for="admin-notes">Notatki wewnętrzne</label>
@@ -196,6 +222,22 @@
               <div class="case-save-feedback" id="case-save-feedback" role="status" aria-live="polite" hidden></div>
             </section>
 
+            <section class="case-attachments" aria-labelledby="attachments-title">
+              <div class="case-section-heading">
+                <div>
+                  <h3 id="attachments-title">Dokumenty sprawy</h3>
+                  <p>Pliki są szyfrowane przed zapisaniem w prywatnym R2. Dozwolone: PDF, JPG, PNG, DOCX; maksymalnie 10 MB.</p>
+                </div>
+              </div>
+              <div class="attachment-upload-controls">
+                <input id="attachment-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <button class="button button-secondary" id="upload-attachment" type="button">Dodaj załącznik</button>
+              </div>
+              <div class="attachment-status" id="attachment-status" role="status" aria-live="polite"></div>
+              <div class="attachment-list" id="attachment-list"></div>
+              <p class="admin-empty" id="attachment-empty">Brak załączników.</p>
+            </section>
+
             <section class="case-data" aria-labelledby="data-title">
               <h3 id="data-title">Dane z ankiety</h3>
               <dl id="submission-details"></dl>
@@ -203,6 +245,62 @@
           </div>
         </section>
       </div>
+
+      <section class="admin-archive-section" id="archive-section" hidden aria-labelledby="archive-title">
+        <div class="archive-heading">
+          <div>
+            <p class="eyebrow">PRYWATNE ARCHIWUM R2</p>
+            <h2 id="archive-title">Archiwum spraw</h2>
+            <p>Wyszukuj po pełnym nazwisku, pełnym imieniu i nazwisku, numerze sprawy, adresie e-mail albo numerze telefonu.</p>
+          </div>
+          <button class="button button-secondary" id="close-archive" type="button">Wróć do aktywnych spraw</button>
+        </div>
+
+        <div class="archive-search-controls">
+          <label class="sr-only" for="archive-search">Szukaj w archiwum</label>
+          <input id="archive-search" type="search" placeholder="Np. Kowalski lub PU-2026-XXXXXXXX">
+          <button class="button button-primary" id="search-archive" type="button">Szukaj</button>
+        </div>
+        <p class="field-help">Wyszukiwanie częściowego fragmentu nazwiska, np. „Kow”, jest celowo wyłączone. Wpisz całe nazwisko.</p>
+
+        <div class="archive-workspace">
+          <aside class="admin-panel archive-list-panel">
+            <div class="admin-panel-heading">
+              <h3>Wyniki</h3>
+              <span id="archive-count">0</span>
+            </div>
+            <div id="archive-list" class="submission-list"></div>
+            <p class="admin-empty" id="archive-empty">Brak zarchiwizowanych spraw.</p>
+          </aside>
+
+          <section class="admin-panel archive-detail-panel">
+            <div class="admin-empty-state" id="archive-detail-empty">
+              <h3>Szczegóły archiwalne</h3>
+              <p>Wybierz sprawę z listy.</p>
+            </div>
+            <div id="archive-detail" hidden>
+              <header class="case-header">
+                <div>
+                  <p class="case-reference" id="archive-reference"></p>
+                  <h3 id="archive-name"></h3>
+                  <p class="case-dates" id="archive-dates"></p>
+                </div>
+                <span class="status-badge status-completed">Archiwum</span>
+              </header>
+              <dl id="archive-summary" class="archive-summary"></dl>
+              <section class="case-attachments">
+                <h3>Załączniki archiwalne</h3>
+                <div id="archive-attachments" class="attachment-list"></div>
+                <p class="admin-empty" id="archive-attachments-empty">Brak załączników.</p>
+              </section>
+              <section class="case-data">
+                <h3>Dane z ankiety</h3>
+                <dl id="archive-details"></dl>
+              </section>
+            </div>
+          </section>
+        </div>
+      </section>
     </div>
   </main>
   <script defer src="assets/admin.js"></script>
