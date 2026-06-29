@@ -82,8 +82,8 @@
           <span class="home-hero-card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
           </span>
-          <div><strong>Nie wiesz, od czego zacząć?</strong><p>Ankieta pomoże uporządkować podstawowe informacje potrzebne do pierwszego kontaktu.</p></div>
-          <a href="ankieta.html" aria-label="Przejdź do ankiety online">
+          <div><strong>Sprawdź swoją sytuację w 2 minuty</strong><p>Odpowiedz na trzy pytania i zobacz, czy warto przejść do bezpłatnej konsultacji.</p></div>
+          <a href="#szybka-ocena" aria-label="Przejdź do szybkiej oceny sytuacji">
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
           </a>
         </div>
@@ -95,6 +95,125 @@
         <div><span>01</span><strong>Zdalnie</strong><p>Kontakt i przekazywanie informacji online.</p></div>
         <div><span>02</span><strong>Przejrzyście</strong><p>Wiesz, czego potrzebujemy i jaki jest kolejny krok.</p></div>
         <div><span>03</span><strong>Dyskretnie</strong><p>Informacje dotyczące Twojej sytuacji traktujemy poufnie.</p></div>
+      </div>
+    </section>
+
+
+    <section class="home-section home-quick-check" id="szybka-ocena" aria-labelledby="quick-check-title">
+      <div class="container">
+        <div class="home-quick-check-shell" data-quick-check>
+          <div class="home-quick-check-intro">
+            <p class="home-kicker"><span aria-hidden="true"></span> Bezpłatna szybka ocena</p>
+            <h2 id="quick-check-title">Sprawdź, czy warto przejść do analizy upadłości konsumenckiej</h2>
+            <p>Odpowiedz na trzy krótkie pytania. Wynik ma charakter wyłącznie wstępny i nie zastępuje indywidualnej analizy ani decyzji sądu.</p>
+            <div class="home-quick-check-facts" aria-label="Informacje o szybkiej ocenie">
+              <span><strong>3</strong> pytania</span>
+              <span><strong>2</strong> minuty</span>
+              <span><strong>0 zł</strong> opłat</span>
+            </div>
+          </div>
+
+          <div class="home-quick-check-panel">
+            <div class="home-quick-progress" aria-label="Postęp ankiety">
+              <span data-quick-progress-text>Pytanie 1 z 3</span>
+              <div class="home-quick-progress-track" aria-hidden="true"><span data-quick-progress-bar></span></div>
+            </div>
+
+            <form class="home-quick-form" data-quick-form novalidate>
+              <fieldset class="home-quick-step" data-quick-step="1">
+                <legend>Czy obecnie prowadzisz działalność gospodarczą?</legend>
+                <p class="home-quick-hint">Standardowa ścieżka upadłości konsumenckiej dotyczy osoby fizycznej nieprowadzącej działalności gospodarczej.</p>
+                <div class="home-quick-options">
+                  <label><input type="radio" name="business" value="A"><span><b>A</b> Tak</span></label>
+                  <label><input type="radio" name="business" value="B"><span><b>B</b> Nie</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="home-quick-step" data-quick-step="2" hidden>
+                <legend>Czy jesteś w stanie na bieżąco regulować swoje wymagalne zobowiązania?</legend>
+                <p class="home-quick-hint">Podstawową przesłanką jest utrata zdolności do wykonywania wymagalnych zobowiązań pieniężnych.</p>
+                <div class="home-quick-options">
+                  <label><input type="radio" name="payments" value="A"><span><b>A</b> Tak</span></label>
+                  <label><input type="radio" name="payments" value="B"><span><b>B</b> Nie</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="home-quick-step" data-quick-step="3" hidden>
+                <legend>Jakie jest obecnie Twoje opóźnienie w regulowaniu zobowiązań?</legend>
+                <p class="home-quick-hint">Opóźnienie przekraczające trzy miesiące tworzy ustawowe domniemanie niewypłacalności.</p>
+                <div class="home-quick-options">
+                  <label><input type="radio" name="delay" value="A"><span><b>A</b> Poniżej trzech miesięcy</span></label>
+                  <label><input type="radio" name="delay" value="B"><span><b>B</b> Powyżej trzech miesięcy</span></label>
+                </div>
+              </fieldset>
+
+              <div class="home-quick-navigation">
+                <button class="home-quick-back" type="button" data-quick-back hidden>Wstecz</button>
+                <button class="home-button home-button-primary home-quick-next" type="button" data-quick-next disabled><span data-quick-next-label>Dalej</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                </button>
+              </div>
+            </form>
+
+            <div class="home-quick-result home-quick-result-review" data-quick-result="review" hidden aria-live="polite">
+              <span class="home-quick-result-icon" aria-hidden="true">i</span>
+              <p class="home-quick-result-label">Wynik wstępny</p>
+              <h3>Twoja sytuacja wymaga indywidualnej oceny</h3>
+              <p>Na podstawie odpowiedzi nie potwierdziliśmy wszystkich podstawowych wskaźników standardowej ścieżki konsumenckiej. Nie oznacza to automatycznie, że złożenie wniosku jest niemożliwe — krótsze opóźnienie lub szczególna sytuacja mogą wymagać dokładniejszej analizy.</p>
+              <div class="home-quick-result-actions">
+                <a class="home-button home-button-primary" href="ankieta.html">Wypełnij pełną ankietę</a>
+                <button class="home-button home-button-ghost" type="button" data-quick-reset>Zacznij od nowa</button>
+              </div>
+            </div>
+
+            <div class="home-quick-result home-quick-result-positive" data-quick-result="positive" hidden aria-live="polite">
+              <span class="home-quick-result-icon" aria-hidden="true">✓</span>
+              <p class="home-quick-result-label">Wynik wstępny</p>
+              <h3>Warto przejść do bezpłatnej konsultacji</h3>
+              <p>Twoje odpowiedzi wskazują, że spełniasz podstawowe wskaźniki do dalszej analizy: nie prowadzisz działalności gospodarczej, nie jesteś w stanie na bieżąco regulować wymagalnych zobowiązań, a opóźnienie przekracza trzy miesiące. Wynik nie jest gwarancją ogłoszenia upadłości — ostateczną decyzję podejmuje sąd po ocenie całej sprawy.</p>
+
+              <div class="home-consultation-choice" aria-label="Wybierz formę konsultacji">
+                <button type="button" data-consultation-choice="phone">
+                  <span class="home-consultation-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.8a2 2 0 0 1-.45 2.11L8.07 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.32 1.84.55 2.8.68A2 2 0 0 1 22 16.92Z"/></svg></span>
+                  <strong>Konsultacja telefoniczna</strong>
+                  <span>Zostaw dane — skontaktujemy się z Tobą.</span>
+                </button>
+                <button type="button" data-consultation-choice="video">
+                  <span class="home-consultation-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg></span>
+                  <strong>Wideorozmowa</strong>
+                  <span>Wybierz dogodny termin w kalendarzu.</span>
+                </button>
+              </div>
+
+              <div class="home-consultation-panel" data-consultation-panel="phone" hidden>
+                <h4>Poproś o bezpłatny kontakt telefoniczny</h4>
+                <form class="home-quick-contact-form" data-quick-contact-form novalidate>
+                  <div class="home-quick-contact-grid">
+                    <label>Imię i nazwisko<input type="text" name="full_name" autocomplete="name" maxlength="120" required></label>
+                    <label>Adres e-mail<input type="email" name="email" autocomplete="email" maxlength="160" required></label>
+                    <label>Numer telefonu<input type="tel" name="phone" autocomplete="tel" maxlength="30" required></label>
+                  </div>
+                  <label class="home-quick-consent"><input type="checkbox" name="privacy" required><span>Zapoznałem(-am) się z <a href="polityka-prywatnosci.html" target="_blank" rel="noopener">polityką prywatności</a> i zgadzam się na kontakt w sprawie bezpłatnej konsultacji.</span></label>
+                  <div class="home-quick-turnstile" data-quick-turnstile></div>
+                  <p class="home-quick-security-status" data-quick-security-status aria-live="polite"></p>
+                  <button class="home-button home-button-primary" type="submit" data-quick-contact-submit disabled>Poproś o kontakt</button>
+                  <p class="home-quick-submit-status" data-quick-submit-status aria-live="polite"></p>
+                </form>
+              </div>
+
+              <div class="home-consultation-panel" data-consultation-panel="video" hidden>
+                <h4>Umów bezpłatną wideorozmowę</h4>
+                <p>W kalendarzu wybierzesz wolny termin oraz podasz imię i adres e-mail potrzebne do potwierdzenia spotkania.</p>
+                <a class="home-button home-button-primary home-booking-link" href="#" data-booking-link aria-disabled="true">Otwórz kalendarz spotkań
+                  <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                </a>
+                <p class="home-booking-note" data-booking-note>Kalendarz wymaga podłączenia indywidualnego linku do strony rezerwacji.</p>
+              </div>
+
+              <button class="home-quick-reset-link" type="button" data-quick-reset>Zacznij ocenę od nowa</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
