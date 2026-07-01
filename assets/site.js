@@ -1,6 +1,6 @@
 const QUICK_CHECK_API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev';
 // Wklej tutaj link skopiowany ze strony rezerwacji Google Calendar.
-const QUICK_CHECK_BOOKING_URL = '';
+const QUICK_CHECK_BOOKING_URL = 'https://calendar.app.google/JZmnARJDQP8PH6B28';
 const QUICK_CHECK_TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 const menuButton = document.querySelector('[data-menu-toggle]');
