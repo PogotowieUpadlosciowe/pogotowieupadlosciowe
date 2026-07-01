@@ -256,7 +256,7 @@ function initializeQuickCheck(root) {
         `Działalność gospodarcza: ${answers.business === 'B' ? 'NIE' : 'TAK'}.`,
         `Bieżąca zdolność regulowania zobowiązań: ${answers.payments === 'B' ? 'NIE' : 'TAK'}.`,
         `Opóźnienie: ${answers.delay === 'B' ? 'POWYŻEJ 3 MIESIĘCY' : 'PONIŻEJ 3 MIESIĘCY'}.`,
-        'Preferowany kontakt: konsultacja telefoniczna.'
+        'Preferowany kontakt: rozmowa telefoniczna.'
       ].join(' ');
 
       const payload = {

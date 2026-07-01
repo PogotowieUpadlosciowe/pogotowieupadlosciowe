@@ -1,10 +1,19 @@
-# Pogotowie Upadłościowe — frontend
+# Pogotowie Upadłościowe — aktualna wersja frontendu
 
-## Publiczny proces klienta
+## Zakres tej aktualizacji
 
-1. Szybka ocena sytuacji na stronie głównej (3 pytania).
-2. Bezpłatna rozmowa telefoniczna lub wideorozmowa.
-3. Ankieta szczegółowa udostępniana klientowi dopiero po wstępnej kwalifikacji.
-4. Analiza informacji i dalsze kroki.
+- pełna obsługa zdalna jako główny wyróżnik marki,
+- profesjonalna strona Usługi,
+- cennik: 2000 zł brutto oraz dalsze pisma 500–1000 zł brutto,
+- profesjonalne strony O nas, FAQ i Kontakt,
+- zamiana publicznych określeń „konsultacja” na „rozmowa wstępna”,
+- zachowanie szybkiej oceny na stronie głównej i aktywnej opcji wideorozmowy,
+- ankieta szczegółowa nadal nie jest linkowana z publicznej nawigacji.
 
-Plik `ankieta.html` nie jest linkowany z publicznej nawigacji, stron ani stopki. Docelowe zabezpieczenie indywidualnym tokenem wymaga zmiany Workera i D1.
+## Model usługi
+
+Firma przygotowuje projekty dokumentów na podstawie informacji przekazanych przez klienta. Nie udziela porad prawnych, nie sporządza opinii prawnych i nie reprezentuje klienta. Klient sprawdza, podpisuje i składa dokumenty samodzielnie.
+
+## Ważne
+
+Polityka prywatności i regulamin pozostają dokumentami roboczymi do uzupełnienia przed formalnym uruchomieniem działalności.
