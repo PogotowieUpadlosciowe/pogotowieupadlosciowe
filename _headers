@@ -27,8 +27,8 @@
 /assets/home-v2.css
   Cache-Control: no-cache, must-revalidate
 
-/images/tlo-hero-final-v2.jpg
-  Cache-Control: public, max-age=31536000, immutable
+/images/hero-zdalnie.jpg
+  Cache-Control: no-cache, must-revalidate
 
-/images/tlo-mobile-final-v2.jpg
-  Cache-Control: public, max-age=31536000, immutable
+/images/hero-zdalnie-mobile.jpg
+  Cache-Control: no-cache, must-revalidate

@@ -2,7 +2,7 @@
 
 ## Aktualizacja strony głównej
 
-Strona `index.html` została przebudowana na wzór zaakceptowanej wizualizacji. Zachowano aktualną identyfikację marki, działającą szybką ocenę, formularz kontaktowy, Turnstile, link do wideorozmowy oraz wszystkie podstrony.
+Strona `index.html` została przebudowana na wzór zaakceptowanej wizualizacji. Zachowano aktualną identyfikację marki, działającą szybką ocenę, formularz kontaktowy, Turnstile, link do wideorozmowy oraz wszystkie podstrony. W finalnej aktualizacji poprawiono proporcje zdjęcia Hero, blend obrazu z białym tłem oraz kontrast tekstów na granatowych sekcjach.
 
 ### Nowy układ strony głównej
 
@@ -23,7 +23,7 @@ Ze strony głównej usunięto rozbudowane powtórzenia FAQ, bezpieczeństwa, szc
 - `images/hero-zdalnie.jpg`
 - `images/hero-zdalnie-mobile.jpg`
 
-Pozostałe pliki pochodzą z aktualnej wersji projektu i zostały zachowane.
+Pozostałe pliki pochodzą z aktualnej wersji projektu i zostały zachowane. Nie dodano dodatkowego arkusza stylów: wszystkie poprawki znajdują się w istniejącym pliku `assets/home-v2.css`. Usunięto nieużywane wcześniejsze obrazy Hero.
 
 ## Publikacja
 
