@@ -1,34 +1,31 @@
-# Pogotowie Upadłościowe — frontend do GitHuba
+# Pogotowie Upadłościowe — paczka do wdrożenia na GitHub
 
-## Aktualizacja strony głównej
+## Zakres tej aktualizacji
 
-Strona `index.html` została przebudowana na wzór zaakceptowanej wizualizacji. Zachowano aktualną identyfikację marki, działającą szybką ocenę, formularz kontaktowy, Turnstile, link do wideorozmowy oraz wszystkie podstrony. W finalnej aktualizacji poprawiono proporcje zdjęcia Hero, blend obrazu z białym tłem oraz kontrast tekstów na granatowych sekcjach.
+- Strona główna korzysta z przekazanego zdjęcia Hero przedstawiającego pracę nad dokumentami.
+- Obraz Hero jest wyświetlany w pełnym kadrze na komputerach i ma miękkie, niewidoczne krawędzie połączone z białym tłem strony.
+- Wersja mobilna wykorzystuje kadr wykonany z tego samego zdjęcia.
+- Z nagłówka usunięto przycisk „Sprawdź swoją sytuację”. Przycisk pozostaje wyłącznie w treści strony głównej.
+- Nawigacja na wszystkich stronach ma identyczną kolejność: Strona główna, Usługi, Cennik, FAQ, O nas, Kontakt.
+- Logo, odstępy i sposób oznaczenia aktywnej zakładki są takie same na każdej podstronie, dzięki czemu przyciski menu nie zmieniają położenia.
+- Maksymalna szerokość strony została zwiększona z 1220 px do 1440 px, aby witryna była czytelniejsza na laptopach i większych ekranach.
+- Nie dodano nowego arkusza stylów. Zaktualizowano istniejące pliki `assets/styles.css` i `assets/home-v2.css`.
 
-### Nowy układ strony głównej
-
-1. Hero z komunikatem „Wniosek o upadłość konsumencką bez wychodzenia z domu”.
-2. Trzy najważniejsze informacje: 100% zdalnie, 2000 zł brutto, do 3 dni roboczych.
-3. Cztery krótkie etapy współpracy.
-4. Interaktywna szybka ocena z trzema pytaniami.
-5. Skrócony zakres usług.
-6. Trzy główne wyróżniki firmy.
-7. Jedno czytelne końcowe wezwanie do działania.
-
-Ze strony głównej usunięto rozbudowane powtórzenia FAQ, bezpieczeństwa, szczegółowego zakresu usługi i formalnych objaśnień. Te informacje pozostają na odpowiednich podstronach.
-
-## Zmienione pliki
+## Najważniejsze zmienione pliki
 
 - `index.html`
+- `assets/styles.css`
 - `assets/home-v2.css`
 - `images/hero-zdalnie.jpg`
 - `images/hero-zdalnie-mobile.jpg`
-
-Pozostałe pliki pochodzą z aktualnej wersji projektu i zostały zachowane. Nie dodano dodatkowego arkusza stylów: wszystkie poprawki znajdują się w istniejącym pliku `assets/home-v2.css`. Usunięto nieużywane wcześniejsze obrazy Hero.
+- publiczne pliki HTML — ujednolicenie kolejności nawigacji
 
 ## Publikacja
 
-Wgraj całą zawartość paczki do katalogu głównego repozytorium GitHub, zastępując istniejące pliki. Plik `index.html` musi znajdować się bezpośrednio w katalogu głównym repozytorium.
+Rozpakuj paczkę i wgraj całą jej zawartość do katalogu głównego repozytorium GitHub, zastępując istniejące pliki. `index.html` powinien znajdować się bezpośrednio w katalogu głównym repozytorium, a nie w dodatkowym podfolderze.
+
+Po wdrożeniu wykonaj twarde odświeżenie strony skrótem `Ctrl + F5`.
 
 ## Ważne
 
-Polityka prywatności i regulamin pozostają dokumentami roboczymi do uzupełnienia przed formalnym uruchomieniem działalności. Strona nadal zawiera `noindex`, dlatego nie powinna jeszcze pojawiać się w wynikach wyszukiwania.
+Regulamin i polityka prywatności pozostają dokumentami roboczymi. Strona nadal zawiera ustawienie `noindex`.
