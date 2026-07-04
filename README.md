@@ -26,3 +26,13 @@ Po wdrożeniu wykonaj twarde odświeżenie strony skrótem `Ctrl + F5`.
 ## Ważne
 
 Regulamin i polityka prywatności pozostają dokumentami roboczymi. Strona nadal zawiera ustawienie `noindex`.
+
+
+## Aktualizacja prawna i ankieta — 2026-07-04
+
+- `regulamin.html`: projekt Regulaminu świadczenia usług, wersja `REG-2026-07-04-01`.
+- `polityka-prywatnosci.html`: projekt Polityki prywatności, wersja `PP-2026-07-04-01`.
+- `ankieta.html`: podsumowanie zamówienia, jeden obowiązkowy checkbox i przycisk „Zamawiam z obowiązkiem zapłaty”.
+- `assets/form.js`: przesyła metadane wersji dokumentów i oświadczeń; zachowuje zgodność z dotychczasowym polem `privacy`.
+- Dokumenty pozostają oznaczone jako projekty, ponieważ działalność nie jest jeszcze zarejestrowana. Nie zdejmować `noindex` i nie przyjmować rzeczywistych zamówień przed uzupełnieniem danych firmy oraz końcową weryfikacją dokumentów.
+- Automatyczne usuwanie nieopłaconych spraw po 14 dniach od udostępnienia ankiety wymaga osobnego wdrożenia mechanizmu zaproszeń i retencji w Workerze.

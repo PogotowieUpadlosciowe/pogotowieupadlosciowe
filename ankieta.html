@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 html
 <html lang="pl">
 <head>
@@ -84,15 +85,11 @@ html
 <section class="section section-soft">
 <div class="container form-wrap">
 <div class="form-intro">
-<p>
-<strong>
-        Formularz szczegółowy.
-       </strong>
-       Wypełniaj go wyłącznie po wstępnej rozmowie wstępnej i zgodnie z otrzymanymi instrukcjami.
-      </p>
-<a class="button button-secondary" href="polityka-prywatnosci.html">
-       Polityka prywatności
-      </a>
+<div>
+<p><strong>Formularz szczegółowy.</strong> Wypełniaj go wyłącznie po rozmowie wstępnej i zgodnie z otrzymanymi instrukcjami.</p>
+<p class="field-help">Od udostępnienia ankiety masz 14 dni kalendarzowych na przekazanie kompletu informacji i dokumentów oraz dokonanie płatności, chyba że indywidualnie uzgodnimy inny termin.</p>
+</div>
+<a class="button button-secondary" href="polityka-prywatnosci.html">Polityka prywatności</a>
 </div>
 <form autocomplete="off" id="ankieta-form" novalidate="">
 <section class="form-section">
@@ -256,46 +253,46 @@ html
 </section>
 <section class="form-section">
 <div class="form-section-title">
-<span>
-         05
-        </span>
-<h2>
-         Zgoda i bezpieczeństwo
-        </h2>
+<span>05</span>
+<h2>Podsumowanie zamówienia i akceptacja</h2>
+</div>
+<div aria-label="Podsumowanie zamówienia" class="order-summary">
+<div class="order-summary-head">
+<span class="eyebrow">Przed wysłaniem ankiety</span>
+<h3>Podsumowanie zamówienia</h3>
+</div>
+<dl class="order-summary-grid">
+<div><dt>Usługa</dt><dd>Przygotowanie projektu wniosku</dd></div>
+<div><dt>Cena całkowita</dt><dd>2000 zł</dd></div>
+<div><dt>Termin</dt><dd>Do 3 dni roboczych od płatności i otrzymania kompletu materiałów</dd></div>
+<div><dt>Poprawki</dt><dd>Jedna runda poprawek w cenie</dd></div>
+</dl>
+<p class="field-help">Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do przelewu zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.</p>
 </div>
 <div class="form-grid">
 <div class="question full">
-<div class="checkbox-row">
+<div class="checkbox-row checkbox-row-contract">
 <input id="privacy" name="privacy" required="" type="checkbox"/>
 <label for="privacy" style="font-weight:500">
-           Zapoznałem(-am) się z
-           <a href="polityka-prywatnosci.html" rel="noopener" target="_blank">
-            polityką prywatności
-           </a>
-           i proszę o kontakt w sprawie przesłanego zgłoszenia. *
-          </label>
+          Zapoznałem(-am) się z
+          <a href="polityka-prywatnosci.html" rel="noopener" target="_blank">Polityką prywatności</a>
+          i akceptuję
+          <a href="regulamin.html" rel="noopener" target="_blank">Regulamin</a>.
+          Żądam rozpoczęcia realizacji usługi po zaksięgowaniu płatności oraz przekazaniu kompletu informacji i dokumentów, przed upływem 14 dni. Przyjmuję do wiadomości, że po pełnym wykonaniu usługi utracę prawo odstąpienia od umowy. *
+        </label>
 </div>
 </div>
 <div class="question security-question full">
-<div class="security-title">
-          Weryfikacja bezpieczeństwa
-         </div>
-<p class="field-help">
-          Automatyczne zabezpieczenie pomaga chronić formularz przed spamem. W razie potrzeby może poprosić o krótkie potwierdzenie.
-         </p>
-<div aria-label="Weryfikacja Cloudflare Turnstile" class="turnstile-widget" id="turnstile-widget">
-</div>
-<p aria-live="polite" class="field-help turnstile-message" id="turnstile-status">
-          Ładowanie weryfikacji bezpieczeństwa…
-         </p>
+<div class="security-title">Weryfikacja bezpieczeństwa</div>
+<p class="field-help">Automatyczne zabezpieczenie pomaga chronić formularz przed spamem. W razie potrzeby może poprosić o krótkie potwierdzenie.</p>
+<div aria-label="Weryfikacja Cloudflare Turnstile" class="turnstile-widget" id="turnstile-widget"></div>
+<p aria-live="polite" class="field-help turnstile-message" id="turnstile-status">Ładowanie weryfikacji bezpieczeństwa…</p>
 </div>
 </div>
 </section>
 <input aria-hidden="true" autocomplete="off" class="sr-only" name="website" tabindex="-1" type="text"/>
 <div class="form-submit">
-<button class="button button-primary" disabled="" id="submit-button" type="submit">
-        Ładowanie zabezpieczenia…
-       </button>
+<button class="button button-primary" disabled="" id="submit-button" type="submit">Ładowanie zabezpieczenia…</button>
 </div>
 <div aria-live="polite" class="form-status" id="form-status" role="status">
 </div>
@@ -368,7 +365,7 @@ html
 </footer>
 <script defer="" src="assets/site.js?v=20260701-offer-1">
 </script>
-<script defer="" src="assets/form.js">
+<script defer="" src="assets/form.js?v=20260704-order-1">
 </script>
 </body>
 </html>

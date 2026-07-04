@@ -2,6 +2,11 @@ const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.wor
 const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
+const REGULATION_VERSION = 'REG-2026-07-04-01';
+const PRIVACY_VERSION = 'PP-2026-07-04-01';
+const ORDER_SERVICE = 'Przygotowanie projektu wniosku';
+const ORDER_PRICE_PLN = '2000';
+
 const form = document.getElementById('ankieta-form');
 const button = document.getElementById('submit-button');
 const statusBox = document.getElementById('form-status');
@@ -26,7 +31,7 @@ function setButtonReady(ready) {
   securityReady = ready;
   button.disabled = !ready;
   button.textContent = ready
-    ? 'Wyślij ankietę'
+    ? 'Zamawiam z obowiązkiem zapłaty'
     : 'Ładowanie zabezpieczenia…';
 }
 
@@ -148,10 +153,17 @@ form.addEventListener('submit', async (event) => {
 
   const values = Object.fromEntries(new FormData(form).entries());
   values.privacy = Boolean(values.privacy);
+  values.terms_and_privacy_accepted = values.privacy;
+  values.early_start_requested = values.privacy;
+  values.order_obligation_to_pay = values.privacy;
+  values.regulation_version = REGULATION_VERSION;
+  values.privacy_version = PRIVACY_VERSION;
+  values.order_service = ORDER_SERVICE;
+  values.order_price_pln = ORDER_PRICE_PLN;
   values.turnstile_token = turnstileToken;
 
   button.disabled = true;
-  button.textContent = 'Wysyłanie…';
+  button.textContent = 'Składanie zamówienia…';
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
@@ -190,7 +202,7 @@ form.addEventListener('submit', async (event) => {
       : ' Zgłoszenie zostało zapisane, ale nie udało się wysłać potwierdzenia e-mail.';
 
     showStatus(
-      `Dziękujemy. Ankieta została zapisana.${reference}${emailInfo}`,
+      `Dziękujemy. Ankieta i zamówienie zostały zapisane.${reference}${emailInfo} Po weryfikacji kompletności otrzymasz e-mailem potwierdzenie przyjęcia zamówienia i dane do przelewu.`,
       'success'
     );
   } catch (error) {
