@@ -41,3 +41,6 @@
 
 /assets/styles.css
   Cache-Control: no-cache, must-revalidate
+
+/documents/*
+  Cache-Control: public, max-age=31536000, immutable

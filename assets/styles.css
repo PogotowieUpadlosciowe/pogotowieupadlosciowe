@@ -412,3 +412,5 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none!important}
 .checkbox-row-contract label{line-height:1.62}
 .checkbox-row-contract a{font-weight:800}
 @media (max-width:700px){.order-summary-grid{grid-template-columns:1fr}.legal-meta{display:grid;gap:5px}.legal-document{line-height:1.65}}
+.contract-version-note{display:block;margin-top:9px;font-weight:500}
+.contract-version-note strong{color:var(--ink)}
