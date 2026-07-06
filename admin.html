@@ -109,6 +109,7 @@
             <option value="contacted">Kontakt wykonany</option>
             <option value="analysis">W analizie</option>
             <option value="waiting_documents">Oczekiwanie na dokumenty</option>
+            <option value="in_progress">W realizacji</option>
             <option value="completed">Zakończone</option>
             <option value="rejected">Odrzucone</option>
           </select>
@@ -149,7 +150,7 @@
           </div>
 
           <div id="detail-content" hidden>
-            <header class="case-header">
+            <header class="case-header case-header-compact">
               <div>
                 <p class="case-reference" id="case-reference"></p>
                 <h2 id="case-name"></h2>
@@ -158,105 +159,210 @@
               <span class="status-badge" id="case-status-badge"></span>
             </header>
 
-            <div class="case-contact-actions">
+            <div class="case-contact-actions case-contact-actions-compact">
               <a class="button button-secondary" id="case-email-link" href="#">Napisz e-mail</a>
               <a class="button button-secondary" id="case-phone-link" href="#">Zadzwoń</a>
               <button class="button button-secondary" id="copy-email" type="button">Kopiuj e-mail</button>
               <button class="button button-secondary" id="copy-phone" type="button">Kopiuj telefon</button>
             </div>
 
-            <section class="case-overview" aria-labelledby="overview-title">
-              <div class="case-section-heading">
+            <section class="case-glance" aria-label="Najważniejszy stan sprawy">
+              <article class="case-glance-card" id="case-due-card">
+                <span>Termin warunków</span>
+                <strong id="case-due-value">—</strong>
+                <small id="case-due-note"></small>
+              </article>
+              <article class="case-glance-card" id="case-payment-card">
+                <span>Płatność</span>
+                <strong id="case-payment-value">—</strong>
+                <small id="case-payment-note"></small>
+              </article>
+              <article class="case-glance-card" id="case-materials-card">
+                <span>Materiały</span>
+                <strong id="case-materials-value">—</strong>
+                <small id="case-materials-note"></small>
+              </article>
+              <article class="case-glance-card" id="case-fulfillment-card">
+                <span>Realizacja</span>
+                <strong id="case-fulfillment-value">—</strong>
+                <small id="case-fulfillment-note"></small>
+              </article>
+            </section>
+
+            <nav class="case-tabs" id="case-tabs" aria-label="Szczegóły wybranej sprawy">
+              <button class="case-tab is-active" data-case-tab="workflow" type="button">Przebieg sprawy</button>
+              <button class="case-tab" data-case-tab="documents" type="button">Dokumenty <span id="case-documents-count">0</span></button>
+              <button class="case-tab" data-case-tab="questionnaire" type="button">Dane z ankiety</button>
+            </nav>
+
+            <section class="case-view" data-case-view="workflow" id="case-workflow-view">
+              <section class="case-next-action" id="case-next-action">
                 <div>
-                  <h3 id="overview-title">Podsumowanie sprawy</h3>
-                  <p>Najważniejsze informacje o zamówieniu, zgodach i wiadomościach.</p>
+                  <p class="eyebrow" id="case-next-action-label">NASTĘPNY KROK</p>
+                  <h3 id="case-next-action-title">Otwórz sprawę</h3>
+                  <p id="case-next-action-description"></p>
                 </div>
-              </div>
-              <dl id="case-overview-details"></dl>
+                <div class="case-action-stack" id="case-action-buttons">
+                  <div class="case-action-buttons case-action-buttons-primary">
+                    <button class="button button-primary" data-workflow-action="mark_paid" id="action-mark-paid" type="button">Oznacz jako opłacone</button>
+                    <button class="button button-secondary" data-workflow-action="materials_complete" id="action-materials-complete" type="button">Materiały kompletne</button>
+                    <button class="button button-primary" data-workflow-action="complete_service" id="action-complete-service" type="button">Zakończ usługę</button>
+                  </div>
+                  <details class="case-more-actions" id="case-more-actions">
+                    <summary>Więcej działań</summary>
+                    <div class="case-action-buttons case-action-buttons-secondary">
+                      <button class="button button-secondary" data-workflow-action="materials_incomplete" id="action-materials-incomplete" type="button">Oznacz braki</button>
+                      <button class="button button-secondary" data-workflow-action="resend_payment_instructions" id="action-resend-payment" type="button">Wyślij ponownie dane do przelewu</button>
+                      <button class="button button-secondary" data-workflow-action="mark_refunded" id="action-mark-refunded" type="button">Oznacz zwrot</button>
+                      <button class="button button-secondary" data-workflow-action="extend_deadline" id="action-extend-deadline" type="button">Przedłuż termin</button>
+                      <button class="button button-secondary" data-workflow-action="close_no_purchase" id="action-close-no-purchase" type="button">Zamknij — warunki niespełnione</button>
+                      <button class="button button-secondary" data-workflow-action="start_fulfillment" id="action-start-fulfillment" type="button">Napraw rozpoczęcie realizacji</button>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section class="case-notes-compact" aria-labelledby="notes-title">
+                <div class="case-section-heading">
+                  <div>
+                    <h3 id="notes-title">Notatki operatora</h3>
+                    <p>Robocze informacje, których klient nie widzi.</p>
+                  </div>
+                </div>
+                <div class="admin-field admin-notes-field">
+                  <label class="sr-only" for="admin-notes">Notatki wewnętrzne</label>
+                  <textarea id="admin-notes" maxlength="8000" placeholder="Np. brak zaświadczenia, ustalenia z rozmowy, kolejny kontakt…"></textarea>
+                  <p class="field-help"><span id="notes-counter">0</span>/8000 znaków</p>
+                </div>
+                <div class="case-workflow-actions">
+                  <button class="button button-primary" id="save-case" type="button">Zapisz notatki i ustawienia</button>
+                </div>
+                <div class="case-save-feedback" id="case-save-feedback" role="status" aria-live="polite" hidden></div>
+              </section>
+
+              <section class="case-history" aria-labelledby="case-history-title">
+                <div class="case-section-heading case-history-heading">
+                  <div>
+                    <h3 id="case-history-title">Historia działań</h3>
+                    <p>Najważniejsze zdarzenia są dopisywane i nie nadpisują wcześniejszych wpisów.</p>
+                  </div>
+                  <button class="button button-secondary button-small" id="refresh-case-events" type="button">Odśwież</button>
+                </div>
+                <div class="case-event-list" id="case-event-list"></div>
+                <p class="admin-empty" id="case-event-empty">Brak zdarzeń. Dla starszych rekordów historia zaczyna się od wdrożenia tej funkcji.</p>
+              </section>
+
+              <details class="case-collapsible">
+                <summary>Dane techniczne zamówienia i wysyłki</summary>
+                <section class="case-overview" aria-labelledby="overview-title">
+                  <div class="case-section-heading">
+                    <div>
+                      <h3 id="overview-title">Informacje techniczne</h3>
+                      <p>Wersje dokumentów, dowód akceptacji i stan wiadomości e-mail.</p>
+                    </div>
+                  </div>
+                  <dl id="case-overview-details"></dl>
+                </section>
+              </details>
+
+              <details class="case-collapsible case-advanced-settings">
+                <summary>Ustawienia zaawansowane sprawy</summary>
+                <section class="case-workflow" aria-labelledby="workflow-title">
+                  <div class="case-section-heading">
+                    <div>
+                      <h3 id="workflow-title">Korekty i retencja</h3>
+                      <p>Używaj tylko w sytuacjach wyjątkowych. Standardowy przebieg obsługuj przyciskami u góry.</p>
+                    </div>
+                  </div>
+                  <div class="case-workflow-grid">
+                    <div class="admin-field">
+                      <label for="case-status">Status sprawy</label>
+                      <select id="case-status">
+                        <option value="new">Nowe</option>
+                        <option value="contacted">Kontakt wykonany</option>
+                        <option value="analysis">W analizie</option>
+                        <option value="waiting_documents">Oczekiwanie na dokumenty</option>
+                        <option value="in_progress">W realizacji</option>
+                        <option value="completed">Zakończone</option>
+                        <option value="rejected">Odrzucone</option>
+                      </select>
+                    </div>
+                    <div class="admin-field">
+                      <label for="payment-status">Korekta statusu płatności</label>
+                      <select id="payment-status">
+                        <option value="not_set">Nie ustawiono</option>
+                        <option value="awaiting">Oczekuje na przelew</option>
+                        <option value="paid">Opłacona</option>
+                        <option value="refunded">Zwrócona</option>
+                      </select>
+                    </div>
+                    <div class="admin-field">
+                      <label for="closure-reason">Sposób zamknięcia</label>
+                      <select id="closure-reason">
+                        <option value="none">Nie dotyczy</option>
+                        <option value="service_completed">Usługa wykonana</option>
+                        <option value="no_purchase">Brak płatności lub kompletu materiałów</option>
+                        <option value="cancelled">Rezygnacja / anulowanie</option>
+                        <option value="refunded">Zwrot płatności</option>
+                        <option value="dispute">Spór / reklamacja</option>
+                      </select>
+                    </div>
+                    <div class="admin-field">
+                      <label>Stan odczytu</label>
+                      <button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
+                    </div>
+                    <div class="admin-field admin-retention-field">
+                      <label for="retention-hold">Blokada retencji</label>
+                      <label class="retention-hold-control" for="retention-hold">
+                        <input id="retention-hold" type="checkbox">
+                        <span>Nie kwalifikuj sprawy do przyszłego automatycznego usunięcia</span>
+                      </label>
+                      <p class="field-help">Obecnie działa wyłącznie raport. Automatyczne usuwanie pozostaje wyłączone.</p>
+                    </div>
+                  </div>
+                  <div class="case-archive-status" id="case-archive-status" hidden>
+                    <strong id="case-archive-status-title"></strong>
+                    <span id="case-archive-status-details"></span>
+                  </div>
+                  <div class="case-danger-zone">
+                    <div>
+                      <strong>Trwałe usunięcie testowego zgłoszenia</strong>
+                      <span>Usuwa rekord, dowód akceptacji, historię i ewentualne załączniki.</span>
+                    </div>
+                    <button class="button admin-danger-button" id="delete-case" type="button">Usuń zgłoszenie</button>
+                  </div>
+                </section>
+              </details>
             </section>
 
-            <section class="case-workflow" aria-labelledby="workflow-title">
-              <h3 id="workflow-title">Obsługa sprawy</h3>
-              <div class="case-workflow-grid">
-                <div class="admin-field">
-                  <label for="case-status">Status sprawy</label>
-                  <select id="case-status">
-                    <option value="new">Nowe</option>
-                    <option value="contacted">Kontakt wykonany</option>
-                    <option value="analysis">W analizie</option>
-                    <option value="waiting_documents">Oczekiwanie na dokumenty</option>
-                    <option value="completed">Zakończone</option>
-                    <option value="rejected">Odrzucone</option>
-                  </select>
+            <section class="case-view" data-case-view="documents" id="case-documents-view" hidden>
+              <section class="case-attachments" aria-labelledby="attachments-title">
+                <div class="case-section-heading">
+                  <div>
+                    <h3 id="attachments-title">Dokumenty sprawy</h3>
+                    <p>Pliki są szyfrowane przed zapisaniem w prywatnym R2. Dozwolone: PDF, JPG, PNG, DOCX; maksymalnie 10 MB.</p>
+                  </div>
                 </div>
-                <div class="admin-field">
-                  <label for="payment-status">Status płatności</label>
-                  <select id="payment-status">
-                    <option value="not_set">Nie ustawiono</option>
-                    <option value="awaiting">Oczekuje na płatność</option>
-                    <option value="paid">Opłacona</option>
-                    <option value="refunded">Zwrócona</option>
-                  </select>
+                <div class="attachment-upload-controls">
+                  <input id="attachment-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                  <button class="button button-secondary" id="upload-attachment" type="button">Dodaj załącznik</button>
                 </div>
-                <div class="admin-field">
-                  <label for="closure-reason">Sposób zamknięcia</label>
-                  <select id="closure-reason">
-                    <option value="none">Nie dotyczy</option>
-                    <option value="service_completed">Usługa wykonana</option>
-                    <option value="no_purchase">Nie rozpoczęto płatnej współpracy</option>
-                    <option value="cancelled">Rezygnacja / anulowanie</option>
-                    <option value="refunded">Zwrot płatności</option>
-                    <option value="dispute">Spór / reklamacja</option>
-                  </select>
-                </div>
-                <div class="admin-field">
-                  <label>Stan odczytu</label>
-                  <button class="button button-secondary" id="toggle-read" type="button">Oznacz jako nieprzeczytane</button>
-                </div>
-                <div class="admin-field admin-retention-field">
-                  <label for="retention-hold">Blokada retencji</label>
-                  <label class="retention-hold-control" for="retention-hold">
-                    <input id="retention-hold" type="checkbox">
-                    <span>Nie kwalifikuj sprawy do przyszłego automatycznego usunięcia</span>
-                  </label>
-                  <p class="field-help">Obecnie działa wyłącznie raport. Automatyczne usuwanie pozostaje wyłączone.</p>
-                </div>
-              </div>
-              <div class="case-archive-status" id="case-archive-status" hidden>
-                <strong id="case-archive-status-title"></strong>
-                <span id="case-archive-status-details"></span>
-              </div>
-              <div class="admin-field admin-notes-field">
-                <label for="admin-notes">Notatki wewnętrzne</label>
-                <textarea id="admin-notes" maxlength="8000" placeholder="Notatki są szyfrowane razem z ankietą i nie są wysyłane e-mailem."></textarea>
-                <p class="field-help"><span id="notes-counter">0</span>/8000 znaków</p>
-              </div>
-              <div class="case-workflow-actions">
-                <button class="button button-primary" id="save-case" type="button">Zapisz zmiany</button>
-                <button class="button admin-danger-button" id="delete-case" type="button">Usuń zgłoszenie</button>
-              </div>
-              <div class="case-save-feedback" id="case-save-feedback" role="status" aria-live="polite" hidden></div>
+                <div class="attachment-status" id="attachment-status" role="status" aria-live="polite"></div>
+                <div class="attachment-list" id="attachment-list"></div>
+                <p class="admin-empty" id="attachment-empty">Brak załączników.</p>
+              </section>
             </section>
 
-            <section class="case-attachments" aria-labelledby="attachments-title">
-              <div class="case-section-heading">
-                <div>
-                  <h3 id="attachments-title">Dokumenty sprawy</h3>
-                  <p>Pliki są szyfrowane przed zapisaniem w prywatnym R2. Dozwolone: PDF, JPG, PNG, DOCX; maksymalnie 10 MB.</p>
+            <section class="case-view" data-case-view="questionnaire" id="case-questionnaire-view" hidden>
+              <section class="case-data" aria-labelledby="data-title">
+                <div class="case-section-heading">
+                  <div>
+                    <h3 id="data-title">Dane z ankiety</h3>
+                    <p>Pełne informacje przekazane przez klienta. Otwieraj tę zakładkę tylko wtedy, gdy są potrzebne do analizy lub realizacji.</p>
+                  </div>
                 </div>
-              </div>
-              <div class="attachment-upload-controls">
-                <input id="attachment-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                <button class="button button-secondary" id="upload-attachment" type="button">Dodaj załącznik</button>
-              </div>
-              <div class="attachment-status" id="attachment-status" role="status" aria-live="polite"></div>
-              <div class="attachment-list" id="attachment-list"></div>
-              <p class="admin-empty" id="attachment-empty">Brak załączników.</p>
-            </section>
-
-            <section class="case-data" aria-labelledby="data-title">
-              <h3 id="data-title">Dane z ankiety</h3>
-              <dl id="submission-details"></dl>
+                <dl id="submission-details"></dl>
+              </section>
             </section>
           </div>
         </section>
@@ -372,6 +478,37 @@
         </div>
       </section>
     </div>
+
+
+      <dialog class="case-action-dialog" id="case-action-dialog">
+        <form method="dialog" id="case-action-form">
+          <input id="case-action-type" type="hidden">
+          <div class="case-action-dialog-heading">
+            <div>
+              <p class="eyebrow">DZIAŁANIE OPERATORA</p>
+              <h2 id="case-action-dialog-title">Potwierdź działanie</h2>
+              <p id="case-action-dialog-description"></p>
+            </div>
+            <button class="dialog-close" value="cancel" aria-label="Zamknij" type="submit">×</button>
+          </div>
+          <div class="admin-field" id="case-action-amount-field" hidden>
+            <label for="case-action-amount">Zaksięgowana kwota (zł)</label>
+            <input id="case-action-amount" min="0.01" max="1000000" step="0.01" type="number" value="2000.00">
+          </div>
+          <div class="admin-field" id="case-action-deadline-field" hidden>
+            <label for="case-action-deadline">Nowy termin</label>
+            <input id="case-action-deadline" type="datetime-local">
+          </div>
+          <div class="admin-field" id="case-action-note-field">
+            <label for="case-action-note">Notatka do historii (opcjonalnie)</label>
+            <textarea id="case-action-note" maxlength="1000" placeholder="Krótka informacja pomocna przy późniejszej kontroli sprawy."></textarea>
+          </div>
+          <div class="case-action-dialog-actions">
+            <button class="button button-secondary" value="cancel" type="submit">Anuluj</button>
+            <button class="button button-primary" id="case-action-confirm" value="default" type="submit">Potwierdź</button>
+          </div>
+        </form>
+      </dialog>
   </main>
   <script defer src="assets/admin.js?v=20260706-panel-tabs-invitations-1"></script>
 </body>

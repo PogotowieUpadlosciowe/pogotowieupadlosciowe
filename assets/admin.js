@@ -5,6 +5,7 @@ const STATUS_LABELS = Object.freeze({
   contacted: 'Kontakt wykonany',
   analysis: 'W analizie',
   waiting_documents: 'Oczekiwanie na dokumenty',
+  in_progress: 'W realizacji',
   completed: 'Zakończone',
   rejected: 'Odrzucone'
 });
@@ -14,6 +15,36 @@ const PAYMENT_LABELS = Object.freeze({
   awaiting: 'Oczekuje na płatność',
   paid: 'Opłacona',
   refunded: 'Zwrócona'
+});
+
+
+const MATERIAL_LABELS = Object.freeze({
+  not_verified: 'Do weryfikacji',
+  incomplete: 'Niekompletne',
+  complete: 'Kompletne'
+});
+
+const PAYMENT_INSTRUCTION_LABELS = Object.freeze({
+  not_configured: 'Dane do przelewu nieskonfigurowane',
+  pending: 'Wysyłka w toku',
+  sent: 'Dane do przelewu wysłane',
+  failed: 'Błąd wysyłki danych do przelewu'
+});
+
+const EVENT_LABELS = Object.freeze({
+  order_received: 'Otrzymano zamówienie',
+  payment_instructions_sent: 'Wysłano dane do przelewu',
+  payment_instructions_resent: 'Ponownie wysłano dane do przelewu',
+  payment_instructions_failed: 'Nie udało się wysłać danych do przelewu',
+  payment_marked_paid: 'Zaksięgowano płatność',
+  payment_marked_refunded: 'Oznaczono zwrot płatności',
+  materials_marked_incomplete: 'Oznaczono braki w materiałach',
+  materials_marked_complete: 'Potwierdzono komplet materiałów',
+  fulfillment_started: 'Rozpoczęto realizację',
+  service_completed: 'Zakończono usługę',
+  conditions_deadline_extended: 'Przedłużono termin warunków',
+  case_closed_no_purchase: 'Zamknięto sprawę — warunki niespełnione',
+  case_settings_updated: 'Zmieniono ustawienia sprawy'
 });
 
 const CLOSURE_LABELS = Object.freeze({
@@ -72,6 +103,9 @@ let archiveSelectedId = null;
 let archiveSelectedItem = null;
 let invitations = [];
 let activeAdminView = 'active';
+let activeCaseView = 'workflow';
+let caseEvents = [];
+let attachmentsLoadedForId = null;
 
 const elements = {
   token: document.getElementById('token'),
@@ -116,6 +150,41 @@ const elements = {
   listEmpty: document.getElementById('list-empty'),
   detailEmpty: document.getElementById('detail-empty'),
   detailContent: document.getElementById('detail-content'),
+  caseTabs: Array.from(document.querySelectorAll('[data-case-tab]')),
+  caseViews: Array.from(document.querySelectorAll('[data-case-view]')),
+  caseDocumentsCount: document.getElementById('case-documents-count'),
+  caseDueCard: document.getElementById('case-due-card'),
+  caseDueValue: document.getElementById('case-due-value'),
+  caseDueNote: document.getElementById('case-due-note'),
+  casePaymentCard: document.getElementById('case-payment-card'),
+  casePaymentValue: document.getElementById('case-payment-value'),
+  casePaymentNote: document.getElementById('case-payment-note'),
+  caseMaterialsCard: document.getElementById('case-materials-card'),
+  caseMaterialsValue: document.getElementById('case-materials-value'),
+  caseMaterialsNote: document.getElementById('case-materials-note'),
+  caseFulfillmentCard: document.getElementById('case-fulfillment-card'),
+  caseFulfillmentValue: document.getElementById('case-fulfillment-value'),
+  caseFulfillmentNote: document.getElementById('case-fulfillment-note'),
+  nextAction: document.getElementById('case-next-action'),
+  nextActionLabel: document.getElementById('case-next-action-label'),
+  nextActionTitle: document.getElementById('case-next-action-title'),
+  nextActionDescription: document.getElementById('case-next-action-description'),
+  workflowButtons: Array.from(document.querySelectorAll('[data-workflow-action]')),
+  caseMoreActions: document.getElementById('case-more-actions'),
+  refreshCaseEvents: document.getElementById('refresh-case-events'),
+  caseEventList: document.getElementById('case-event-list'),
+  caseEventEmpty: document.getElementById('case-event-empty'),
+  actionDialog: document.getElementById('case-action-dialog'),
+  actionForm: document.getElementById('case-action-form'),
+  actionType: document.getElementById('case-action-type'),
+  actionDialogTitle: document.getElementById('case-action-dialog-title'),
+  actionDialogDescription: document.getElementById('case-action-dialog-description'),
+  actionAmountField: document.getElementById('case-action-amount-field'),
+  actionAmount: document.getElementById('case-action-amount'),
+  actionDeadlineField: document.getElementById('case-action-deadline-field'),
+  actionDeadline: document.getElementById('case-action-deadline'),
+  actionNote: document.getElementById('case-action-note'),
+  actionConfirm: document.getElementById('case-action-confirm'),
   caseReference: document.getElementById('case-reference'),
   caseName: document.getElementById('case-name'),
   caseDates: document.getElementById('case-dates'),
@@ -331,7 +400,9 @@ function setBusy(isBusy) {
     elements.closeArchive,
     elements.refreshInvitations,
     elements.createInvitation,
-    elements.copyInvitationUrl
+    elements.copyInvitationUrl,
+    elements.refreshCaseEvents,
+    elements.actionConfirm
   ].forEach((button) => {
     if (button) button.disabled = isBusy;
   });
@@ -523,6 +594,276 @@ function setContactLink(anchor, scheme, value) {
   }
 }
 
+
+function caseFulfillmentState(item) {
+  if (!item) return 'not_started';
+  if (item.status === 'completed') return 'completed';
+  if (item.status === 'in_progress' || item.fulfillment_started_at) return 'in_progress';
+  if (item.payment_status === 'paid' && item.materials_status === 'complete') return 'ready';
+  return 'not_started';
+}
+
+function daysUntil(value) {
+  if (!value) return null;
+  const diff = new Date(value).getTime() - Date.now();
+  if (!Number.isFinite(diff)) return null;
+  return Math.ceil(diff / 86_400_000);
+}
+
+function setGlanceCard(card, valueElement, noteElement, value, note, state = '') {
+  valueElement.textContent = value;
+  noteElement.textContent = note || '';
+  card.className = `case-glance-card${state ? ` state-${state}` : ''}`;
+}
+
+function renderCaseGlance(item) {
+  const dueDays = daysUntil(item.conditions_due_at);
+  let dueValue = item.conditions_due_at ? formatDate(item.conditions_due_at) : 'Brak terminu';
+  let dueNote = 'Starszy rekord lub termin nie został jeszcze zapisany.';
+  let dueState = 'neutral';
+  if (dueDays !== null) {
+    if (dueDays < 0 && !['completed', 'rejected'].includes(item.status)) {
+      dueNote = `Termin minął ${Math.abs(dueDays)} dni temu.`;
+      dueState = 'danger';
+    } else if (dueDays === 0) {
+      dueNote = 'Termin upływa dzisiaj.';
+      dueState = 'warning';
+    } else {
+      dueNote = `Pozostało ${dueDays} dni.`;
+      dueState = dueDays <= 3 ? 'warning' : 'ok';
+    }
+  }
+  setGlanceCard(elements.caseDueCard, elements.caseDueValue, elements.caseDueNote, dueValue, dueNote, dueState);
+
+  const paymentLabel = PAYMENT_LABELS[item.payment_status] || item.payment_status || 'Nie ustawiono';
+  const paymentNote = item.payment_status === 'paid'
+    ? `${item.payment_received_at ? `Zaksięgowano: ${formatDate(item.payment_received_at)}` : 'Płatność oznaczona ręcznie'}${item.payment_amount_minor ? ` · ${formatMoneyMinor(item.payment_amount_minor, item.order_currency || 'PLN')}` : ''}`
+    : PAYMENT_INSTRUCTION_LABELS[item.payment_instructions_status] || 'Oczekiwanie na przelew';
+  setGlanceCard(
+    elements.casePaymentCard,
+    elements.casePaymentValue,
+    elements.casePaymentNote,
+    paymentLabel,
+    paymentNote,
+    item.payment_status === 'paid' ? 'ok' : item.payment_instructions_status === 'failed' ? 'danger' : 'warning'
+  );
+
+  const materials = item.materials_status || 'not_verified';
+  const materialsNote = item.materials_updated_at
+    ? `Aktualizacja: ${formatDate(item.materials_updated_at)}`
+    : 'Sprawdź ankietę i dokumenty.';
+  setGlanceCard(
+    elements.caseMaterialsCard,
+    elements.caseMaterialsValue,
+    elements.caseMaterialsNote,
+    MATERIAL_LABELS[materials] || materials,
+    materialsNote,
+    materials === 'complete' ? 'ok' : materials === 'incomplete' ? 'danger' : 'warning'
+  );
+
+  const fulfillment = caseFulfillmentState(item);
+  const fulfillmentLabels = {
+    not_started: 'Nierozpoczęta',
+    ready: 'Warunki spełnione',
+    in_progress: 'W realizacji',
+    completed: 'Zakończona'
+  };
+  let fulfillmentNote = 'Wymaga płatności i kompletu materiałów.';
+  if (fulfillment === 'ready') fulfillmentNote = 'Stan przejściowy — realizacja powinna rozpocząć się automatycznie.';
+  if (fulfillment === 'in_progress') fulfillmentNote = item.fulfillment_started_at ? `Start: ${formatDate(item.fulfillment_started_at)}` : 'Realizacja została rozpoczęta.';
+  if (fulfillment === 'completed') fulfillmentNote = item.fulfillment_completed_at ? `Zakończono: ${formatDate(item.fulfillment_completed_at)}` : 'Usługa została zakończona.';
+  setGlanceCard(
+    elements.caseFulfillmentCard,
+    elements.caseFulfillmentValue,
+    elements.caseFulfillmentNote,
+    fulfillmentLabels[fulfillment],
+    fulfillmentNote,
+    fulfillment === 'completed' || fulfillment === 'ready' ? 'ok' : fulfillment === 'in_progress' ? 'active' : 'neutral'
+  );
+}
+
+function showCaseView(name) {
+  activeCaseView = name;
+  elements.caseViews.forEach((view) => {
+    view.hidden = view.dataset.caseView !== name;
+  });
+  elements.caseTabs.forEach((button) => {
+    const active = button.dataset.caseTab === name;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+
+  const item = selectedSubmission();
+  if (
+    name === 'documents' &&
+    item &&
+    attachmentsLoadedForId !== item.id &&
+    attachmentsLoadedForId !== `loading:${item.id}`
+  ) {
+    attachmentsLoadedForId = `loading:${item.id}`;
+    loadAttachments(item.id).catch((error) => {
+      if (attachmentsLoadedForId === `loading:${item.id}`) attachmentsLoadedForId = null;
+      setStatus(`Nie udało się pobrać dokumentów: ${error.message}`);
+    });
+  }
+}
+
+function buttonForAction(action) {
+  return elements.workflowButtons.find((button) => button.dataset.workflowAction === action);
+}
+
+function renderWorkflowActions(item) {
+  elements.workflowButtons.forEach((button) => {
+    button.hidden = true;
+    button.disabled = false;
+  });
+
+  const fulfillment = caseFulfillmentState(item);
+  const closed = ['completed', 'rejected'].includes(item.status);
+  const paymentInstructionStatus = item.payment_instructions_status || 'not_configured';
+  const paymentConfigured = paymentInstructionStatus !== 'not_configured';
+
+  if (!closed && item.payment_status !== 'paid' && item.payment_status !== 'refunded') {
+    buttonForAction('mark_paid').hidden = false;
+    buttonForAction('resend_payment_instructions').hidden = false;
+    buttonForAction('resend_payment_instructions').disabled = !paymentConfigured;
+  }
+  if (!closed && item.payment_status === 'paid' && fulfillment !== 'in_progress') {
+    buttonForAction('mark_refunded').hidden = false;
+  }
+  if (!closed && item.materials_status !== 'complete') {
+    buttonForAction('materials_complete').hidden = false;
+  }
+  if (!closed && item.materials_status !== 'incomplete') {
+    buttonForAction('materials_incomplete').hidden = false;
+  }
+  if (!closed && fulfillment === 'ready') {
+    buttonForAction('start_fulfillment').hidden = false;
+  }
+  if (!closed && fulfillment === 'in_progress') {
+    buttonForAction('complete_service').hidden = false;
+  }
+  if (!closed && fulfillment !== 'in_progress') buttonForAction('extend_deadline').hidden = false;
+  if (!closed && fulfillment !== 'in_progress' && daysUntil(item.conditions_due_at) !== null && daysUntil(item.conditions_due_at) < 0) {
+    buttonForAction('close_no_purchase').hidden = false;
+  }
+
+  if (elements.caseMoreActions) {
+    const secondaryActions = [
+      'materials_incomplete',
+      'resend_payment_instructions',
+      'mark_refunded',
+      'extend_deadline',
+      'close_no_purchase',
+      'start_fulfillment'
+    ];
+    elements.caseMoreActions.hidden = secondaryActions.every((action) => buttonForAction(action).hidden);
+    if (elements.caseMoreActions.hidden) elements.caseMoreActions.open = false;
+  }
+
+  elements.nextAction.className = 'case-next-action';
+  elements.nextActionLabel.textContent = 'NASTĘPNY KROK';
+
+  if (closed) {
+    elements.nextActionTitle.textContent = item.status === 'completed' ? 'Usługa została zakończona' : 'Sprawa jest zamknięta';
+    elements.nextActionDescription.textContent = 'Dalsze działania są dostępne wyłącznie w ustawieniach zaawansowanych.';
+    elements.nextAction.classList.add('state-completed');
+    return;
+  }
+
+  if (fulfillment === 'in_progress') {
+    elements.nextActionTitle.textContent = 'Dokończ realizację usługi';
+    elements.nextActionDescription.textContent = 'Po przygotowaniu projektu i przekazaniu go klientowi zakończ usługę. Uruchomi to 7-dniowy okres przed archiwizacją.';
+    elements.nextAction.classList.add('state-active');
+    return;
+  }
+
+  if (fulfillment === 'ready') {
+    elements.nextActionTitle.textContent = 'Warunki są spełnione';
+    elements.nextActionDescription.textContent = 'To stan przejściowy lub starszy rekord. Standardowo system rozpoczyna realizację automatycznie po potwierdzeniu drugiego warunku. W razie potrzeby użyj korekty w „Więcej działań”.';
+    elements.nextAction.classList.add('state-ready');
+    return;
+  }
+
+  const missing = [];
+  if (item.payment_status !== 'paid') missing.push('zaksięgowania płatności');
+  if (item.materials_status !== 'complete') missing.push('potwierdzenia kompletu materiałów');
+  elements.nextActionTitle.textContent = `Oczekiwanie na ${missing.join(' i ')}`;
+  elements.nextActionDescription.textContent = item.payment_instructions_status === 'not_configured'
+    ? 'Dane do przelewu nie są jeszcze skonfigurowane w Workerze. Nie wysyłaj klientowi numeru rachunku z publicznego frontendu.'
+    : 'Realizacja pozostaje zablokowana do czasu spełnienia obu warunków. Każdy warunek oznacz osobno po jego rzeczywistym potwierdzeniu.';
+  elements.nextAction.classList.add(item.payment_instructions_status === 'failed' ? 'state-error' : 'state-waiting');
+}
+
+function eventDetailParts(event) {
+  const details = event.details || {};
+  const parts = [];
+  if (details.amount_minor) parts.push(formatMoneyMinor(details.amount_minor, details.currency || 'PLN'));
+  if (details.account_number_masked) parts.push(`rachunek: ${details.account_number_masked}`);
+  if (details.transfer_title) parts.push(`tytuł: ${details.transfer_title}`);
+  if (details.conditions_due_at) parts.push(`termin: ${formatDate(details.conditions_due_at)}`);
+  if (details.deadline_at) parts.push(`nowy termin: ${formatDate(details.deadline_at)}`);
+  if (details.previous_deadline_at) parts.push(`poprzednio: ${formatDate(details.previous_deadline_at)}`);
+  if (details.note) parts.push(details.note);
+  if (details.status) {
+    parts.push(`Status: ${STATUS_LABELS[details.status.from] || details.status.from} → ${STATUS_LABELS[details.status.to] || details.status.to}`);
+  }
+  if (details.payment_status) {
+    parts.push(`Płatność: ${PAYMENT_LABELS[details.payment_status.from] || details.payment_status.from} → ${PAYMENT_LABELS[details.payment_status.to] || details.payment_status.to}`);
+  }
+  if (details.closure_reason) {
+    parts.push(`Zamknięcie: ${CLOSURE_LABELS[details.closure_reason.from] || details.closure_reason.from} → ${CLOSURE_LABELS[details.closure_reason.to] || details.closure_reason.to}`);
+  }
+  if (details.retention_hold) parts.push(`Blokada retencji: ${details.retention_hold.to ? 'włączona' : 'wyłączona'}`);
+  if (details.admin_notes_changed) parts.push('Zmieniono notatki operatora.');
+  if (details.error) parts.push(`Błąd: ${details.error}`);
+  if (details.data_error) parts.push('Nie udało się odczytać szczegółów zdarzenia.');
+  return parts;
+}
+
+function renderCaseEvents() {
+  elements.caseEventList.replaceChildren();
+  elements.caseEventEmpty.hidden = caseEvents.length !== 0;
+
+  caseEvents.forEach((event) => {
+    const row = document.createElement('article');
+    row.className = 'case-event-row';
+    const marker = document.createElement('span');
+    marker.className = `case-event-marker event-${event.event_type}`;
+    const body = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = EVENT_LABELS[event.event_type] || event.event_type;
+    const date = document.createElement('time');
+    date.dateTime = event.created_at;
+    date.textContent = formatDate(event.created_at);
+    body.append(title, date);
+    const parts = eventDetailParts(event);
+    if (parts.length) {
+      const detail = document.createElement('p');
+      detail.textContent = parts.join(' · ');
+      body.append(detail);
+    }
+    row.append(marker, body);
+    elements.caseEventList.append(row);
+  });
+}
+
+function renderTechnicalOverview(item) {
+  elements.overviewDetails.replaceChildren();
+  appendDetailRow('Usługa', item.order_service, elements.overviewDetails);
+  appendDetailRow('Cena zamówienia', formatMoneyMinor(item.order_price_gross_minor, item.order_currency), elements.overviewDetails);
+  appendDetailRow('Zamówienie złożono', formatDate(item.order_accepted_at), elements.overviewDetails);
+  appendDetailRow('Termin warunków', formatDate(item.conditions_due_at), elements.overviewDetails);
+  appendDetailRow('Dane do przelewu', PAYMENT_INSTRUCTION_LABELS[item.payment_instructions_status] || item.payment_instructions_status, elements.overviewDetails);
+  appendDetailRow('Wersja regulaminu', item.regulation_version, elements.overviewDetails);
+  appendDetailRow('Wersja polityki prywatności', item.privacy_version, elements.overviewDetails);
+  appendDetailRow('Wersja oświadczenia', item.contract_statement_version, elements.overviewDetails);
+  appendDetailRow('Hash akceptacji', item.order_acceptance_hash, elements.overviewDetails);
+  appendDetailRow('E-mail do klienta', EMAIL_STATUS_LABELS[item.client_email_status] || item.client_email_status, elements.overviewDetails);
+  appendDetailRow('E-mail do administratora', EMAIL_STATUS_LABELS[item.admin_email_status] || item.admin_email_status, elements.overviewDetails);
+  appendDetailRow('Aktualizacja wysyłki e-mail', formatDate(item.email_updated_at), elements.overviewDetails);
+}
+
 function renderDetails() {
   const item = selectedSubmission();
 
@@ -530,7 +871,10 @@ function renderDetails() {
     elements.detailEmpty.hidden = false;
     elements.detailContent.hidden = true;
     currentAttachments = [];
+    caseEvents = [];
+    attachmentsLoadedForId = null;
     renderAttachmentList();
+    renderCaseEvents();
     setSaveFeedback();
     return;
   }
@@ -539,19 +883,14 @@ function renderDetails() {
   elements.detailContent.hidden = false;
   elements.caseReference.textContent = text(item.reference);
   elements.caseName.textContent = text(item.full_name);
-  const closedInfo = item.closed_at
-    ? ` · Zamknięto: ${formatDate(item.closed_at)}`
-    : '';
-
+  const closedInfo = item.closed_at ? ` · Zamknięto: ${formatDate(item.closed_at)}` : '';
   elements.caseDates.textContent =
     `Utworzono: ${formatDate(item.created_at)} · ` +
     `Ostatnia zmiana: ${formatDate(item.updated_at || item.created_at)}` +
     closedInfo;
 
-  elements.caseStatusBadge.className =
-    `status-badge status-${item.status}`;
+  elements.caseStatusBadge.className = `status-badge status-${item.status}`;
   elements.caseStatusBadge.textContent = STATUS_LABELS[item.status] || 'Nowe';
-
   elements.caseStatus.value = item.status || 'new';
   elements.paymentStatus.value = item.payment_status || 'not_set';
   elements.closureReason.value = item.closure_reason || 'none';
@@ -566,36 +905,26 @@ function renderDetails() {
   elements.caseArchiveStatusDetails.textContent = archiveParts.join(' · ');
   elements.caseArchiveStatus.className = `case-archive-status archive-${archiveStatus}`;
 
-  elements.toggleRead.textContent = item.is_read
-    ? 'Oznacz jako nieprzeczytane'
-    : 'Oznacz jako przeczytane';
-
+  elements.toggleRead.textContent = item.is_read ? 'Oznacz jako nieprzeczytane' : 'Oznacz jako przeczytane';
   elements.retentionHold.checked = Boolean(item.retention_hold);
-
   elements.notes.value = String(item.admin_notes || '');
   elements.notesCounter.textContent = String(elements.notes.value.length);
+  elements.caseDocumentsCount.textContent = String(Number(item.attachment_count || 0));
 
   setContactLink(elements.emailLink, 'mailto', item.email);
   setContactLink(elements.phoneLink, 'tel', item.phone);
   elements.copyEmail.disabled = !item.email;
   elements.copyPhone.disabled = !item.phone;
 
-  elements.overviewDetails.replaceChildren();
-  appendDetailRow('Usługa', item.order_service, elements.overviewDetails);
-  appendDetailRow('Cena zamówienia', formatMoneyMinor(item.order_price_gross_minor, item.order_currency), elements.overviewDetails);
-  appendDetailRow('Zamówienie złożono', formatDate(item.order_accepted_at), elements.overviewDetails);
-  appendDetailRow('Status płatności', PAYMENT_LABELS[item.payment_status] || item.payment_status, elements.overviewDetails);
-  appendDetailRow('Wersja regulaminu', item.regulation_version, elements.overviewDetails);
-  appendDetailRow('Wersja polityki prywatności', item.privacy_version, elements.overviewDetails);
-  appendDetailRow('Wersja oświadczenia', item.contract_statement_version, elements.overviewDetails);
-  appendDetailRow('Hash akceptacji', item.order_acceptance_hash, elements.overviewDetails);
-  appendDetailRow('E-mail do klienta', EMAIL_STATUS_LABELS[item.client_email_status] || item.client_email_status, elements.overviewDetails);
-  appendDetailRow('E-mail do administratora', EMAIL_STATUS_LABELS[item.admin_email_status] || item.admin_email_status, elements.overviewDetails);
-  appendDetailRow('Aktualizacja wysyłki e-mail', formatDate(item.email_updated_at), elements.overviewDetails);
+  renderCaseGlance(item);
+  renderWorkflowActions(item);
+  renderTechnicalOverview(item);
+  renderCaseEvents();
 
   elements.details.replaceChildren();
   DETAIL_FIELDS.forEach(([key, label]) => appendDetailRow(label, item[key]));
   renderAttachmentList();
+  showCaseView(activeCaseView);
 }
 
 function renderAll() {
@@ -649,6 +978,9 @@ async function selectSubmission(id) {
   if (selectedId !== id) setSaveFeedback();
   selectedId = id;
   currentAttachments = [];
+  caseEvents = [];
+  attachmentsLoadedForId = null;
+  activeCaseView = 'workflow';
   renderAll();
 
   const item = selectedSubmission();
@@ -664,9 +996,116 @@ async function selectSubmission(id) {
       renderAll();
     }
 
-    await loadAttachments(id);
+    await loadCaseEvents(id);
   } catch (error) {
     setStatus(`Nie udało się otworzyć pełnych danych sprawy: ${error.message}`);
+  }
+}
+
+async function loadCaseEvents(id = selectedId) {
+  if (!id) return;
+  const payload = await apiRequest(`/submissions/${encodeURIComponent(id)}/events`);
+  if (selectedId !== id) return;
+  caseEvents = Array.isArray(payload.items) ? payload.items : [];
+  renderCaseEvents();
+}
+
+function actionDialogConfig(action, item) {
+  const configs = {
+    mark_paid: {
+      title: 'Oznacz płatność jako zaksięgowaną',
+      description: 'Potwierdź tę operację dopiero po rzeczywistym wpływie środków na rachunek.',
+      confirm: 'Zapisz płatność',
+      amount: true
+    },
+    mark_refunded: {
+      title: 'Oznacz zwrot płatności i zamknij sprawę',
+      description: 'Użyj przed rozpoczęciem realizacji, po rzeczywistym zwrocie środków. Sprawa zostanie zamknięta ze sposobem „Zwrot płatności”.',
+      confirm: 'Potwierdź zwrot i zamknij'
+    },
+    materials_complete: {
+      title: 'Potwierdź komplet materiałów',
+      description: 'Użyj po sprawdzeniu ankiety oraz wszystkich wymaganych dokumentów.',
+      confirm: 'Materiały są kompletne'
+    },
+    materials_incomplete: {
+      title: 'Oznacz braki w materiałach',
+      description: 'W notatce wpisz krótko, czego brakuje. Informacja pozostanie w historii operatora.',
+      confirm: 'Zapisz braki'
+    },
+    start_fulfillment: {
+      title: 'Napraw rozpoczęcie realizacji',
+      description: 'Funkcja awaryjna dla starszej sprawy, w której płatność i materiały są już potwierdzone, ale realizacja nie rozpoczęła się automatycznie.',
+      confirm: 'Napraw stan sprawy'
+    },
+    complete_service: {
+      title: 'Zakończ usługę',
+      description: 'Sprawa zostanie zamknięta jako wykonana i zaplanowana do archiwizacji po 7 dniach.',
+      confirm: 'Zakończ usługę'
+    },
+    resend_payment_instructions: {
+      title: 'Wyślij ponownie dane do przelewu',
+      description: 'Klient otrzyma ponownie potwierdzenie zamówienia wraz z numerem rachunku, kwotą, tytułem przelewu i terminem.',
+      confirm: 'Wyślij wiadomość'
+    },
+    close_no_purchase: {
+      title: 'Zamknij sprawę — warunki niespełnione',
+      description: 'Użyj po upływie terminu, gdy klient nie dokonał płatności albo nie przekazał kompletu materiałów. Sprawa zostanie zamknięta z 30-dniowym okresem retencji.',
+      confirm: 'Zamknij sprawę'
+    },
+    extend_deadline: {
+      title: 'Przedłuż termin płatności i materiałów',
+      description: 'Wybierz termin uzgodniony indywidualnie z klientem.',
+      confirm: 'Przedłuż termin',
+      deadline: true
+    }
+  };
+  const config = configs[action] || null;
+  if (config?.amount) {
+    const minor = Number(item?.order_price_gross_minor || 200000);
+    elements.actionAmount.value = (minor / 100).toFixed(2);
+  }
+  if (config?.deadline) {
+    const base = item?.conditions_due_at ? new Date(item.conditions_due_at) : new Date();
+    base.setDate(base.getDate() + 7);
+    const local = new Date(base.getTime() - base.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    elements.actionDeadline.value = local;
+  }
+  return config;
+}
+
+function openWorkflowDialog(action) {
+  const item = selectedSubmission();
+  if (!item || !elements.actionDialog) return;
+  const config = actionDialogConfig(action, item);
+  if (!config) return;
+  elements.actionType.value = action;
+  elements.actionDialogTitle.textContent = config.title;
+  elements.actionDialogDescription.textContent = config.description;
+  elements.actionConfirm.textContent = config.confirm;
+  elements.actionAmountField.hidden = !config.amount;
+  elements.actionDeadlineField.hidden = !config.deadline;
+  elements.actionNote.value = '';
+  elements.actionDialog.showModal();
+}
+
+async function runWorkflowAction(action, extra = {}) {
+  const item = selectedSubmission();
+  if (!item || requestInProgress) return;
+  setBusy(true);
+  setStatus('Zapisywanie działania…', 'success');
+  try {
+    await apiRequest(`/submissions/${encodeURIComponent(item.id)}/workflow`, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...extra })
+    });
+    await loadSubmissions({ preserveSelection: true, force: true });
+    await loadCaseEvents(item.id);
+    setStatus('Działanie zostało zapisane w historii sprawy.', 'success');
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -902,6 +1341,10 @@ function setAttachmentStatus(message = '', type = '') {
 
 function renderAttachmentList() {
   elements.attachmentList.replaceChildren();
+  const selected = selectedSubmission();
+  if (selected && elements.caseDocumentsCount) {
+    elements.caseDocumentsCount.textContent = String(Number(selected.attachment_count || currentAttachments.length || 0));
+  }
   elements.attachmentEmpty.hidden = currentAttachments.length !== 0;
 
   currentAttachments.forEach((attachment) => {
@@ -940,6 +1383,7 @@ async function loadAttachments(submissionId) {
   const payload = await apiRequest(`/submissions/${encodeURIComponent(submissionId)}/attachments`);
   if (selectedId !== submissionId) return;
   currentAttachments = Array.isArray(payload.items) ? payload.items : [];
+  attachmentsLoadedForId = submissionId;
   renderAttachmentList();
 }
 
@@ -1370,6 +1814,9 @@ function clearSession() {
   archiveSelectedItem = null;
   invitations = [];
   activeAdminView = 'active';
+  activeCaseView = 'workflow';
+  caseEvents = [];
+  attachmentsLoadedForId = null;
   elements.search.value = '';
   elements.statusFilter.value = 'all';
   elements.readFilter.value = 'all';
@@ -1415,6 +1862,41 @@ elements.uploadAttachment.addEventListener('click', uploadAttachment);
 elements.saveCase.addEventListener('click', saveCase);
 elements.toggleRead.addEventListener('click', toggleRead);
 elements.deleteCase.addEventListener('click', deleteCase);
+elements.caseTabs.forEach((button) => {
+  button.addEventListener('click', () => showCaseView(button.dataset.caseTab));
+});
+elements.workflowButtons.forEach((button) => {
+  button.addEventListener('click', () => openWorkflowDialog(button.dataset.workflowAction));
+});
+if (elements.refreshCaseEvents) {
+  elements.refreshCaseEvents.addEventListener('click', () => loadCaseEvents());
+}
+if (elements.actionForm) {
+  elements.actionForm.addEventListener('submit', (event) => {
+    const submitter = event.submitter;
+    if (!submitter || submitter.value === 'cancel') return;
+    event.preventDefault();
+    const action = elements.actionType.value;
+    const payload = { note: elements.actionNote.value.trim() };
+    if (action === 'mark_paid') {
+      const amount = Number(elements.actionAmount.value);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        setStatus('Podaj prawidłową kwotę płatności.');
+        return;
+      }
+      payload.amount_minor = Math.round(amount * 100);
+    }
+    if (action === 'extend_deadline') {
+      if (!elements.actionDeadline.value) {
+        setStatus('Wybierz nowy termin.');
+        return;
+      }
+      payload.deadline_at = new Date(elements.actionDeadline.value).toISOString();
+    }
+    elements.actionDialog.close();
+    runWorkflowAction(action, payload);
+  });
+}
 elements.copyEmail.addEventListener('click', () => {
   const item = selectedSubmission();
   if (item) copyValue(item.email, 'E-mail');

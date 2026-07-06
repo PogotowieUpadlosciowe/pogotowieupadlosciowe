@@ -547,3 +547,99 @@
   .admin-tabs{display:flex;top:0;overflow-x:auto}
   .admin-stat-card{min-height:54px}
 }
+
+/* Pakiet 03 — przebieg sprawy i oszczędne zakładki wewnętrzne */
+.status-in_progress{background:#e8f1ff;color:#174a87;border-color:#bed4f3}
+.case-header-compact{margin-bottom:10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.case-contact-actions-compact{margin:0 0 14px;gap:7px}
+.case-contact-actions-compact .button{padding:8px 11px;font-size:.8rem}
+.case-glance{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 14px}
+.case-glance-card{min-width:0;padding:12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc}
+.case-glance-card span{display:block;margin-bottom:4px;color:var(--muted);font-size:.72rem;font-weight:850;letter-spacing:.035em;text-transform:uppercase}
+.case-glance-card strong{display:block;color:var(--navy);font-size:.96rem;line-height:1.25;overflow-wrap:anywhere}
+.case-glance-card small{display:block;margin-top:5px;color:#65758b;font-size:.75rem;line-height:1.35}
+.case-glance-card.state-ok{border-color:#b9dfca;background:#f0faf4}
+.case-glance-card.state-warning{border-color:#eed49c;background:#fff9ec}
+.case-glance-card.state-danger{border-color:#f0b8b4;background:#fff3f2}
+.case-glance-card.state-active{border-color:#bcd3f2;background:#eef5ff}
+.case-tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 14px;padding:5px;border:1px solid var(--line);border-radius:13px;background:#f6f8fb}
+.case-tab{display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 13px;border:0;border-radius:9px;background:transparent;color:#5b6d83;font:inherit;font-size:.82rem;font-weight:850;white-space:nowrap;cursor:pointer}
+.case-tab:hover{background:#fff;color:var(--navy)}
+.case-tab.is-active,.case-tab[aria-current="page"]{background:#fff;color:var(--navy);box-shadow:0 3px 10px rgba(7,26,53,.09)}
+.case-tab span{display:grid;place-items:center;min-width:21px;height:21px;padding:0 5px;border-radius:999px;background:#e7edf5;font-size:.7rem}
+.case-view[hidden]{display:none!important}
+.case-next-action{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;margin-bottom:13px;padding:16px 17px;border:1px solid #d3dfed;border-radius:15px;background:#f7f9fc}
+.case-next-action h3{margin:3px 0 5px;color:var(--navy);font-size:1.08rem}
+.case-next-action p{margin:0;color:#5f7086;font-size:.87rem;line-height:1.45}
+.case-next-action .eyebrow{font-size:.68rem}
+.case-next-action.state-ready{border-color:#9fd3b3;background:#eef9f2}
+.case-next-action.state-active{border-color:#bcd3f2;background:#eef5ff}
+.case-next-action.state-error{border-color:#efb5b1;background:#fff3f2}
+.case-next-action.state-completed{border-color:#c9d3df;background:#f3f5f8}
+.case-action-buttons{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;max-width:440px}
+.case-action-buttons .button{padding:9px 12px;font-size:.78rem}
+.case-action-buttons .button[hidden]{display:none!important}
+.case-action-buttons .button:disabled{opacity:.48;cursor:not-allowed}
+.case-notes-compact,.case-history{margin-top:13px;padding:15px 16px;border:1px solid var(--line);border-radius:15px;background:#fff}
+.case-notes-compact textarea{min-height:92px}
+.case-notes-compact .case-workflow-actions{margin-top:8px}
+.case-history-heading{align-items:center}
+.button-small{padding:7px 10px;font-size:.75rem}
+.case-event-list{display:grid;margin-top:11px}
+.case-event-row{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;position:relative;padding:0 0 15px}
+.case-event-row:not(:last-child)::after{content:"";position:absolute;left:7px;top:18px;bottom:0;width:2px;background:#e1e8f1}
+.case-event-marker{position:relative;z-index:1;width:16px;height:16px;margin-top:2px;border:4px solid #dce6f2;border-radius:999px;background:#6d829b}
+.case-event-marker.event-payment_marked_paid,.case-event-marker.event-materials_marked_complete,.case-event-marker.event-service_completed{border-color:#cce8d7;background:#258957}
+.case-event-marker.event-fulfillment_started,.case-event-marker.event-payment_instructions_sent,.case-event-marker.event-payment_instructions_resent{border-color:#d0e0f5;background:#2d69ad}
+.case-event-marker.event-materials_marked_incomplete,.case-event-marker.event-payment_instructions_failed{border-color:#f2d0cd;background:#c3463d}
+.case-event-row strong{display:block;color:var(--navy);font-size:.87rem}
+.case-event-row time{display:block;margin-top:1px;color:#77869a;font-size:.72rem}
+.case-event-row p{margin:4px 0 0;color:#596b82;font-size:.79rem;line-height:1.4;overflow-wrap:anywhere}
+.case-collapsible{margin-top:12px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+.case-collapsible summary{padding:12px 15px;color:var(--navy);font-size:.84rem;font-weight:850;cursor:pointer;list-style-position:inside}
+.case-collapsible[open] summary{border-bottom:1px solid var(--line);background:#f8fafc}
+.case-collapsible .case-overview,.case-collapsible .case-workflow{margin:0;border:0;border-radius:0;box-shadow:none}
+.case-advanced-settings .case-workflow{padding:16px}
+.case-danger-zone{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:13px;border:1px solid #efc2bf;border-radius:12px;background:#fff7f6}
+.case-danger-zone div{display:grid;gap:3px}
+.case-danger-zone strong{color:#9d2b24;font-size:.85rem}
+.case-danger-zone span{color:#7d6462;font-size:.76rem}
+#case-documents-view .case-attachments,#case-questionnaire-view .case-data{margin-top:0}
+#case-questionnaire-view .case-data{padding:16px;border:1px solid var(--line);border-radius:15px;background:#fff}
+#case-questionnaire-view #submission-details{display:grid;gap:8px;margin-top:13px}
+.case-action-dialog{width:min(560px,calc(100vw - 28px));padding:0;border:0;border-radius:18px;box-shadow:0 24px 80px rgba(6,25,52,.28)}
+.case-action-dialog::backdrop{background:rgba(5,18,37,.55);backdrop-filter:blur(3px)}
+.case-action-dialog form{display:grid;gap:14px;padding:20px}
+.case-action-dialog-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.case-action-dialog-heading h2{margin:3px 0 6px;color:var(--navy);font-size:1.25rem}
+.case-action-dialog-heading p{margin:0;color:#62738a;font-size:.88rem;line-height:1.45}
+.dialog-close{display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:999px;background:#eef2f7;color:#465a72;font-size:1.35rem;cursor:pointer}
+.case-action-dialog textarea{min-height:88px}
+.case-action-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+
+@media(max-width:1080px){
+  .case-glance{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .case-next-action{grid-template-columns:1fr}
+  .case-action-buttons{justify-content:flex-start;max-width:none}
+}
+@media(max-width:620px){
+  .case-glance{grid-template-columns:1fr}
+  .case-contact-actions-compact .button{flex:1 1 calc(50% - 6px)}
+  .case-tabs{position:sticky;top:56px;z-index:12}
+  .case-tab{flex:1 0 auto}
+  .case-action-buttons .button{width:100%}
+  .case-danger-zone{align-items:flex-start;flex-direction:column}
+  .case-danger-zone .button{width:100%}
+  .case-action-dialog-actions{flex-direction:column-reverse}
+  .case-action-dialog-actions .button{width:100%}
+}
+.case-action-stack{display:grid;justify-items:end;gap:7px;max-width:470px}
+.case-action-buttons-primary{max-width:none}
+.case-more-actions{position:relative;text-align:right}
+.case-more-actions[hidden]{display:none!important}
+.case-more-actions summary{display:inline-flex;align-items:center;justify-content:flex-end;color:#5c6f87;font-size:.76rem;font-weight:800;cursor:pointer;list-style:none}
+.case-more-actions summary::-webkit-details-marker{display:none}
+.case-more-actions summary::after{content:'▾';margin-left:6px;font-size:.7rem}
+.case-more-actions[open] summary::after{transform:rotate(180deg)}
+.case-action-buttons-secondary{justify-content:flex-end;margin-top:7px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}
+@media(max-width:1080px){.case-action-stack{justify-items:start;max-width:none}.case-more-actions{text-align:left}.case-action-buttons-secondary{justify-content:flex-start}}
