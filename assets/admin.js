@@ -75,6 +75,8 @@ let activeAdminView = 'active';
 
 const elements = {
   token: document.getElementById('token'),
+  authTitle: document.getElementById('auth-title'),
+  authDescription: document.getElementById('auth-description'),
   load: document.getElementById('load'),
   clear: document.getElementById('clear'),
   refresh: document.getElementById('refresh'),
@@ -175,6 +177,22 @@ const elements = {
   invitationEmpty: document.getElementById('invitation-empty')
 };
 
+
+function setOperatorSessionActive(active) {
+  document.body.classList.toggle('admin-session-active', active);
+
+  if (elements.authTitle) {
+    elements.authTitle.textContent = active
+      ? 'Sesja operatora aktywna'
+      : 'Dostęp do zgłoszeń';
+  }
+
+  if (elements.authDescription) {
+    elements.authDescription.textContent = active
+      ? 'Dane zostały pobrane. Użyj filtrów lub przycisku Odśwież w sekcji spraw.'
+      : 'Wpisz token administratora, aby pobrać i aktualizować dane.';
+  }
+}
 
 function showAdminView(name, { load = true } = {}) {
   activeAdminView = name;
@@ -613,11 +631,13 @@ async function loadSubmissions({ preserveSelection = true, force = false } = {})
     elements.activeView.hidden = activeAdminView !== 'active';
     elements.invitationsView.hidden = activeAdminView !== 'invitations';
     elements.archiveSection.hidden = activeAdminView !== 'archive';
+    setOperatorSessionActive(true);
     renderAll();
     setStatus(`Pobrano zgłoszenia: ${submissions.length}.`, 'success');
   } catch (error) {
     submissions = [];
     selectedId = null;
+    setOperatorSessionActive(false);
     renderAll();
     setStatus(error.message);
   } finally {
@@ -1340,6 +1360,7 @@ async function revokeInvitation(item) {
 }
 
 function clearSession() {
+  setOperatorSessionActive(false);
   elements.token.value = '';
   submissions = [];
   selectedId = null;
