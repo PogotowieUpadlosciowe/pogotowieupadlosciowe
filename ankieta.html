@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-html
 <html lang="pl">
 <head>
 <meta charset="utf-8"/>
@@ -43,7 +42,7 @@ html
 <img alt="Pogotowie Upadłościowe" src="images/logo/logo-header.png"/>
 </a>
 <button aria-controls="main-menu" aria-expanded="false" aria-label="Otwórz menu" class="mobile-toggle" data-menu-toggle="" type="button">
-<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M4 7h16M4 12h16M4 17h16">
 </path>
 </svg>
@@ -262,12 +261,12 @@ html
 <h3>Podsumowanie zamówienia</h3>
 </div>
 <dl class="order-summary-grid">
-<div><dt>Usługa</dt><dd>Przygotowanie projektu wniosku</dd></div>
-<div><dt>Cena całkowita</dt><dd>2000 zł</dd></div>
-<div><dt>Termin</dt><dd>Do 3 dni roboczych od płatności i otrzymania kompletu materiałów</dd></div>
-<div><dt>Poprawki</dt><dd>Jedna runda poprawek w cenie</dd></div>
+<div><dt>Usługa</dt><dd id="order-service-name">Przygotowanie projektu wniosku</dd></div>
+<div><dt>Cena całkowita</dt><dd id="order-price-display">2000 zł</dd></div>
+<div><dt>Termin</dt><dd id="order-fulfillment-text">Do 3 dni roboczych od płatności i otrzymania kompletu materiałów</dd></div>
+<div><dt>Poprawki</dt><dd id="order-revisions-text">Jedna runda poprawek w cenie</dd></div>
 </dl>
-<p class="field-help">Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do przelewu zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.</p>
+<p class="field-help" id="order-scope-note">Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do przelewu zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.</p>
 </div>
 <div class="form-grid">
 <div class="question full">
@@ -275,10 +274,11 @@ html
 <input id="privacy" name="privacy" required="" type="checkbox"/>
 <label for="privacy" style="font-weight:500">
           Zapoznałem(-am) się z
-          <a href="polityka-prywatnosci.html" rel="noopener" target="_blank">Polityką prywatności</a>
+          <a href="documents/PP-2026-07-04-01.html" rel="noopener" target="_blank">Polityką prywatności</a>
           i akceptuję
-          <a href="regulamin.html" rel="noopener" target="_blank">Regulamin</a>.
+          <a href="documents/REG-2026-07-04-01.html" rel="noopener" target="_blank">Regulamin</a>.
           Żądam rozpoczęcia realizacji usługi po zaksięgowaniu płatności oraz przekazaniu kompletu informacji i dokumentów, przed upływem 14 dni. Przyjmuję do wiadomości, że po pełnym wykonaniu usługi utracę prawo odstąpienia od umowy. *
+          <span class="field-help contract-version-note">Dokumenty: Regulamin <strong id="regulation-version-display">REG-2026-07-04-01</strong> oraz Polityka prywatności <strong id="privacy-version-display">PP-2026-07-04-01</strong>.</span>
         </label>
 </div>
 </div>
@@ -365,7 +365,7 @@ html
 </footer>
 <script defer="" src="assets/site.js?v=20260701-offer-1">
 </script>
-<script defer="" src="assets/form.js?v=20260704-order-1">
+<script defer="" src="assets/form.js?v=20260706-integrity-1">
 </script>
 </body>
 </html>

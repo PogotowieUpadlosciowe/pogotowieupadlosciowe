@@ -33,6 +33,14 @@ const ARCHIVE_STATUS_LABELS = Object.freeze({
   error: 'Błąd archiwizacji'
 });
 
+const EMAIL_STATUS_LABELS = Object.freeze({
+  pending: 'Oczekuje na wysyłkę',
+  sent: 'Wysłano',
+  failed: 'Błąd wysyłki',
+  not_configured: 'Poczta nieskonfigurowana',
+  unknown: 'Brak danych (starszy rekord)'
+});
+
 const DETAIL_FIELDS = Object.freeze([
   ['full_name', 'Imię i nazwisko'],
   ['pesel', 'PESEL'],
@@ -216,6 +224,16 @@ function formatDate(value) {
   } catch {
     return String(value);
   }
+}
+
+function formatMoneyMinor(value, currency = 'PLN') {
+  const minor = Number(value);
+  if (!Number.isFinite(minor)) return '—';
+
+  return new Intl.NumberFormat('pl-PL', {
+    style: 'currency',
+    currency: String(currency || 'PLN')
+  }).format(minor / 100);
 }
 
 function formatBytes(value) {
@@ -501,6 +519,16 @@ function renderDetails() {
   elements.copyPhone.disabled = !item.phone;
 
   elements.details.replaceChildren();
+  appendDetailRow('Usługa', item.order_service);
+  appendDetailRow('Cena zamówienia', formatMoneyMinor(item.order_price_gross_minor, item.order_currency));
+  appendDetailRow('Zamówienie złożono', formatDate(item.order_accepted_at));
+  appendDetailRow('Wersja regulaminu', item.regulation_version);
+  appendDetailRow('Wersja polityki prywatności', item.privacy_version);
+  appendDetailRow('Wersja oświadczenia', item.contract_statement_version);
+  appendDetailRow('Hash akceptacji', item.order_acceptance_hash);
+  appendDetailRow('E-mail do klienta', EMAIL_STATUS_LABELS[item.client_email_status] || item.client_email_status);
+  appendDetailRow('E-mail do administratora', EMAIL_STATUS_LABELS[item.admin_email_status] || item.admin_email_status);
+  appendDetailRow('Aktualizacja wysyłki e-mail', formatDate(item.email_updated_at));
   DETAIL_FIELDS.forEach(([key, label]) => appendDetailRow(label, item[key]));
   renderAttachmentList();
 }
@@ -1069,6 +1097,13 @@ function renderArchiveDetail(item) {
   appendArchiveRow(elements.archiveSummary, 'Planowane usunięcie', formatDate(item.delete_after));
 
   elements.archiveDetails.replaceChildren();
+  appendArchiveRow(elements.archiveDetails, 'Usługa', item.order_service);
+  appendArchiveRow(elements.archiveDetails, 'Cena zamówienia', formatMoneyMinor(item.order_price_gross_minor, item.order_currency));
+  appendArchiveRow(elements.archiveDetails, 'Zamówienie złożono', formatDate(item.order_accepted_at));
+  appendArchiveRow(elements.archiveDetails, 'Wersja regulaminu', item.regulation_version);
+  appendArchiveRow(elements.archiveDetails, 'Wersja polityki prywatności', item.privacy_version);
+  appendArchiveRow(elements.archiveDetails, 'Wersja oświadczenia', item.contract_statement_version);
+  appendArchiveRow(elements.archiveDetails, 'Hash akceptacji', item.order_acceptance_hash);
   DETAIL_FIELDS.forEach(([key, label]) => appendArchiveRow(elements.archiveDetails, label, item[key]));
 
   const attachments = Array.isArray(item.attachments) ? item.attachments : [];
