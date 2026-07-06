@@ -2,6 +2,7 @@ const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.wor
 const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
+const INVITATION_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
 
 const FALLBACK_ORDER_CONFIG = Object.freeze({
   schema_version: 1,
@@ -23,12 +24,96 @@ const button = document.getElementById('submit-button');
 const statusBox = document.getElementById('form-status');
 const turnstileBox = document.getElementById('turnstile-widget');
 const turnstileStatus = document.getElementById('turnstile-status');
+const invitationGate = document.getElementById('invitation-gate');
+const invitationGateTitle = document.getElementById('invitation-gate-title');
+const invitationGateMessage = document.getElementById('invitation-gate-message');
+const invitationExpiry = document.getElementById('invitation-expiry');
 
 let turnstileWidgetId = null;
 let turnstileToken = '';
 let securityReady = false;
 let orderConfig = null;
 let memoryRequestId = '';
+let invitationValidated = false;
+
+
+function formatInvitationDate(value) {
+  if (!value) return '';
+  try {
+    return new Intl.DateTimeFormat('pl-PL', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+      timeZone: 'Europe/Warsaw'
+    }).format(new Date(value));
+  } catch {
+    return String(value);
+  }
+}
+
+function showInvitationGate(title, message, type = '', expiresAt = null) {
+  invitationGateTitle.textContent = title;
+  invitationGateMessage.textContent = message;
+  invitationGate.className = `invitation-gate ${type}`.trim();
+  invitationExpiry.textContent = expiresAt
+    ? `Link jest ważny do: ${formatInvitationDate(expiresAt)}.`
+    : '';
+}
+
+async function validateInvitation() {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(INVITATION_TOKEN)) {
+    showInvitationGate(
+      'Wymagany jest indywidualny link',
+      'Ta ankieta jest dostępna wyłącznie dla osób, które po rozmowie wstępnej otrzymały prywatny link.',
+      'error'
+    );
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/form-invitations/validate`, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-store',
+      referrerPolicy: 'no-referrer',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: INVITATION_TOKEN,
+        request_id: getActiveRequestId()
+      })
+    });
+
+    const payload = await response.json();
+    if (!response.ok || !payload.valid) {
+      showInvitationGate(
+        'Link nie jest aktywny',
+        payload.message || payload.error || 'Link jest nieprawidłowy, wygasł albo został wykorzystany.',
+        'error',
+        payload.expires_at
+      );
+      return false;
+    }
+
+    invitationValidated = true;
+    showInvitationGate(
+      'Dostęp potwierdzony',
+      payload.duplicate_retry
+        ? 'Zgłoszenie mogło już zostać zapisane. Możesz bezpiecznie ponowić wysłanie — system nie utworzy duplikatu.'
+        : 'Indywidualny link jest aktywny. Możesz bezpiecznie wypełnić ankietę.',
+      'success',
+      payload.expires_at
+    );
+    form.hidden = false;
+    return true;
+  } catch (error) {
+    showInvitationGate(
+      'Nie udało się sprawdzić linku',
+      'Spróbuj odświeżyć stronę. Jeżeli problem się powtarza, skontaktuj się z nami.',
+      'error'
+    );
+    return false;
+  }
+}
 
 function showStatus(message, type) {
   statusBox.textContent = message;
@@ -170,6 +255,12 @@ function resetTurnstile(message = 'Weryfikacja jest odnawiana…') {
 
 async function initializeSecurity() {
   setButtonReady(false);
+
+  const invitationOk = await validateInvitation();
+  if (!invitationOk) {
+    showTurnstileStatus('Weryfikacja bezpieczeństwa rozpocznie się po potwierdzeniu linku.');
+    return;
+  }
   showTurnstileStatus('Ładowanie weryfikacji bezpieczeństwa…');
 
   try {
@@ -236,7 +327,7 @@ form.addEventListener('submit', async (event) => {
 
   if (!form.reportValidity()) return;
 
-  if (!securityReady || !turnstileToken || !orderConfig) {
+  if (!invitationValidated || !securityReady || !turnstileToken || !orderConfig) {
     showStatus(
       'Poczekaj na zakończenie weryfikacji i pobranie aktualnych warunków zamówienia.',
       'error'
@@ -255,6 +346,7 @@ form.addEventListener('submit', async (event) => {
   values.privacy_version = orderConfig.privacy_version;
   values.contract_statement_version = orderConfig.contract_statement_version;
   values.submission_request_id = getActiveRequestId();
+  values.invitation_token = INVITATION_TOKEN;
   values.turnstile_token = turnstileToken;
 
   button.disabled = true;
@@ -262,6 +354,7 @@ form.addEventListener('submit', async (event) => {
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
+  let submittedSuccessfully = false;
 
   try {
     const response = await fetch(`${API_BASE}/submissions`, {
@@ -288,8 +381,17 @@ form.addEventListener('submit', async (event) => {
       );
     }
 
+    submittedSuccessfully = true;
     clearActiveRequestId();
     form.reset();
+    Array.from(form.elements).forEach((element) => { element.disabled = true; });
+    button.textContent = 'Zamówienie złożone';
+    showInvitationGate(
+      'Link został wykorzystany',
+      'Ankieta i zamówienie zostały zapisane. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.',
+      'success'
+    );
+    window.history.replaceState({}, document.title, window.location.pathname);
 
     const reference = payload.reference
       ? ` Numer zgłoszenia: ${payload.reference}.`
@@ -313,7 +415,9 @@ form.addEventListener('submit', async (event) => {
     showStatus(message, 'error');
   } finally {
     clearTimeout(timeout);
-    resetTurnstile('Przygotowywanie nowej weryfikacji…');
+    if (!submittedSuccessfully) {
+      resetTurnstile('Przygotowywanie nowej weryfikacji…');
+    }
   }
 });
 

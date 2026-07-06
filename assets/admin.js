@@ -70,6 +70,8 @@ let currentAttachments = [];
 let archiveItems = [];
 let archiveSelectedId = null;
 let archiveSelectedItem = null;
+let invitations = [];
+let activeAdminView = 'active';
 
 const elements = {
   token: document.getElementById('token'),
@@ -90,6 +92,12 @@ const elements = {
   retention365: document.getElementById('retention-365'),
   retentionNote: document.getElementById('retention-note'),
   statusBox: document.getElementById('admin-status'),
+  tabs: document.getElementById('admin-tabs'),
+  tabButtons: Array.from(document.querySelectorAll('[data-admin-tab]')),
+  views: Array.from(document.querySelectorAll('[data-admin-view]')),
+  activeView: document.getElementById('active-view'),
+  tabActiveCount: document.getElementById('tab-active-count'),
+  tabInvitationCount: document.getElementById('tab-invitation-count'),
   stats: document.getElementById('admin-stats'),
   filters: document.getElementById('admin-filters'),
   workspace: document.getElementById('admin-workspace'),
@@ -127,6 +135,7 @@ const elements = {
   saveCase: document.getElementById('save-case'),
   saveFeedback: document.getElementById('case-save-feedback'),
   deleteCase: document.getElementById('delete-case'),
+  overviewDetails: document.getElementById('case-overview-details'),
   details: document.getElementById('submission-details'),
   attachmentFile: document.getElementById('attachment-file'),
   uploadAttachment: document.getElementById('upload-attachment'),
@@ -148,8 +157,40 @@ const elements = {
   archiveSummary: document.getElementById('archive-summary'),
   archiveAttachments: document.getElementById('archive-attachments'),
   archiveAttachmentsEmpty: document.getElementById('archive-attachments-empty'),
-  archiveDetails: document.getElementById('archive-details')
+  archiveDetails: document.getElementById('archive-details'),
+  invitationsView: document.getElementById('invitations-view'),
+  refreshInvitations: document.getElementById('refresh-invitations'),
+  invitationLabel: document.getElementById('invitation-label'),
+  createInvitation: document.getElementById('create-invitation'),
+  generatedInvitation: document.getElementById('generated-invitation'),
+  generatedInvitationUrl: document.getElementById('generated-invitation-url'),
+  generatedInvitationExpiry: document.getElementById('generated-invitation-expiry'),
+  copyInvitationUrl: document.getElementById('copy-invitation-url'),
+  invitationStatActive: document.getElementById('invitation-stat-active'),
+  invitationStatUsed: document.getElementById('invitation-stat-used'),
+  invitationStatExpired: document.getElementById('invitation-stat-expired'),
+  invitationStatRevoked: document.getElementById('invitation-stat-revoked'),
+  invitationListCount: document.getElementById('invitation-list-count'),
+  invitationList: document.getElementById('invitation-list'),
+  invitationEmpty: document.getElementById('invitation-empty')
 };
+
+
+function showAdminView(name, { load = true } = {}) {
+  activeAdminView = name;
+  elements.views.forEach((view) => {
+    view.hidden = view.dataset.adminView !== name;
+  });
+  elements.tabButtons.forEach((button) => {
+    const active = button.dataset.adminTab === name;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+
+  if (!load || !currentToken()) return;
+  if (name === 'invitations') loadInvitations();
+  if (name === 'archive') searchArchiveCases();
+}
 
 function setStatus(message, type = 'error') {
   elements.statusBox.textContent = message;
@@ -269,7 +310,10 @@ function setBusy(isBusy) {
     elements.openArchive,
     elements.uploadAttachment,
     elements.searchArchive,
-    elements.closeArchive
+    elements.closeArchive,
+    elements.refreshInvitations,
+    elements.createInvitation,
+    elements.copyInvitationUrl
   ].forEach((button) => {
     if (button) button.disabled = isBusy;
   });
@@ -427,7 +471,7 @@ function renderList() {
   });
 }
 
-function appendDetailRow(label, value) {
+function appendDetailRow(label, value, container = elements.details) {
   const row = document.createElement('div');
   row.className = 'detail-row';
 
@@ -438,7 +482,7 @@ function appendDetailRow(label, value) {
   dd.textContent = text(value);
 
   row.append(dt, dd);
-  elements.details.append(row);
+  container.append(row);
 }
 
 function setContactLink(anchor, scheme, value) {
@@ -518,17 +562,20 @@ function renderDetails() {
   elements.copyEmail.disabled = !item.email;
   elements.copyPhone.disabled = !item.phone;
 
+  elements.overviewDetails.replaceChildren();
+  appendDetailRow('Usługa', item.order_service, elements.overviewDetails);
+  appendDetailRow('Cena zamówienia', formatMoneyMinor(item.order_price_gross_minor, item.order_currency), elements.overviewDetails);
+  appendDetailRow('Zamówienie złożono', formatDate(item.order_accepted_at), elements.overviewDetails);
+  appendDetailRow('Status płatności', PAYMENT_LABELS[item.payment_status] || item.payment_status, elements.overviewDetails);
+  appendDetailRow('Wersja regulaminu', item.regulation_version, elements.overviewDetails);
+  appendDetailRow('Wersja polityki prywatności', item.privacy_version, elements.overviewDetails);
+  appendDetailRow('Wersja oświadczenia', item.contract_statement_version, elements.overviewDetails);
+  appendDetailRow('Hash akceptacji', item.order_acceptance_hash, elements.overviewDetails);
+  appendDetailRow('E-mail do klienta', EMAIL_STATUS_LABELS[item.client_email_status] || item.client_email_status, elements.overviewDetails);
+  appendDetailRow('E-mail do administratora', EMAIL_STATUS_LABELS[item.admin_email_status] || item.admin_email_status, elements.overviewDetails);
+  appendDetailRow('Aktualizacja wysyłki e-mail', formatDate(item.email_updated_at), elements.overviewDetails);
+
   elements.details.replaceChildren();
-  appendDetailRow('Usługa', item.order_service);
-  appendDetailRow('Cena zamówienia', formatMoneyMinor(item.order_price_gross_minor, item.order_currency));
-  appendDetailRow('Zamówienie złożono', formatDate(item.order_accepted_at));
-  appendDetailRow('Wersja regulaminu', item.regulation_version);
-  appendDetailRow('Wersja polityki prywatności', item.privacy_version);
-  appendDetailRow('Wersja oświadczenia', item.contract_statement_version);
-  appendDetailRow('Hash akceptacji', item.order_acceptance_hash);
-  appendDetailRow('E-mail do klienta', EMAIL_STATUS_LABELS[item.client_email_status] || item.client_email_status);
-  appendDetailRow('E-mail do administratora', EMAIL_STATUS_LABELS[item.admin_email_status] || item.admin_email_status);
-  appendDetailRow('Aktualizacja wysyłki e-mail', formatDate(item.email_updated_at));
   DETAIL_FIELDS.forEach(([key, label]) => appendDetailRow(label, item[key]));
   renderAttachmentList();
 }
@@ -558,10 +605,14 @@ async function loadSubmissions({ preserveSelection = true, force = false } = {})
       ? previousId
       : null;
 
-    elements.dataTools.hidden = false;
+    elements.tabs.hidden = false;
     elements.stats.hidden = false;
     elements.filters.hidden = false;
     elements.workspace.hidden = false;
+    elements.dataTools.hidden = activeAdminView !== 'tools';
+    elements.activeView.hidden = activeAdminView !== 'active';
+    elements.invitationsView.hidden = activeAdminView !== 'invitations';
+    elements.archiveSection.hidden = activeAdminView !== 'archive';
     renderAll();
     setStatus(`Pobrano zgłoszenia: ${submissions.length}.`, 'success');
   } catch (error) {
@@ -1025,21 +1076,11 @@ async function processArchiveNow() {
 }
 
 function showArchiveView() {
-  elements.archiveSection.hidden = false;
-  elements.stats.hidden = true;
-  elements.filters.hidden = true;
-  elements.workspace.hidden = true;
-  elements.archiveSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  searchArchiveCases();
+  showAdminView('archive');
 }
 
 function closeArchiveView() {
-  elements.archiveSection.hidden = true;
-  if (submissions.length || currentToken()) {
-    elements.stats.hidden = false;
-    elements.filters.hidden = false;
-    elements.workspace.hidden = false;
-  }
+  showAdminView('active', { load: false });
 }
 
 function renderArchiveList() {
@@ -1166,6 +1207,138 @@ async function loadArchiveDetail(id) {
   }
 }
 
+
+function invitationLabel(status) {
+  return {
+    active: 'Aktywny',
+    used: 'Wykorzystany',
+    expired: 'Wygasły',
+    revoked: 'Unieważniony'
+  }[status] || status;
+}
+
+function renderInvitationStats(summary = {}) {
+  elements.invitationStatActive.textContent = String(summary.active || 0);
+  elements.invitationStatUsed.textContent = String(summary.used || 0);
+  elements.invitationStatExpired.textContent = String(summary.expired || 0);
+  elements.invitationStatRevoked.textContent = String(summary.revoked || 0);
+  elements.tabInvitationCount.textContent = String(summary.active || 0);
+}
+
+function renderInvitations() {
+  elements.invitationList.replaceChildren();
+  elements.invitationListCount.textContent = String(invitations.length);
+  elements.invitationEmpty.hidden = invitations.length !== 0;
+
+  invitations.forEach((item) => {
+    const row = document.createElement('article');
+    row.className = `invitation-row invitation-${item.status}`;
+
+    const main = document.createElement('div');
+    main.className = 'invitation-row-main';
+    const title = document.createElement('strong');
+    title.textContent = item.label || 'Link bez etykiety';
+    const meta = document.createElement('span');
+    meta.textContent = `Utworzono: ${formatDate(item.created_at)} · Ważny do: ${formatDate(item.expires_at)}`;
+    main.append(title, meta);
+
+    if (item.submission_reference) {
+      const reference = document.createElement('span');
+      reference.textContent = `Zgłoszenie: ${item.submission_reference}`;
+      main.append(reference);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'invitation-row-actions';
+    const badge = document.createElement('span');
+    badge.className = `invitation-status invitation-status-${item.status}`;
+    badge.textContent = invitationLabel(item.status);
+    actions.append(badge);
+
+    if (item.status === 'active') {
+      const revoke = document.createElement('button');
+      revoke.type = 'button';
+      revoke.className = 'button admin-danger-button';
+      revoke.textContent = 'Unieważnij';
+      revoke.addEventListener('click', () => revokeInvitation(item));
+      actions.append(revoke);
+    }
+
+    row.append(main, actions);
+    elements.invitationList.append(row);
+  });
+}
+
+async function loadInvitations({ force = false } = {}) {
+  if ((requestInProgress && !force) || !currentToken()) return;
+  setBusy(true);
+  setStatus('Pobieranie linków do ankiety…', 'success');
+  try {
+    const payload = await apiRequest('/admin/invitations');
+    invitations = Array.isArray(payload.items) ? payload.items : [];
+    renderInvitationStats(payload.summary || {});
+    renderInvitations();
+    setStatus(`Pobrano linki do ankiety: ${invitations.length}.`, 'success');
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function createInvitation() {
+  if (requestInProgress || !currentToken()) return;
+  setBusy(true);
+  setStatus('Generowanie prywatnego linku…', 'success');
+  try {
+    const payload = await apiRequest('/admin/invitations', {
+      method: 'POST',
+      body: JSON.stringify({ label: elements.invitationLabel.value.trim() })
+    });
+
+    elements.generatedInvitationUrl.value = payload.invite_url || '';
+    elements.generatedInvitationExpiry.textContent = payload.item?.expires_at
+      ? `Ważny do: ${formatDate(payload.item.expires_at)}.`
+      : '';
+    elements.generatedInvitation.hidden = false;
+    elements.invitationLabel.value = '';
+    await loadInvitations({ force: true });
+    setStatus('Prywatny link został utworzony. Skopiuj go przed odświeżeniem panelu.', 'success');
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function copyInvitationUrl() {
+  const value = elements.generatedInvitationUrl.value.trim();
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+    setStatus('Link do ankiety został skopiowany.', 'success');
+  } catch {
+    elements.generatedInvitationUrl.select();
+    setStatus('Zaznaczony link skopiuj skrótem Ctrl+C.', 'success');
+  }
+}
+
+async function revokeInvitation(item) {
+  if (!window.confirm(`Unieważnić link „${item.label || 'bez etykiety'}”?`)) return;
+  setBusy(true);
+  try {
+    await apiRequest(`/admin/invitations/${encodeURIComponent(item.id)}`, {
+      method: 'DELETE'
+    });
+    await loadInvitations({ force: true });
+    setStatus('Link został unieważniony.', 'success');
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
 function clearSession() {
   elements.token.value = '';
   submissions = [];
@@ -1174,16 +1347,25 @@ function clearSession() {
   archiveItems = [];
   archiveSelectedId = null;
   archiveSelectedItem = null;
+  invitations = [];
+  activeAdminView = 'active';
   elements.search.value = '';
   elements.statusFilter.value = 'all';
   elements.readFilter.value = 'all';
   elements.sortOrder.value = 'newest';
+  elements.tabs.hidden = true;
   elements.dataTools.hidden = true;
   elements.retentionReport.hidden = true;
   elements.stats.hidden = true;
   elements.filters.hidden = true;
   elements.workspace.hidden = true;
   elements.archiveSection.hidden = true;
+  elements.invitationsView.hidden = true;
+  elements.activeView.hidden = true;
+  elements.generatedInvitation.hidden = true;
+  elements.generatedInvitationUrl.value = '';
+  renderInvitationStats();
+  renderInvitations();
   renderArchiveList();
   renderArchiveDetail(null);
   renderAll();
@@ -1196,8 +1378,14 @@ elements.clear.addEventListener('click', clearSession);
 elements.downloadBackup.addEventListener('click', downloadEncryptedBackup);
 elements.loadRetentionReport.addEventListener('click', loadRetentionReport);
 elements.processArchive.addEventListener('click', processArchiveNow);
-elements.openArchive.addEventListener('click', showArchiveView);
-elements.closeArchive.addEventListener('click', closeArchiveView);
+if (elements.openArchive) elements.openArchive.addEventListener('click', showArchiveView);
+if (elements.closeArchive) elements.closeArchive.addEventListener('click', closeArchiveView);
+elements.tabButtons.forEach((button) => {
+  button.addEventListener('click', () => showAdminView(button.dataset.adminTab));
+});
+elements.refreshInvitations.addEventListener('click', loadInvitations);
+elements.createInvitation.addEventListener('click', createInvitation);
+elements.copyInvitationUrl.addEventListener('click', copyInvitationUrl);
 elements.searchArchive.addEventListener('click', searchArchiveCases);
 elements.archiveSearch.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') searchArchiveCases();

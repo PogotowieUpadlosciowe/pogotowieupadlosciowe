@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Panel zgłoszeń | Pogotowie Upadłościowe</title>
+  <title>Panel operatora | Pogotowie Upadłościowe</title>
   <meta name="description" content="Chroniony panel administracyjny do obsługi zgłoszeń.">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="icon" href="images/logo/favicon.ico">
@@ -18,8 +18,8 @@
       <header class="admin-heading">
         <div>
           <p class="eyebrow">CHRONIONY PANEL</p>
-          <h1>Obsługa zgłoszeń</h1>
-          <p class="lead">Zarządzaj statusem spraw, notatkami i danymi przesłanymi przez ankietę.</p>
+          <h1>Panel operatora</h1>
+          <p class="lead">Obsługuj aktywne sprawy, generuj prywatne linki do ankiety i korzystaj z oddzielnego archiwum.</p>
         </div>
         <a class="button button-secondary" href="index.html">Wróć do strony</a>
       </header>
@@ -42,8 +42,14 @@
       </section>
 
       <div class="form-status" id="admin-status" role="status" aria-live="polite"></div>
+      <nav class="admin-tabs" id="admin-tabs" hidden aria-label="Sekcje panelu">
+        <button class="admin-tab is-active" data-admin-tab="active" type="button">Sprawy <span id="tab-active-count">0</span></button>
+        <button class="admin-tab" data-admin-tab="invitations" type="button">Linki do ankiety <span id="tab-invitation-count">0</span></button>
+        <button class="admin-tab" data-admin-tab="archive" type="button">Archiwum</button>
+        <button class="admin-tab" data-admin-tab="tools" type="button">Kopie i retencja</button>
+      </nav>
 
-      <section class="admin-data-tools" id="admin-data-tools" hidden aria-labelledby="data-tools-title">
+      <section class="admin-data-tools admin-view" data-admin-view="tools" id="admin-data-tools" hidden aria-labelledby="data-tools-title">
         <div>
           <p class="eyebrow">BEZPIECZEŃSTWO DANYCH</p>
           <h2 id="data-tools-title">Kopie i retencja</h2>
@@ -53,7 +59,6 @@
           <button class="button button-primary" id="download-backup" type="button">Pobierz zaszyfrowaną kopię</button>
           <button class="button button-secondary" id="load-retention-report" type="button">Pokaż raport retencji</button>
           <button class="button button-secondary" id="process-archive" type="button">Uruchom archiwizację należnych spraw</button>
-          <button class="button button-secondary" id="open-archive" type="button">Otwórz archiwum</button>
         </div>
         <div class="retention-report" id="retention-report" hidden>
           <div class="retention-report-heading">
@@ -71,6 +76,7 @@
         </div>
       </section>
 
+      <section class="admin-view" data-admin-view="active" id="active-view" hidden>
       <section class="admin-stats" id="admin-stats" aria-label="Podsumowanie zgłoszeń" hidden>
         <article class="admin-stat-card">
           <span>Wszystkie</span>
@@ -159,6 +165,16 @@
               <button class="button button-secondary" id="copy-phone" type="button">Kopiuj telefon</button>
             </div>
 
+            <section class="case-overview" aria-labelledby="overview-title">
+              <div class="case-section-heading">
+                <div>
+                  <h3 id="overview-title">Podsumowanie sprawy</h3>
+                  <p>Najważniejsze informacje o zamówieniu, zgodach i wiadomościach.</p>
+                </div>
+              </div>
+              <dl id="case-overview-details"></dl>
+            </section>
+
             <section class="case-workflow" aria-labelledby="workflow-title">
               <h3 id="workflow-title">Obsługa sprawy</h3>
               <div class="case-workflow-grid">
@@ -246,14 +262,68 @@
         </section>
       </div>
 
-      <section class="admin-archive-section" id="archive-section" hidden aria-labelledby="archive-title">
+      </section>
+
+      <section class="admin-view admin-invitations-view" data-admin-view="invitations" id="invitations-view" hidden aria-labelledby="invitations-title">
+        <header class="admin-view-heading">
+          <div>
+            <p class="eyebrow">PRYWATNY DOSTĘP</p>
+            <h2 id="invitations-title">Linki do ankiety</h2>
+            <p>Każdy link działa przez 14 dni, może zostać użyty tylko raz i można go unieważnić przed wykorzystaniem.</p>
+          </div>
+          <button class="button button-secondary" id="refresh-invitations" type="button">Odśwież listę</button>
+        </header>
+
+        <section class="invitation-create-card" aria-labelledby="create-invitation-title">
+          <div>
+            <h3 id="create-invitation-title">Utwórz nowy link</h3>
+            <p>Etykieta jest widoczna wyłącznie w panelu i jest przechowywana w postaci zaszyfrowanej.</p>
+          </div>
+          <div class="invitation-create-controls">
+            <label for="invitation-label">Etykieta klienta lub sprawy (opcjonalnie)</label>
+            <div>
+              <input id="invitation-label" maxlength="160" placeholder="Np. Jan Kowalski — rozmowa 6 lipca" type="text">
+              <button class="button button-primary" id="create-invitation" type="button">Wygeneruj link na 14 dni</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="generated-invitation" id="generated-invitation" hidden aria-labelledby="generated-invitation-title">
+          <div>
+            <h3 id="generated-invitation-title">Nowy link jest gotowy</h3>
+            <p>Skopiuj go teraz. Ze względów bezpieczeństwa pełnego linku nie można odtworzyć po odświeżeniu panelu.</p>
+          </div>
+          <div class="generated-invitation-controls">
+            <input id="generated-invitation-url" readonly type="text">
+            <button class="button button-primary" id="copy-invitation-url" type="button">Kopiuj link</button>
+          </div>
+          <p class="field-help" id="generated-invitation-expiry"></p>
+        </section>
+
+        <section class="invitation-stats" aria-label="Podsumowanie linków">
+          <article><span>Aktywne</span><strong id="invitation-stat-active">0</strong></article>
+          <article><span>Wykorzystane</span><strong id="invitation-stat-used">0</strong></article>
+          <article><span>Wygasłe</span><strong id="invitation-stat-expired">0</strong></article>
+          <article><span>Unieważnione</span><strong id="invitation-stat-revoked">0</strong></article>
+        </section>
+
+        <section class="invitation-list-card">
+          <div class="admin-panel-heading">
+            <h3>Historia linków</h3>
+            <span id="invitation-list-count">0</span>
+          </div>
+          <div class="invitation-list" id="invitation-list"></div>
+          <p class="admin-empty" id="invitation-empty">Nie utworzono jeszcze żadnych linków.</p>
+        </section>
+      </section>
+
+      <section class="admin-archive-section admin-view" data-admin-view="archive" id="archive-section" hidden aria-labelledby="archive-title">
         <div class="archive-heading">
           <div>
             <p class="eyebrow">PRYWATNE ARCHIWUM R2</p>
             <h2 id="archive-title">Archiwum spraw</h2>
             <p>Wyszukuj po pełnym nazwisku, pełnym imieniu i nazwisku, numerze sprawy, adresie e-mail albo numerze telefonu.</p>
           </div>
-          <button class="button button-secondary" id="close-archive" type="button">Wróć do aktywnych spraw</button>
         </div>
 
         <div class="archive-search-controls">
@@ -303,6 +373,6 @@
       </section>
     </div>
   </main>
-  <script defer src="assets/admin.js?v=20260706-order-1"></script>
+  <script defer src="assets/admin.js?v=20260706-panel-tabs-invitations-1"></script>
 </body>
 </html>
