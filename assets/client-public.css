@@ -446,3 +446,59 @@
   .service-boundaries-layout{gap:24px}
   .service-focused-boundary-grid{grid-template-columns:1fr}
 }
+
+/* PRELAUNCH 04.10 — oddzielenie ostatniej sekcji Usług od stopki */
+.service-page-focused .service-focused-boundaries{
+  position:relative;
+  padding-block:72px 84px;
+  background:linear-gradient(180deg,#f3f7fb 0%,#ffffff 100%);
+  color:#d9e5f4;
+  overflow:visible;
+}
+.service-page-focused .service-focused-boundaries::after{
+  display:none;
+}
+.service-page-focused .service-focused-boundaries .service-boundaries-layout{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  padding:clamp(38px,4.2vw,58px);
+  border:1px solid rgba(56,112,178,.34);
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(29,111,207,.26),transparent 36%),
+    linear-gradient(135deg,#071a34 0%,#0a2344 100%);
+  box-shadow:0 22px 54px rgba(7,26,53,.16);
+}
+.service-page-focused .service-focused-boundaries .service-boundaries-layout::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  right:-180px;
+  bottom:-250px;
+  width:470px;
+  height:470px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(40,124,220,.16),transparent 68%);
+  pointer-events:none;
+}
+
+@media(max-width:760px){
+  .service-page-focused .service-focused-boundaries{
+    padding-block:54px 64px;
+  }
+  .service-page-focused .service-focused-boundaries .service-boundaries-layout{
+    padding:29px 22px;
+    border-radius:22px;
+  }
+}
+
+@media(max-width:480px){
+  .service-page-focused .service-focused-boundaries{
+    padding-block:44px 54px;
+  }
+  .service-page-focused .service-focused-boundaries .service-boundaries-layout{
+    padding:25px 18px;
+    border-radius:19px;
+  }
+}
