@@ -89,7 +89,7 @@
 
 /* QUICK CHECK */
 .visual-quick-check{padding-top:50px;background:#fff}
-.visual-quick-shell{display:grid;grid-template-columns:minmax(270px,.36fr) minmax(0,.64fr);border:1px solid #d9e4f0;border-radius:20px;background:#fff;box-shadow:0 24px 62px rgba(6,27,58,.1);overflow:hidden}
+.visual-quick-shell{display:grid;grid-template-columns:minmax(300px,.34fr) minmax(0,.66fr);border:1px solid #d9e4f0;border-radius:20px;background:#fff;box-shadow:0 24px 62px rgba(6,27,58,.1);overflow:hidden}
 .visual-quick-intro{padding:39px 32px;background:linear-gradient(145deg,#082b5b,#041a39);color:#dce9f8}
 .home-page main .visual-quick-intro h2,.home-page main .visual-quick-intro #quick-check-title{margin:0 0 17px;color:#fff!important;font-size:clamp(2rem,3vw,2.8rem);line-height:1.08;text-shadow:0 1px 0 rgba(0,0,0,.12)}
 .visual-quick-intro>p:not(.visual-eyebrow):not(.visual-quick-legal){margin:0;color:#e3edf8;line-height:1.65}
@@ -99,7 +99,7 @@
 .visual-quick-intro li{display:flex;align-items:center;gap:10px;color:#fff;font-size:.89rem;font-weight:700}
 .visual-quick-intro li span{display:grid;place-items:center;width:20px;height:20px;border:1px solid rgba(255,255,255,.55);border-radius:50%;font-size:.68rem}
 .visual-quick-legal{margin:28px 0 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.13);color:#9fb5ce;font-size:.72rem;line-height:1.55}
-.visual-quick-panel{min-height:430px;padding:35px 38px;background:linear-gradient(135deg,#fff,#f8fbff);color:var(--vh-text)}
+.visual-quick-panel{min-height:430px;padding:39px 44px;background:linear-gradient(135deg,#fff,#f8fbff);color:var(--vh-text)}
 .home-quick-progress{margin-bottom:28px;color:#708097;font-size:.8rem;font-weight:850;letter-spacing:.03em}
 .home-quick-progress-track{height:4px;margin-top:10px;border-radius:99px;background:#e2eaf3;overflow:hidden}
 .home-quick-progress-track span{display:block;width:33.333%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--vh-blue),#45a3ff);transition:width .25s ease}
@@ -107,8 +107,8 @@
 .home-quick-step legend{margin:0 0 10px;color:var(--vh-heading);font-size:clamp(1.35rem,2.4vw,1.85rem);font-weight:850;line-height:1.22;letter-spacing:-.025em}
 .home-quick-hint{margin:0 0 22px;color:var(--vh-muted);font-size:.84rem;line-height:1.58}
 .home-quick-options{display:grid;gap:11px}
-.home-quick-options label{cursor:pointer}
-.home-quick-options input{position:absolute;opacity:0;pointer-events:none}
+.home-quick-options label{position:relative;display:block;min-width:0;overflow:hidden;cursor:pointer}
+.home-quick-options input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .home-quick-options span{display:flex;align-items:center;gap:13px;min-height:58px;padding:12px 15px;border:1px solid #cedae7;border-radius:9px;background:#fff;color:#314158;font-size:.9rem;font-weight:750;box-shadow:0 3px 10px rgba(6,27,58,.03);transition:.18s}
 .home-quick-options span b{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#eef5fd;color:var(--vh-blue);font-size:.75rem}
 .home-quick-options label:hover span{border-color:#7eb5ef;background:#fbfdff}
@@ -274,9 +274,9 @@
   top:0;
   bottom:0;
   left:0;
-  right:auto;
-  width:calc(100% + (100vw - 100%) / 2);
-  max-width:none;
+  right:0;
+  width:100%;
+  max-width:100%;
   margin:0;
   overflow:hidden;
   background:#fff;
@@ -427,8 +427,9 @@
     inset:auto;
     height:auto;
     min-height:0;
-    margin:0 calc((100% - 100vw) / 2);
-    width:100vw;
+    margin:0;
+    width:100%;
+    max-width:100%;
   }
   .home-page main .visual-hero-photo picture{height:auto}
   .home-page main .visual-hero-photo img{
@@ -447,7 +448,7 @@
 @media(max-width:660px){
   .home-page main .visual-hero-grid{padding-top:30px}
   .home-page main .visual-hero-copy h1{
-    font-size:clamp(2.75rem,12.5vw,3.7rem);
+    font-size:clamp(2.35rem,10.7vw,3.25rem);
     line-height:.99;
   }
   .home-page main .visual-eyebrow{font-size:.68rem;letter-spacing:.12em}
@@ -455,8 +456,9 @@
   .home-page main .visual-hero-actions{display:grid;gap:11px}
   .home-page main .visual-hero-actions .visual-button{width:100%}
   .home-page main .visual-hero-photo{
-    margin:0 calc((100% - 100vw) / 2);
-    width:100vw;
+    margin:0;
+    width:100%;
+    max-width:100%;
   }
   .home-page main .visual-facts{margin-top:0}
 }

@@ -1,11 +1,17 @@
-/* PRELAUNCH 04.3 — warstwa części klienckiej */
+/* PRELAUNCH 04.4 — warstwa części klienckiej */
 .nav-links .nav-contact-cta{margin-left:7px;padding:12px 17px;background:var(--blue);color:#fff;border-radius:11px;box-shadow:0 9px 20px rgba(22,116,232,.2)}
 .nav-links .nav-contact-cta:hover{background:var(--blue-2);color:#fff}
 .nav-links .nav-contact-cta[aria-current="page"]::after{display:none}
 .hero-quick-link{display:inline-flex;align-items:center;gap:8px;margin-top:18px;color:#52667f;font-size:.85rem;font-weight:760;text-decoration:none}
 .hero-quick-link:hover{color:var(--vh-blue);text-decoration:underline}
 .section-sublead{max-width:720px;margin:12px auto 0;color:#65778e;line-height:1.65;text-align:center}
-.quick-check-compact{max-width:1080px;margin-inline:auto}
+/* Stabilizacja szerokości strony i hero */
+.home-page{max-width:100%;overflow-x:clip}
+.home-page main,.home-page .visual-hero-grid,.home-page .visual-hero-copy,.home-page .visual-hero-photo{min-width:0;max-width:100%}
+.home-page img,.home-page svg{max-width:100%}
+.home-page .visual-hero-actions .visual-button{white-space:normal;text-align:center}
+
+.quick-check-compact{max-width:1200px;margin-inline:auto}
 .quick-result-cta-grid{display:flex;flex-wrap:wrap;gap:11px;margin-top:24px}
 .client-notice{margin:24px 0;padding:18px 20px;border-left:4px solid var(--blue);border-radius:0 12px 12px 0;background:#f0f6ff;color:#42566f;line-height:1.65}
 .client-notice strong{color:var(--ink)}
