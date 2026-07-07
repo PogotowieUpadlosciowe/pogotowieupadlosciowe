@@ -53,7 +53,7 @@ function initializeQuickCheck(root) {
   function showResult(type) {
     quizForm.hidden = true;
     results.forEach((result) => { result.hidden = result.dataset.quickResult !== type; });
-    progressText.textContent = 'Wynik szybkiej oceny';
+    progressText.textContent = 'Podsumowanie odpowiedzi';
     progressBar.style.width = '100%';
   }
 
@@ -74,8 +74,17 @@ function initializeQuickCheck(root) {
       return;
     }
     const answers = Object.fromEntries(answerNames.map((name) => [name, quizForm.querySelector(`input[name="${name}"]:checked`)?.value]));
-    const positive = answers.business === 'B' && answers.payments === 'B' && answers.delay === 'B';
-    showResult(positive ? 'positive' : 'review');
+    let resultType;
+    if (answers.business === 'A') {
+      resultType = 'business';
+    } else if (answers.payments === 'A') {
+      resultType = 'current';
+    } else if (answers.delay === 'A') {
+      resultType = 'early';
+    } else {
+      resultType = 'positive';
+    }
+    showResult(resultType);
   });
   backButton.addEventListener('click', () => { if (currentStep > 0) { currentStep -= 1; updateStep(); } });
   resetButtons.forEach((button) => button.addEventListener('click', resetQuiz));

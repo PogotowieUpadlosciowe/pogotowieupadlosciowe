@@ -11,7 +11,7 @@
 .home-page img,.home-page svg{max-width:100%}
 .home-page .visual-hero-actions .visual-button{white-space:normal;text-align:center}
 
-.quick-check-compact{max-width:1200px;margin-inline:auto}
+.quick-check-compact{max-width:1320px;margin-inline:auto}
 .quick-result-cta-grid{display:flex;flex-wrap:wrap;gap:11px;margin-top:24px}
 .client-notice{margin:24px 0;padding:18px 20px;border-left:4px solid var(--blue);border-radius:0 12px 12px 0;background:#f0f6ff;color:#42566f;line-height:1.65}
 .client-notice strong{color:var(--ink)}
@@ -71,3 +71,19 @@
 @media(max-width:760px){.contact-page .contact-method-grid{grid-template-columns:1fr}.contact-page .contact-method-card-action{grid-column:auto}.booking-panel-toolbar{grid-template-columns:1fr}.booking-close-button{justify-self:start}.booking-choice-flow{grid-template-columns:1fr}.booking-embed-shell{border-radius:15px}.booking-widget-head{align-items:flex-start;padding:14px 16px}.booking-widget-duration{font-size:.69rem}.booking-frame-wrap{height:760px}.booking-privacy-note,.booking-fallback{text-align:left}}
 @media(max-width:660px){.quick-result-cta-grid{display:grid}.quick-result-cta-grid .visual-button{width:100%}.section-sublead{text-align:left}.faq-page-list .faq-item summary{padding:17px 60px 17px 17px}.faq-page-list .faq-answer{padding:16px 17px 19px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.mobile-contact-bar,.nav-contact-cta,.faq-page-list .faq-item,.faq-page-list .faq-item summary::after{transition:none}}
+
+
+/* PRELAUNCH 04.5 — wyniki szybkiej oceny i zwarta stopka */
+.home-quick-result-business .home-quick-result-icon{background:#fff3dc;color:#9a6500}
+.home-quick-result-early .home-quick-result-icon{background:#edf3ff;color:#315f9d}
+.home-quick-result-current .home-quick-result-icon{background:#eef2f7;color:#52667f}
+.site-footer{padding:42px 0 18px}
+.footer-grid{gap:36px;padding-bottom:24px}
+.footer-brand img{height:62px;margin-bottom:12px}
+.footer-brand p{margin:0;line-height:1.55}
+.footer-title{margin-bottom:11px}
+.footer-links{gap:7px}
+.home-footer-note{margin:0 0 14px;padding-top:16px;line-height:1.5}
+.footer-bottom{padding-top:16px}
+@media(max-width:1080px){.footer-grid{gap:30px;padding-bottom:22px}}
+@media(max-width:660px){.site-footer{padding:34px 0 18px}.footer-grid{gap:24px;padding-bottom:20px}.footer-brand img{height:56px;margin-bottom:10px}.footer-title{margin-bottom:9px}.footer-links{gap:6px}.home-footer-note{padding-top:14px;margin-bottom:12px}.footer-bottom{gap:12px;padding-top:14px}}
