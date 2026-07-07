@@ -84,38 +84,57 @@ function initializeQuickCheck(root) {
 
 document.querySelectorAll('[data-quick-check]').forEach(initializeQuickCheck);
 
-function initializeBookingEmbed(root) {
-  const frame = root.querySelector('[data-booking-frame]');
-  const frameWrap = root.querySelector('[data-booking-frame-wrap]');
-  const placeholder = root.querySelector('[data-booking-placeholder]');
-  const loadButton = root.querySelector('[data-booking-load]');
-  const section = root.closest('[id]');
-
-  if (!frame || !frameWrap || !placeholder || !loadButton) return;
-
+function initializeBookingPanel(panel) {
+  const frame = panel.querySelector('[data-booking-frame]');
+  const heading = panel.querySelector('#booking-title');
+  const closeButton = panel.querySelector('[data-booking-close]');
+  const openButtons = [...document.querySelectorAll('[data-booking-open]')];
   let loaded = false;
 
-  function loadBookingCalendar() {
-    if (loaded) return;
+  function loadFrame() {
+    if (loaded || !frame) return;
     const source = frame.dataset.src;
     if (!source) return;
-
-    loaded = true;
     frame.src = source;
-    frameWrap.hidden = false;
-    placeholder.hidden = true;
-    root.classList.add('is-loaded');
+    loaded = true;
   }
 
-  function loadFromHash() {
-    if (section && window.location.hash === `#${section.id}`) {
-      loadBookingCalendar();
+  function openPanel({ scroll = true } = {}) {
+    panel.hidden = false;
+    panel.classList.add('is-open');
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
+    loadFrame();
+    if (scroll) {
+      window.requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(() => heading?.focus({ preventScroll: true }), 350);
+      });
     }
   }
 
-  loadButton.addEventListener('click', loadBookingCalendar);
-  window.addEventListener('hashchange', loadFromHash);
-  loadFromHash();
+  function closePanel() {
+    panel.hidden = true;
+    panel.classList.remove('is-open');
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('rezerwacja');
+      url.hash = '';
+      const cleanUrl = `${url.pathname}${url.search}` || 'kontakt.html';
+      window.history.replaceState({}, '', cleanUrl);
+    } catch {
+      // Brak operacji — np. w statycznym podglądzie bez poprawnego originu.
+    }
+    openButtons[0]?.focus();
+  }
+
+  openButtons.forEach((button) => button.addEventListener('click', () => openPanel()));
+  closeButton?.addEventListener('click', closePanel);
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('rezerwacja') === '1') {
+    openPanel({ scroll: true });
+  }
 }
 
-document.querySelectorAll('[data-booking-embed]').forEach(initializeBookingEmbed);
+document.querySelectorAll('[data-booking-panel]').forEach(initializeBookingPanel);
