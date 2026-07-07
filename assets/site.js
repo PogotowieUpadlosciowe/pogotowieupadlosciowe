@@ -83,3 +83,39 @@ function initializeQuickCheck(root) {
 }
 
 document.querySelectorAll('[data-quick-check]').forEach(initializeQuickCheck);
+
+function initializeBookingEmbed(root) {
+  const frame = root.querySelector('[data-booking-frame]');
+  const frameWrap = root.querySelector('[data-booking-frame-wrap]');
+  const placeholder = root.querySelector('[data-booking-placeholder]');
+  const loadButton = root.querySelector('[data-booking-load]');
+  const section = root.closest('[id]');
+
+  if (!frame || !frameWrap || !placeholder || !loadButton) return;
+
+  let loaded = false;
+
+  function loadBookingCalendar() {
+    if (loaded) return;
+    const source = frame.dataset.src;
+    if (!source) return;
+
+    loaded = true;
+    frame.src = source;
+    frameWrap.hidden = false;
+    placeholder.hidden = true;
+    root.classList.add('is-loaded');
+  }
+
+  function loadFromHash() {
+    if (section && window.location.hash === `#${section.id}`) {
+      loadBookingCalendar();
+    }
+  }
+
+  loadButton.addEventListener('click', loadBookingCalendar);
+  window.addEventListener('hashchange', loadFromHash);
+  loadFromHash();
+}
+
+document.querySelectorAll('[data-booking-embed]').forEach(initializeBookingEmbed);

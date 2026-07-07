@@ -1,12 +1,12 @@
-# Pogotowie Upadłościowe — frontend Pakietu 03
+# PRELAUNCH 04.1 — szybka ocena i kalendarz inline
 
-Pełny frontend bazujący na wdrożonym Pakiecie 02.1.
+Zmiany:
+- szybka ocena pozostaje wyłącznie lokalnym, orientacyjnym dodatkiem bez danych osobowych, Turnstile i zapisu do backendu;
+- profesjonalne komunikaty obu wyników szybkiej oceny;
+- wszystkie przyciski „Umów rozmowę” kierują do osadzonego kalendarza na stronie Kontakt;
+- kalendarz Google Calendar ładuje się wewnątrz strony po kliknięciu lub po wejściu przez link `kontakt.html#kalendarz`;
+- usunięto przestarzałe style dawnego formularza kontaktowego z szybkiej oceny;
+- zaktualizowano CSP o `frame-src https://calendar.google.com`;
+- sekcja „Jak wygląda współpraca” nie została zmieniona.
 
-Zmiany Pakietu 03 dotyczą głównie:
-- `admin.html`
-- `assets/admin.js`
-- `assets/admin.css`
-
-Panel sprawy ma teraz trzy wewnętrzne zakładki: Przebieg sprawy, Dokumenty i Dane z ankiety. Na pierwszym ekranie pokazuje tylko termin, płatność, kompletność materiałów i realizację.
-
-Realizacja przechodzi automatycznie do stanu „W realizacji” po ręcznym potwierdzeniu płatności i kompletu materiałów; dodatkowy przycisk startu nie jest elementem standardowego przebiegu.
+Tryb PRELAUNCH i `noindex` pozostają bez zmian.
