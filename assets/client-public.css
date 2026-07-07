@@ -87,3 +87,258 @@
 .footer-bottom{padding-top:16px}
 @media(max-width:1080px){.footer-grid{gap:30px;padding-bottom:22px}}
 @media(max-width:660px){.site-footer{padding:34px 0 18px}.footer-grid{gap:24px;padding-bottom:20px}.footer-brand img{height:56px;margin-bottom:10px}.footer-title{margin-bottom:9px}.footer-links{gap:6px}.home-footer-note{padding-top:14px;margin-bottom:12px}.footer-bottom{gap:12px;padding-top:14px}}
+
+
+/* PRELAUNCH 04.6 — kompaktowa i czytelniejsza podstrona Usługi */
+.service-page-compact .page-hero{
+  padding-block:62px 54px;
+}
+.service-page-compact .page-hero-grid{
+  grid-template-columns:minmax(0,1fr) 285px;
+  align-items:center;
+  gap:42px;
+}
+.service-page-compact .page-hero h1{
+  max-width:930px;
+  margin-bottom:15px;
+  font-size:clamp(2.65rem,4.8vw,4.45rem);
+}
+.service-page-compact .page-hero .lead{
+  max-width:760px;
+  font-size:clamp(1rem,1.35vw,1.14rem);
+  line-height:1.68;
+}
+.service-page-compact .page-hero .actions{
+  margin-top:24px;
+}
+.service-page-compact .service-hero-stat{
+  padding:22px 23px;
+  border-radius:18px;
+}
+.service-page-compact .service-hero-stat strong{
+  font-size:clamp(1.65rem,2.6vw,2.15rem);
+}
+.service-page-compact .service-hero-stat p{
+  line-height:1.55;
+}
+
+.service-page-compact .section{
+  padding-block:66px;
+}
+.service-page-compact .section-heading{
+  align-items:end;
+  gap:30px;
+  margin-bottom:29px;
+}
+.service-page-compact .section-heading>div{
+  max-width:760px;
+}
+.service-page-compact .section-heading h2{
+  font-size:clamp(2rem,3.5vw,3rem);
+}
+.service-page-compact .section-heading>p{
+  max-width:430px;
+  line-height:1.58;
+}
+
+.service-page-compact .service-scope-grid{
+  gap:13px;
+}
+.service-page-compact .service-scope-grid article{
+  min-width:0;
+  padding:21px 21px 20px;
+  border-radius:17px;
+  box-shadow:0 8px 24px rgba(7,26,53,.045);
+}
+.service-page-compact .service-scope-grid article>span{
+  margin-bottom:12px;
+  font-family:inherit;
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.service-page-compact .service-scope-grid h3{
+  margin-bottom:7px;
+  font-size:1.08rem;
+  line-height:1.24;
+}
+.service-page-compact .service-scope-grid p{
+  font-size:.9rem;
+  line-height:1.58;
+}
+
+.service-page-compact .service-boundaries-section{
+  padding-block:58px;
+}
+.service-page-compact .service-boundaries{
+  grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);
+  align-items:center;
+  gap:42px;
+}
+.service-page-compact .service-boundaries h2{
+  margin-bottom:14px;
+  font-size:clamp(2rem,3.45vw,3rem);
+}
+.service-page-compact .service-dark-lead{
+  margin-bottom:0;
+  font-size:.98rem;
+  line-height:1.65;
+}
+.service-page-compact .service-boundary-list{
+  gap:10px;
+}
+.service-page-compact .service-boundary-list>div{
+  padding:16px 18px;
+  border-radius:15px;
+}
+.service-page-compact .service-boundary-list strong{
+  margin-bottom:4px;
+  font-size:.94rem;
+}
+.service-page-compact .service-boundary-list p{
+  font-size:.86rem;
+  line-height:1.52;
+}
+
+.service-page-compact .service-documents-section{
+  padding-block:62px;
+}
+.service-page-compact .service-docs-grid{
+  grid-template-columns:minmax(270px,.7fr) minmax(0,1.3fr);
+  gap:44px;
+  align-items:center;
+}
+.service-page-compact .service-docs-grid h2{
+  margin-bottom:12px;
+  font-size:clamp(2rem,3.4vw,2.95rem);
+}
+.service-page-compact .service-docs-grid .lead{
+  margin-bottom:12px;
+  font-size:1.02rem;
+  line-height:1.62;
+}
+.service-page-compact .service-docs-grid>div:first-child>p:last-child{
+  margin-bottom:0;
+  font-size:.9rem;
+  line-height:1.58;
+}
+.service-page-compact .service-doc-list{
+  gap:9px;
+}
+.service-page-compact .service-doc-list div{
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  padding:12px 14px 12px 42px;
+  border-radius:13px;
+  font-size:.88rem;
+  line-height:1.4;
+}
+.service-page-compact .service-doc-list div::before{
+  left:13px;
+  top:50%;
+  width:20px;
+  height:20px;
+  transform:translateY(-50%);
+}
+
+.service-page-compact .service-filing-section{
+  padding-block:62px;
+}
+.service-page-compact .service-filing-grid{
+  gap:14px;
+}
+.service-page-compact .service-filing-grid article{
+  padding:23px 24px;
+  border-radius:17px;
+  box-shadow:0 8px 24px rgba(7,26,53,.045);
+}
+.service-page-compact .service-filing-grid h3{
+  margin-bottom:7px;
+  font-size:1.08rem;
+}
+.service-page-compact .service-filing-grid p{
+  font-size:.9rem;
+  line-height:1.58;
+}
+
+.service-page-compact .service-additional-section{
+  padding-block:0 68px;
+}
+.service-page-compact .service-additional-card{
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:34px;
+  padding:31px 35px;
+  border-radius:22px;
+  box-shadow:0 18px 52px rgba(7,26,53,.15);
+}
+.service-page-compact .service-additional-card h2{
+  margin-bottom:10px;
+  font-size:clamp(1.85rem,3vw,2.65rem);
+}
+.service-page-compact .service-additional-card p{
+  margin-bottom:8px;
+  line-height:1.58;
+}
+.service-page-compact .service-additional-card .service-price-note{
+  margin-bottom:0;
+}
+.service-page-compact .service-additional-card .button{
+  min-width:205px;
+}
+
+@media(max-width:1000px){
+  .service-page-compact .page-hero-grid{
+    grid-template-columns:1fr;
+  }
+  .service-page-compact .service-boundaries,
+  .service-page-compact .service-docs-grid{
+    grid-template-columns:1fr;
+    gap:28px;
+  }
+  .service-page-compact .service-additional-card{
+    grid-template-columns:1fr;
+  }
+  .service-page-compact .service-additional-card .button{
+    justify-self:start;
+  }
+}
+@media(max-width:760px){
+  .service-page-compact .page-hero{
+    padding-block:48px 42px;
+  }
+  .service-page-compact .page-hero h1{
+    font-size:clamp(2.25rem,12vw,3.35rem);
+  }
+  .service-page-compact .section{
+    padding-block:52px;
+  }
+  .service-page-compact .section-heading{
+    margin-bottom:23px;
+  }
+  .service-page-compact .service-boundaries-section,
+  .service-page-compact .service-documents-section,
+  .service-page-compact .service-filing-section{
+    padding-block:52px;
+  }
+}
+@media(max-width:660px){
+  .service-page-compact .service-scope-grid,
+  .service-page-compact .service-doc-list,
+  .service-page-compact .service-filing-grid{
+    grid-template-columns:1fr;
+  }
+  .service-page-compact .service-scope-grid article{
+    padding:19px 18px;
+  }
+  .service-page-compact .service-additional-section{
+    padding-bottom:54px;
+  }
+  .service-page-compact .service-additional-card{
+    padding:25px 22px;
+    border-radius:18px;
+  }
+  .service-page-compact .service-additional-card .button{
+    width:100%;
+  }
+}
