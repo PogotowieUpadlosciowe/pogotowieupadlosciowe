@@ -1,12 +1,11 @@
-# PRELAUNCH 04.1 — szybka ocena i kalendarz inline
+# PRELAUNCH 04.2 — kompaktowy kalendarz
 
 Zmiany:
-- szybka ocena pozostaje wyłącznie lokalnym, orientacyjnym dodatkiem bez danych osobowych, Turnstile i zapisu do backendu;
-- profesjonalne komunikaty obu wyników szybkiej oceny;
-- wszystkie przyciski „Umów rozmowę” kierują do osadzonego kalendarza na stronie Kontakt;
-- kalendarz Google Calendar ładuje się wewnątrz strony po kliknięciu lub po wejściu przez link `kontakt.html#kalendarz`;
-- usunięto przestarzałe style dawnego formularza kontaktowego z szybkiej oceny;
-- zaktualizowano CSP o `frame-src https://calendar.google.com`;
-- sekcja „Jak wygląda współpraca” nie została zmieniona.
+- kalendarz rezerwacji jest widoczny automatycznie, bez przycisku ładowania;
+- osadzony kalendarz ma kompaktową kartę dopasowaną do identyfikacji strony;
+- usunięto wyróżniony przycisk „Umów rozmowę” z nawigacji;
+- w mobilnym pasku kontaktowym „Umów rozmowę” zastąpiono bezpośrednim e-mailem;
+- usunięto powtarzającą się kartę wideorozmowy nad kalendarzem;
+- Worker, D1, panel operatora i ankieta prywatna pozostają bez zmian.
 
-Tryb PRELAUNCH i `noindex` pozostają bez zmian.
+Uwaga: wnętrze kalendarza Google jest osadzonym elementem zewnętrznym. Jego kolorów i układu nie można nadpisać arkuszem CSS strony. Pełna personalizacja wymaga osobnego interfejsu połączonego z Google Calendar API.
