@@ -502,3 +502,14 @@
     border-radius:19px;
   }
 }
+
+/* PRELAUNCH 04.10.2 — jednolite białe tło sekcji i czytelny nagłówek */
+.service-page-focused .service-focused-boundaries{
+  background:#fff;
+}
+.service-page-focused .service-focused-boundaries .service-boundaries-intro h2{
+  color:#fff;
+}
+.service-page-focused .service-focused-boundaries .service-boundaries-layout{
+  box-shadow:0 16px 38px rgba(7,26,53,.11);
+}
