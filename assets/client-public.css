@@ -806,3 +806,109 @@
     padding:23px 21px;
   }
 }
+
+/* PRELAUNCH 04.12 — uproszczony Cennik i FAQ */
+.pricing-clean-payment-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:20px;
+}
+.pricing-clean-payment-grid article{
+  min-width:0;
+  padding:28px 27px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(7,26,53,.05);
+}
+.pricing-clean-payment-grid h3{
+  margin:0 0 10px;
+  color:var(--ink);
+  font-size:1.18rem;
+}
+.pricing-clean-payment-grid p{
+  margin:0;
+  color:var(--muted);
+  font-size:.93rem;
+  line-height:1.68;
+}
+
+.faq-page main,
+.faq-page main > section{
+  background:#fff !important;
+}
+.faq-clean{
+  padding-block:62px 88px;
+}
+.faq-clean-container{
+  max-width:980px;
+}
+.faq-clean-heading{
+  margin:0 0 30px;
+}
+.faq-clean-heading .section-kicker{
+  margin-bottom:12px;
+}
+.faq-clean-heading h1{
+  max-width:760px;
+  margin:0;
+  color:var(--ink);
+  font-size:clamp(2.35rem,4.4vw,3.75rem);
+  line-height:1.08;
+}
+.faq-clean .faq-page-list{
+  width:100%;
+}
+.faq-clean-contact{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:28px;
+  align-items:center;
+  margin-top:44px;
+  padding:27px 29px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(7,26,53,.05);
+}
+.faq-clean-contact h2{
+  margin:0 0 7px;
+  color:var(--ink);
+  font-size:1.35rem;
+}
+.faq-clean-contact p{
+  max-width:680px;
+  margin:0;
+  color:var(--muted);
+  line-height:1.65;
+}
+.faq-clean-contact .button{
+  white-space:nowrap;
+}
+@media(max-width:760px){
+  .pricing-clean-payment-grid{
+    grid-template-columns:1fr;
+  }
+  .pricing-clean-payment-grid article{
+    padding:24px 22px;
+  }
+  .faq-clean{
+    padding-block:48px 66px;
+  }
+  .faq-clean-heading{
+    margin-bottom:24px;
+  }
+  .faq-clean-heading h1{
+    font-size:clamp(2rem,10vw,2.85rem);
+  }
+  .faq-clean-contact{
+    grid-template-columns:1fr;
+    gap:20px;
+    margin-top:34px;
+    padding:24px 22px;
+  }
+  .faq-clean-contact .button{
+    width:100%;
+    text-align:center;
+  }
+}
