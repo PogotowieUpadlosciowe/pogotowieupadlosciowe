@@ -342,3 +342,76 @@
     width:100%;
   }
 }
+
+/* PRELAUNCH 04.8 — skoncentrowana zakładka Usługi */
+.service-page-focused{max-width:100%;overflow-x:clip}
+.service-page-focused main,.service-page-focused .container,.service-page-focused .page-hero-grid,.service-page-focused .service-offers-grid{min-width:0;max-width:100%}
+.service-page-focused .service-focused-hero{padding-block:64px 56px}
+.service-page-focused .service-focused-hero .page-hero-grid{grid-template-columns:minmax(0,1fr) 300px;align-items:center;gap:48px}
+.service-page-focused .service-focused-hero-copy{min-width:0}
+.service-page-focused .service-focused-hero h1{max-width:900px;margin-bottom:16px;font-size:clamp(2.65rem,4.7vw,4.35rem);line-height:1.02}
+.service-page-focused .service-focused-hero .lead{max-width:790px;font-size:clamp(1rem,1.25vw,1.13rem);line-height:1.68}
+.service-page-focused .service-focused-hero .actions{margin-top:26px}
+.service-page-focused .service-hero-stat{padding:24px;border-radius:19px}
+.service-page-focused .service-hero-stat strong{font-size:clamp(1.72rem,2.7vw,2.18rem);line-height:1.08}
+.service-page-focused .service-hero-stat p{margin-top:10px;line-height:1.55}
+
+.service-offers-section{padding-block:72px;background:#fff}
+.service-focused-heading{max-width:810px;margin:0 auto 34px;text-align:center}
+.service-focused-heading h2{margin-bottom:14px;font-size:clamp(2.15rem,3.7vw,3.25rem)}
+.service-focused-heading>p:last-child{max-width:720px;margin:0 auto;color:var(--muted);font-size:1rem;line-height:1.65}
+.service-offers-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);gap:20px;align-items:stretch}
+.service-offer-card{display:flex;min-width:0;flex-direction:column;padding:31px;border:1px solid var(--line);border-radius:24px;background:#fff;box-shadow:0 14px 38px rgba(7,26,53,.07)}
+.service-offer-card-primary{border-top:5px solid var(--blue)}
+.service-offer-card-secondary{border-top:5px solid #8bb9e8;background:linear-gradient(180deg,#f8fbff 0%,#fff 54%)}
+.service-offer-badge{display:inline-flex;width:max-content;max-width:100%;margin-bottom:15px;padding:7px 10px;border-radius:999px;background:var(--sky);color:var(--blue);font-size:.71rem;font-weight:900;letter-spacing:.075em;text-transform:uppercase}
+.service-offer-card-secondary .service-offer-badge{background:#e9f1fa;color:#3e658d}
+.service-offer-card h3{margin-bottom:12px;font-size:clamp(1.55rem,2.35vw,2.05rem);line-height:1.15}
+.service-offer-card-head>p{margin:0;color:var(--muted);line-height:1.65}
+.service-offer-content{margin-top:25px;padding-top:22px;border-top:1px solid var(--line)}
+.service-offer-content h4{margin:0 0 13px;color:var(--ink);font-size:.89rem;letter-spacing:.02em}
+.service-offer-list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.service-offer-list li{position:relative;padding-left:27px;color:#405169;font-size:.92rem;line-height:1.54}
+.service-offer-list li::before{content:"✓";position:absolute;left:0;top:.08em;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;background:var(--sky);color:var(--blue);font-size:.68rem;font-weight:900}
+.service-offer-card-secondary .service-offer-list li::before{background:#e9f1fa;color:#3e658d}
+.service-offer-note{margin:18px 0 0;padding:13px 14px;border-radius:12px;background:#f0f5fa;color:#52667f;font-size:.85rem;line-height:1.5}
+.service-text-link{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;margin-top:auto;padding-top:24px;color:var(--blue);font-weight:850;text-decoration:none}
+.service-text-link:hover{text-decoration:underline}
+
+.service-focused-boundaries{padding-block:64px}
+.service-boundaries-intro{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:54px;align-items:end;margin-bottom:28px}
+.service-boundaries-intro h2{margin:0;font-size:clamp(2rem,3.5vw,3.05rem)}
+.service-boundaries-intro>p:last-child{margin:0;color:#bdccdf;line-height:1.68}
+.service-focused-boundary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.service-focused-boundary-grid article{min-width:0;padding:20px 18px;border:1px solid rgba(255,255,255,.13);border-radius:16px;background:rgba(255,255,255,.065)}
+.service-focused-boundary-grid h3{margin-bottom:7px;color:#fff;font-size:1rem}
+.service-focused-boundary-grid p{margin:0;color:#b8c8db;font-size:.86rem;line-height:1.54}
+
+.service-related-section{padding-block:26px 54px;background:#fff}
+.service-related-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.service-related-links a{display:flex;align-items:center;justify-content:space-between;gap:18px;min-width:0;padding:17px 18px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);text-decoration:none;box-shadow:0 7px 22px rgba(7,26,53,.04)}
+.service-related-links a:hover{border-color:#b9cee5;background:#f8fbff}
+.service-related-links span{min-width:0;color:var(--muted);font-size:.82rem;line-height:1.35}
+.service-related-links strong{flex:0 0 auto;color:var(--blue);font-size:.9rem}
+
+@media(max-width:1020px){
+  .service-page-focused .service-focused-hero .page-hero-grid{grid-template-columns:1fr}
+  .service-page-focused .service-hero-stat{max-width:520px}
+  .service-offers-grid{grid-template-columns:1fr}
+  .service-boundaries-intro{grid-template-columns:1fr;gap:13px;align-items:start}
+  .service-focused-boundary-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+  .service-page-focused .service-focused-hero{padding-block:48px 42px}
+  .service-page-focused .service-focused-hero h1{font-size:clamp(2.25rem,11.7vw,3.35rem)}
+  .service-page-focused .service-focused-hero .actions{display:grid}
+  .service-page-focused .service-focused-hero .button{width:100%}
+  .service-offers-section{padding-block:54px}
+  .service-focused-heading{text-align:left;margin-bottom:26px}
+  .service-focused-heading>p:last-child{margin-left:0}
+  .service-offer-card{padding:24px 21px;border-radius:20px}
+  .service-focused-boundaries{padding-block:52px}
+  .service-focused-boundary-grid{grid-template-columns:1fr}
+  .service-related-section{padding-block:20px 46px}
+  .service-related-links{grid-template-columns:1fr}
+}
