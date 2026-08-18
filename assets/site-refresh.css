@@ -20,13 +20,19 @@
   --pu-radius-lg:30px;
   --pu-shadow-sm:0 10px 28px rgba(6,23,47,.055);
   --pu-shadow:0 20px 55px rgba(6,23,47,.09);
+  --pu-content-width:1440px;
+  --pu-page-gutter:56px;
   --pu-page-title-size:clamp(3rem,4.7vw,4.25rem);
   --pu-page-title-line:1.02;
 }
 
 ::selection{background:#d8eaff;color:var(--pu-ink)}
 body{background:var(--pu-canvas);color:var(--pu-text)}
-.container{width:min(1280px,calc(100% - 56px))}
+.container{width:min(var(--pu-content-width),calc(100% - var(--pu-page-gutter)))}
+
+main .container.content{
+  width:min(1080px,calc(100% - var(--pu-page-gutter)));
+}
 
 a:focus-visible,
 button:focus-visible,
@@ -344,7 +350,7 @@ main .page-hero h1{
 
 /* FAQ */
 .faq-clean{padding:70px 0 88px;background:#fff}
-.faq-clean-container{max-width:1280px}
+.faq-clean-container{max-width:var(--pu-content-width)}
 .faq-clean-heading{margin:0 0 38px}
 .faq-clean-heading h1{
   max-width:780px;
@@ -467,7 +473,7 @@ main .page-hero h1{
 
 /* Kontakt */
 .contact-clean-intro{padding:78px 0 44px;background:#fff}
-.contact-clean-intro-inner{max-width:920px}
+.contact-clean-intro-inner{max-width:1180px}
 .contact-clean-intro h1{
   margin-bottom:20px;
   font-size:clamp(2.85rem,5.4vw,4.85rem);
@@ -475,7 +481,7 @@ main .page-hero h1{
 }
 .contact-clean-intro .lead{font-size:1.08rem}
 .contact-clean-methods{padding:18px 0 88px}
-.contact-clean-page .contact-method-grid{gap:20px;max-width:1220px;counter-reset:contact-methods}
+.contact-clean-page .contact-method-grid{gap:20px;max-width:var(--pu-content-width);counter-reset:contact-methods}
 .contact-clean-page .contact-method-card{
   position:relative;
   min-height:292px;
@@ -508,7 +514,7 @@ main .page-hero h1{
 .contact-clean-page .contact-method-card h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.45rem,2.1vw,1.9rem)}
 .contact-clean-page .contact-method-card strong{color:var(--pu-blue-dark)}
 .contact-clean-security{
-  max-width:1220px;
+  max-width:var(--pu-content-width);
   margin-top:24px;
   padding:28px 30px;
   border-color:#cfe0f3;
@@ -659,7 +665,7 @@ html.booking-dialog-open body{overflow:hidden}
 .footer-bottom{padding-top:20px;color:#8396ad}
 
 @media(max-width:1080px){
-  .container{width:min(1280px,calc(100% - 40px))}
+  :root{--pu-page-gutter:40px}
   .nav-links a{padding-inline:9px;font-size:.85rem}
   .nav-links .nav-contact-cta{margin-left:4px;padding-inline:15px}
   .service-offers-grid{grid-template-columns:1fr}
@@ -670,7 +676,7 @@ html.booking-dialog-open body{overflow:hidden}
 }
 
 @media(max-width:900px){
-  .container{width:min(1280px,calc(100% - 32px))}
+  :root{--pu-page-gutter:32px}
   .nav{min-height:72px}
   .brand img{height:47px}
   .nav-links{top:72px;padding-top:20px}
@@ -691,8 +697,10 @@ html.booking-dialog-open body{overflow:hidden}
 }
 
 @media(max-width:660px){
-  :root{--pu-page-title-size:clamp(2.25rem,10.4vw,3rem)}
-  .container{width:min(1280px,calc(100% - 24px))}
+  :root{
+    --pu-page-gutter:24px;
+    --pu-page-title-size:clamp(2.25rem,10.4vw,3rem);
+  }
   .section-kicker{font-size:.69rem;letter-spacing:.12em}
   .service-offers-section-first,
   .pricing-clean-offers,
@@ -744,8 +752,8 @@ html.booking-dialog-open body{overflow:hidden}
 
 /* 2026-08-18 — wyważone nagłówki podstron i nowy widok kontaktu */
 .subpage-masthead{
-  width:min(960px,100%);
-  max-width:960px;
+  width:min(1180px,100%);
+  max-width:1180px;
   margin:0 auto 46px;
   text-align:center;
 }
@@ -768,7 +776,7 @@ html.booking-dialog-open body{overflow:hidden}
 .pricing-page .subpage-masthead h1,
 .faq-page .subpage-masthead h1,
 .about-clean-page .subpage-masthead h1{
-  max-width:920px;
+  max-width:1080px;
   margin:0 auto 19px;
   font-size:clamp(2.55rem,4.45vw,4.25rem);
   line-height:1.02;
@@ -776,7 +784,7 @@ html.booking-dialog-open body{overflow:hidden}
 }
 
 .subpage-masthead>p:not(.section-kicker){
-  max-width:740px;
+  max-width:910px;
   margin:0 auto;
   color:var(--pu-muted);
   font-size:1.05rem;
@@ -836,8 +844,8 @@ html.booking-dialog-open body{overflow:hidden}
 }
 
 .contact-clean-intro-inner{
-  width:min(980px,100%);
-  max-width:980px;
+  width:min(1180px,100%);
+  max-width:1180px;
   margin:0 auto;
   text-align:center;
 }
@@ -857,7 +865,7 @@ html.booking-dialog-open body{overflow:hidden}
 }
 
 .contact-clean-intro h1{
-  max-width:900px;
+  max-width:1080px;
   margin:0 auto 20px;
   font-size:clamp(2.65rem,4.7vw,4.45rem);
   line-height:1.02;
@@ -865,7 +873,7 @@ html.booking-dialog-open body{overflow:hidden}
 }
 
 .contact-clean-intro .lead{
-  max-width:760px;
+  max-width:910px;
   margin:0 auto;
   line-height:1.72;
   text-wrap:pretty;
@@ -878,7 +886,7 @@ html.booking-dialog-open body{overflow:hidden}
   grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);
   gap:22px;
   align-items:stretch;
-  max-width:1220px;
+  max-width:var(--pu-content-width);
   margin:0 auto;
 }
 
