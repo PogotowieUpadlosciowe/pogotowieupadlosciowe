@@ -2,11 +2,22 @@
 
 Ten plik zbiera najważniejsze informacje ze starszych raportów i plików README. Szczegółowa historia każdej zmiany pozostaje dostępna w historii Git.
 
+## 2026-08-18 — kalendarz wideorozmów
+
+- kalendarz otwiera się w wyśrodkowanym oknie modalnym zamiast rozwijać stronę;
+- zastąpiono widok rezerwacji Google interfejsem Cal.com połączonym z Kalendarzem Google i Google Meet;
+- ustawiono polski region, 24-godzinny format oraz rozpoczęcie dostępnych terminów co 15 minut;
+- dopasowano jasną kolorystykę kalendarza do identyfikacji strony;
+- dodano zamykanie klawiszem Escape, kliknięciem tła i przyciskiem zamknięcia;
+- poprawiono układ kalendarza na telefonach.
+
 ## 2026-08-18 — odświeżenie części publicznej
 
 - dodano wspólną warstwę wizualną dla strony głównej, głównych podstron oraz dokumentów prawnych;
 - ujednolicono nagłówki, typografię, nawigację, karty, przyciski, odstępy i stopkę;
 - wyróżniono Kontakt jako główne działanie w nawigacji;
+- przebudowano stronę Kontakt, nadając pierwszeństwo bezpłatnej wideorozmowie oraz zachowując czytelne opcje telefonu i e-maila;
+- wyśrodkowano i zrównoważono nagłówki stron Usługi, Cennik, FAQ i O nas;
 - wdrożono zaakceptowaną treść pierwszego banera „O nas” wraz z trzema filarami podejścia;
 - zachowano konstrukcję i treść zaakceptowanej strony głównej;
 - nie zmieniono ankiety, panelu operatora, Workera ani D1.
