@@ -159,6 +159,23 @@ main p{color:var(--pu-muted)}
 }
 
 /* Strona główna — zachowana konstrukcja, ujednolicone detale */
+.home-page{
+  --vh-navy:var(--pu-ink);
+  --vh-navy-2:var(--pu-ink-soft);
+  --vh-blue:var(--pu-blue);
+  --vh-blue-dark:var(--pu-blue-dark);
+  --vh-sky:var(--pu-blue-pale);
+  --vh-soft:var(--pu-soft);
+  --vh-line:var(--pu-line);
+  --vh-heading:var(--pu-ink);
+  --vh-text:var(--pu-text);
+  --vh-muted:var(--pu-muted);
+}
+
+.home-page main .visual-hero-copy h1 span{color:var(--pu-ink)}
+.home-page .visual-quick-intro{background:linear-gradient(145deg,var(--pu-ink-soft),var(--pu-ink))}
+.home-page .visual-final-card{background:linear-gradient(120deg,var(--pu-ink-soft),var(--pu-ink))}
+
 .home-page .visual-facts-grid{
   border-color:var(--pu-line);
   border-radius:var(--pu-radius);
