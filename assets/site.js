@@ -94,36 +94,119 @@ function initializeQuickCheck(root) {
 document.querySelectorAll('[data-quick-check]').forEach(initializeQuickCheck);
 
 function initializeBookingPanel(panel) {
-  const frame = panel.querySelector('[data-booking-frame]');
+  const calRoot = panel.querySelector('[data-cal-inline]');
   const heading = panel.querySelector('#booking-title');
   const closeButton = panel.querySelector('[data-booking-close]');
   const openButtons = [...document.querySelectorAll('[data-booking-open]')];
   let loaded = false;
+  let returnFocus = null;
 
-  function loadFrame() {
-    if (loaded || !frame) return;
-    const source = frame.dataset.src;
-    if (!source) return;
-    frame.src = source;
+  function loadBookingCalendar() {
+    if (loaded || !calRoot) return;
+    const calLink = calRoot.dataset.calLink;
+    if (!calLink) return;
+
+    (function initializeCalLoader(global, scriptSource, initCommand) {
+      const enqueue = (api, args) => api.q.push(args);
+      const documentRef = global.document;
+      global.Cal = global.Cal || function calQueue() {
+        const cal = global.Cal;
+        const args = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          const script = documentRef.createElement('script');
+          script.src = scriptSource;
+          script.async = true;
+          documentRef.head.appendChild(script);
+          cal.loaded = true;
+        }
+        if (args[0] === initCommand) {
+          const namespace = args[1];
+          const api = function calNamespaceQueue() { enqueue(api, arguments); };
+          api.q = api.q || [];
+          if (typeof namespace === 'string') {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            enqueue(cal.ns[namespace], args);
+            enqueue(cal, ['initNamespace', namespace]);
+          } else {
+            enqueue(cal, args);
+          }
+          return;
+        }
+        enqueue(cal, args);
+      };
+    }(window, 'https://app.cal.com/embed/embed.js', 'init'));
+
+    window.Cal('init', 'wideorozmowa', { origin: 'https://app.cal.com' });
+    window.Cal.ns.wideorozmowa('inline', {
+      elementOrSelector: '#cal-inline-wideorozmowa',
+      config: { layout: 'month_view', timeFormat: '24', theme: 'light' },
+      calLink,
+    });
+    window.Cal.ns.wideorozmowa('ui', {
+      hideEventTypeDetails: false,
+      layout: 'month_view',
+      theme: 'light',
+      cssVarsPerTheme: {
+        light: {
+          'cal-brand': '#126fdf',
+          'cal-brand-emphasis': '#0b58b5',
+          'cal-brand-text': '#ffffff',
+          'cal-brand-subtle': '#cfe5ff',
+          'cal-brand-accent': '#ffffff',
+          'cal-text': '#334e70',
+          'cal-text-emphasis': '#06172f',
+          'cal-text-subtle': '#60738d',
+          'cal-text-muted': '#9aa9bb',
+          'cal-text-inverted': '#ffffff',
+          'cal-bg': '#ffffff',
+          'cal-bg-emphasis': '#e5f1ff',
+          'cal-bg-subtle': '#f1f7ff',
+          'cal-bg-muted': '#f8fbff',
+          'cal-bg-inverted': '#06172f',
+          'cal-border': '#dce5ef',
+          'cal-border-emphasis': '#126fdf',
+          'cal-border-subtle': '#dce5ef',
+          'cal-border-muted': '#edf2f7',
+          'cal-border-booker': '#dce5ef',
+          'cal-border-booker-width': '1px',
+          radius: '0.5rem',
+          'radius-md': '0.625rem',
+          'radius-lg': '0.75rem',
+          'radius-xl': '0.875rem',
+          'radius-2xl': '1rem',
+          'radius-3xl': '1.5rem',
+          'radius-full': '9999px',
+        },
+      },
+    });
     loaded = true;
   }
 
-  function openPanel({ scroll = true } = {}) {
-    panel.hidden = false;
-    panel.classList.add('is-open');
-    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
-    loadFrame();
-    if (scroll) {
-      window.requestAnimationFrame(() => {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.setTimeout(() => heading?.focus({ preventScroll: true }), 350);
-      });
+  function openPanel() {
+    if (panel.open) return;
+    returnFocus = document.activeElement;
+    if (typeof panel.showModal === 'function') {
+      panel.showModal();
+    } else {
+      panel.setAttribute('open', '');
     }
+    panel.classList.add('is-open');
+    document.documentElement.classList.add('booking-dialog-open');
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
+    loadBookingCalendar();
+    window.requestAnimationFrame(() => heading?.focus({ preventScroll: true }));
   }
 
   function closePanel() {
-    panel.hidden = true;
+    if (typeof panel.close === 'function' && panel.open) {
+      panel.close();
+    } else {
+      panel.removeAttribute('open');
+    }
     panel.classList.remove('is-open');
+    document.documentElement.classList.remove('booking-dialog-open');
     openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
     try {
       const url = new URL(window.location.href);
@@ -134,15 +217,23 @@ function initializeBookingPanel(panel) {
     } catch {
       // Brak operacji — np. w statycznym podglądzie bez poprawnego originu.
     }
-    openButtons[0]?.focus();
+    const focusTarget = returnFocus instanceof HTMLElement ? returnFocus : openButtons[0];
+    focusTarget?.focus();
   }
 
   openButtons.forEach((button) => button.addEventListener('click', () => openPanel()));
   closeButton?.addEventListener('click', closePanel);
+  panel.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closePanel();
+  });
+  panel.addEventListener('click', (event) => {
+    if (event.target === panel) closePanel();
+  });
 
   const params = new URLSearchParams(window.location.search);
   if (params.get('rezerwacja') === '1') {
-    openPanel({ scroll: true });
+    openPanel();
   }
 }
 
