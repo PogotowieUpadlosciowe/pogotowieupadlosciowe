@@ -2,6 +2,15 @@
 
 Ten plik zbiera najważniejsze informacje ze starszych raportów i plików README. Szczegółowa historia każdej zmiany pozostaje dostępna w historii Git.
 
+## 2026-08-18 — odświeżenie części publicznej
+
+- dodano wspólną warstwę wizualną dla strony głównej, głównych podstron oraz dokumentów prawnych;
+- ujednolicono nagłówki, typografię, nawigację, karty, przyciski, odstępy i stopkę;
+- wyróżniono Kontakt jako główne działanie w nawigacji;
+- wdrożono zaakceptowaną treść pierwszego banera „O nas” wraz z trzema filarami podejścia;
+- zachowano konstrukcję i treść zaakceptowanej strony głównej;
+- nie zmieniono ankiety, panelu operatora, Workera ani D1.
+
 ## 2026-08-17 — sekcja „O nas”
 
 - przebudowano pierwszą sekcję na układ dwukolumnowy;
