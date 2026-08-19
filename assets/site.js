@@ -1,3 +1,42 @@
+function initializeUnifiedTopbar() {
+  const topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+
+  if (!document.querySelector('link[data-unified-topbar]')) {
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = 'assets/topbar-unified.css?v=20260819-01';
+    stylesheet.dataset.unifiedTopbar = '';
+    document.head.appendChild(stylesheet);
+  }
+
+  topbar.innerHTML = `
+    <div class="container topbar-inner">
+      <a class="topbar-phone" href="tel:+48574650730">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.28-1.28a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z"></path>
+        </svg>
+        574 650 730
+      </a>
+      <div class="topbar-note">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+          <path d="m9 12 2 2 4-4"></path>
+        </svg>
+        <span>Profesjonalne przygotowanie Twojego wniosku o ogłoszenie upadłości konsumenckiej — 100% zdalnie</span>
+      </div>
+      <a class="topbar-email" href="mailto:kontakt@pogotowieupadlosciowe.pl">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+          <path d="m3 7 9 6 9-6"></path>
+        </svg>
+        kontakt@pogotowieupadlosciowe.pl
+      </a>
+    </div>`;
+}
+
+initializeUnifiedTopbar();
+
 const menuButton = document.querySelector('[data-menu-toggle]');
 const menu = document.getElementById('main-menu');
 
