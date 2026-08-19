@@ -1,0 +1,76 @@
+/* Wspólny górny pasek — zgodny ze stroną główną */
+.topbar{
+  background:#fbfdff;
+  color:#19345d;
+  border-bottom:1px solid #e5edf8;
+}
+
+.topbar .topbar-inner{
+  min-height:42px;
+  display:grid;
+  grid-template-columns:minmax(160px,1fr) auto minmax(220px,1fr);
+  align-items:center;
+  gap:24px;
+  font-size:14px;
+}
+
+.topbar .topbar-phone,
+.topbar .topbar-email{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  color:#19345d;
+  text-decoration:none;
+  font-weight:650;
+  white-space:nowrap;
+}
+
+.topbar .topbar-phone{justify-self:start}
+.topbar .topbar-email{justify-self:end}
+
+.topbar .topbar-phone svg,
+.topbar .topbar-email svg,
+.topbar .topbar-note svg{
+  width:17px;
+  height:17px;
+  flex:0 0 auto;
+  color:#0a6ef1;
+}
+
+.topbar .topbar-note{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  text-align:center;
+  color:#425b7d;
+  font-weight:550;
+  white-space:nowrap;
+}
+
+@media (max-width:1180px){
+  .topbar .topbar-inner{grid-template-columns:auto 1fr auto;gap:14px}
+  .topbar .topbar-note{font-size:12px}
+}
+
+@media (max-width:760px){
+  .topbar .topbar-inner{
+    min-height:0;
+    grid-template-columns:1fr 1fr;
+    padding-top:9px;
+    padding-bottom:9px;
+    gap:8px 14px;
+  }
+  .topbar .topbar-note{
+    grid-column:1 / -1;
+    grid-row:2;
+    white-space:normal;
+    font-size:11px;
+  }
+  .topbar .topbar-phone,
+  .topbar .topbar-email{font-size:12px}
+  .topbar .topbar-email{
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
