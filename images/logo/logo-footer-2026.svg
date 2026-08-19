@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="177" viewBox="0 0 620 177" role="img" aria-labelledby="title desc">
+  <title id="title">Pogotowie Upadłościowe</title>
+  <desc id="desc">Logo Pogotowie Upadłościowe z monogramem liter P i U</desc>
+  <defs>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b8bff"/>
+      <stop offset="1" stop-color="#0a6bff"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8 5)">
+    <path d="M8 12h60c35 0 57 20 57 51 0 29-21 49-53 49H46V82h24c15 0 24-8 24-20 0-13-9-20-24-20H39v72H8z" fill="#ffffff"/>
+    <path d="M8 70h31v40c0 17 8 27 23 34l19 9 19-9c16-8 24-18 24-34V70h31v42c0 31-16 50-43 62l-31 14-31-14c-26-12-42-31-42-62z" fill="url(#blue)" transform="translate(0 -23) scale(1 .88)"/>
+    <path d="M49 55h26v71c0 10 4 15 13 20l12 6v28l-27-13c-16-8-24-20-24-38z" fill="#ffffff"/>
+  </g>
+  <text x="170" y="92" font-family="Inter,Arial,Helvetica,sans-serif" font-size="59" font-weight="800" letter-spacing="-2" fill="#ffffff">Pogotowie</text>
+  <text x="173" y="132" font-family="Inter,Arial,Helvetica,sans-serif" font-size="21" font-weight="600" letter-spacing="7.5" fill="#3b8bff">UPADŁOŚCIOWE</text>
+</svg>
