@@ -1,3 +1,29 @@
+function initializeApprovedBrandLogo() {
+  const logoSrc = 'images/logo/logo-final.svg?v=20260819-01';
+
+  document.querySelectorAll('.brand img').forEach((image) => {
+    image.src = logoSrc;
+    image.alt = 'Pogotowie Upadłościowe';
+    image.removeAttribute('width');
+    image.removeAttribute('height');
+  });
+
+  document.querySelectorAll('.footer-brand img').forEach((image) => {
+    image.src = logoSrc;
+    image.alt = 'Pogotowie Upadłościowe';
+    image.removeAttribute('width');
+    image.removeAttribute('height');
+    image.style.height = '58px';
+    image.style.width = 'auto';
+    image.style.padding = '8px 12px';
+    image.style.borderRadius = '12px';
+    image.style.background = '#ffffff';
+    image.style.boxSizing = 'content-box';
+  });
+}
+
+initializeApprovedBrandLogo();
+
 function initializeUnifiedTopbar() {
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
