@@ -48,6 +48,21 @@
   white-space:nowrap;
 }
 
+/* Finalne logo marki — zabezpieczenie również dla stron ze starszą wersją HTML/JS. */
+.brand img{
+  content:url("../images/logo/logo-final.svg?v=20260819-01");
+}
+
+.footer-brand img{
+  content:url("../images/logo/logo-final.svg?v=20260819-01");
+  height:58px !important;
+  width:auto !important;
+  padding:8px 12px;
+  border-radius:12px;
+  background:#fff;
+  box-sizing:content-box;
+}
+
 @media (max-width:1180px){
   .topbar .topbar-inner{grid-template-columns:auto 1fr auto;gap:14px}
   .topbar .topbar-note{font-size:12px}
