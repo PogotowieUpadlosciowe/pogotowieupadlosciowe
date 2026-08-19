@@ -1,0 +1,335 @@
+/* Modern hero — Pogotowie Upadłościowe */
+
+.home-page .topbar {
+  background: #fbfdff;
+  color: #19345d;
+  border-bottom: 1px solid #e5edf8;
+}
+
+.home-page .topbar-inner {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto minmax(220px, 1fr);
+  align-items: center;
+  gap: 24px;
+  font-size: 14px;
+}
+
+.home-page .topbar-phone,
+.home-page .topbar-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #19345d;
+  text-decoration: none;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.home-page .topbar-email { justify-self: end; }
+.home-page .topbar-phone { justify-self: start; }
+
+.home-page .topbar-phone svg,
+.home-page .topbar-email svg,
+.home-page .topbar-note svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  color: #0a6ef1;
+}
+
+.home-page .topbar-note {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  text-align: center;
+  color: #425b7d;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.modern-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 42px 0 30px;
+  background:
+    radial-gradient(circle at 15% 78%, rgba(34, 119, 255, .065), transparent 25%),
+    radial-gradient(circle at 88% 24%, rgba(34, 119, 255, .055), transparent 24%),
+    linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.modern-hero::before,
+.modern-hero::after {
+  content: "";
+  position: absolute;
+  width: 430px;
+  height: 430px;
+  border-radius: 46% 54% 58% 42%;
+  opacity: .7;
+  pointer-events: none;
+  background: repeating-radial-gradient(circle at center, transparent 0 15px, rgba(50, 126, 240, .07) 16px 17px);
+}
+
+.modern-hero::before { left: -290px; bottom: -165px; transform: rotate(8deg); }
+.modern-hero::after { right: -300px; top: 110px; transform: rotate(-12deg); }
+
+.modern-hero-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.modern-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, .9fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.modern-hero-main,
+.modern-hero-card,
+.modern-hero-steps {
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid #e6edf7;
+  box-shadow: 0 16px 46px rgba(29, 67, 118, .075);
+}
+
+.modern-hero-main {
+  min-height: 540px;
+  border-radius: 28px;
+  padding: 62px 68px 54px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.modern-hero-eyebrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin: 0 0 28px;
+  color: #0873f6;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.modern-hero-eyebrow::before,
+.modern-hero-eyebrow::after {
+  content: "";
+  width: 42px;
+  height: 2px;
+  background: #0873f6;
+  border-radius: 999px;
+}
+
+.modern-hero-title {
+  margin: 0 auto;
+  max-width: 760px;
+  color: #061c3d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(46px, 4.15vw, 72px);
+  line-height: .99;
+  font-weight: 700;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+.modern-hero-lead {
+  max-width: 760px;
+  margin: 30px auto 0;
+  color: #4f6482;
+  font-size: 17px;
+  line-height: 1.72;
+}
+
+.modern-hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 34px;
+}
+
+.modern-hero-button {
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.modern-hero-button:hover { transform: translateY(-1px); }
+.modern-hero-button-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #0873f6, #005adf);
+  box-shadow: 0 10px 24px rgba(0, 103, 232, .2);
+}
+.modern-hero-button-secondary {
+  color: #0668e9;
+  background: #fff;
+  border: 1.5px solid #0a72f5;
+}
+
+.modern-hero-features {
+  display: grid;
+  gap: 18px;
+}
+
+.modern-hero-card {
+  min-height: 168px;
+  border-radius: 24px;
+  padding: 26px 28px;
+  display: grid;
+  grid-template-columns: 94px 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.modern-hero-card-icon {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f3f7fd;
+  color: #0873f6;
+}
+
+.modern-hero-card-icon svg { width: 48px; height: 48px; }
+
+.modern-hero-card-content {
+  border-left: 1px solid #dce7f5;
+  padding-left: 24px;
+}
+
+.modern-hero-card h2 {
+  margin: 0 0 10px;
+  color: #061c3d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  line-height: 1.06;
+}
+
+.modern-hero-card p {
+  margin: 0;
+  color: #566b87;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.modern-hero-steps {
+  margin-top: 24px;
+  border-radius: 24px;
+  padding: 24px 26px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.modern-hero-step {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 66px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.modern-hero-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  right: 0;
+  width: 1px;
+  height: 64%;
+  background: #e0e8f3;
+}
+
+.modern-hero-step-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f4f8fe;
+  color: #0873f6;
+}
+
+.modern-hero-step-icon svg { width: 34px; height: 34px; }
+
+.modern-hero-step-number {
+  display: block;
+  margin-bottom: 4px;
+  color: #0873f6;
+  font-weight: 850;
+  font-size: 15px;
+}
+
+.modern-hero-step strong {
+  display: block;
+  color: #09224a;
+  font-size: 14px;
+  line-height: 1.28;
+}
+
+.modern-hero-step p {
+  margin: 5px 0 0;
+  color: #6a7d97;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+@media (max-width: 1180px) {
+  .home-page .topbar-inner { grid-template-columns: auto 1fr auto; gap: 14px; }
+  .home-page .topbar-note { font-size: 12px; }
+  .modern-hero-grid { grid-template-columns: 1fr; }
+  .modern-hero-features { grid-template-columns: repeat(3, 1fr); }
+  .modern-hero-card { grid-template-columns: 1fr; text-align: center; min-height: 0; }
+  .modern-hero-card-icon { margin: 0 auto; }
+  .modern-hero-card-content { border-left: 0; border-top: 1px solid #dce7f5; padding: 18px 0 0; }
+  .modern-hero-steps { grid-template-columns: repeat(2, 1fr); row-gap: 24px; }
+  .modern-hero-step:nth-child(2)::after { display: none; }
+}
+
+@media (max-width: 760px) {
+  .home-page .topbar-inner {
+    min-height: 0;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    gap: 8px 14px;
+  }
+  .home-page .topbar-note { grid-column: 1 / -1; grid-row: 2; white-space: normal; font-size: 11px; }
+  .home-page .topbar-phone,
+  .home-page .topbar-email { font-size: 12px; }
+  .home-page .topbar-email { overflow: hidden; text-overflow: ellipsis; }
+
+  .modern-hero { padding: 24px 0 20px; }
+  .modern-hero-main { min-height: 0; padding: 38px 24px; border-radius: 22px; }
+  .modern-hero-eyebrow { gap: 10px; font-size: 11px; letter-spacing: .15em; }
+  .modern-hero-eyebrow::before,
+  .modern-hero-eyebrow::after { width: 24px; }
+  .modern-hero-title { font-size: clamp(37px, 11vw, 52px); }
+  .modern-hero-lead { font-size: 15px; line-height: 1.62; }
+  .modern-hero-actions { flex-direction: column; }
+  .modern-hero-button { width: 100%; }
+  .modern-hero-features { grid-template-columns: 1fr; }
+  .modern-hero-card { grid-template-columns: 74px 1fr; text-align: left; padding: 22px; gap: 18px; }
+  .modern-hero-card-icon { width: 68px; height: 68px; }
+  .modern-hero-card-icon svg { width: 38px; height: 38px; }
+  .modern-hero-card-content { border-top: 0; border-left: 1px solid #dce7f5; padding: 0 0 0 18px; }
+  .modern-hero-card h2 { font-size: 23px; }
+  .modern-hero-steps { grid-template-columns: 1fr; padding: 8px 18px; }
+  .modern-hero-step { padding: 18px 4px; }
+  .modern-hero-step:not(:last-child)::after { top: auto; right: 0; bottom: 0; width: 100%; height: 1px; }
+  .modern-hero-step:nth-child(2)::after { display: block; }
+}
