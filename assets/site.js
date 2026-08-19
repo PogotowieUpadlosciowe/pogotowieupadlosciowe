@@ -1,13 +1,6 @@
 const menuButton = document.querySelector('[data-menu-toggle]');
 const menu = document.getElementById('main-menu');
 
-document.querySelectorAll('img[src="images/logo/logo-header.png"]').forEach((image) => {
-  image.src = 'images/logo/logo-header-2026.svg';
-});
-document.querySelectorAll('img[src="images/logo/logo-footer.png"]').forEach((image) => {
-  image.src = 'images/logo/logo-footer-2026.svg';
-});
-
 function closeMenu() {
   if (!menuButton || !menu) return;
   menu.classList.remove('open');
