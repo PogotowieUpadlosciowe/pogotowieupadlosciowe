@@ -1,24 +1,24 @@
+const siteAssetBaseUrl = document.currentScript?.src
+  ? new URL('.', document.currentScript.src)
+  : new URL('assets/', window.location.href);
+
 function initializeApprovedBrandLogo() {
-  const logoSrc = 'images/logo/logo-final.svg?v=20260819-01';
+  const headerLogoSrc = new URL('../images/logo/logo-horizontal-light.svg?v=20260822-05', siteAssetBaseUrl).href;
+  const footerLogoSrc = new URL('../images/logo/logo-horizontal-dark.svg?v=20260822-05', siteAssetBaseUrl).href;
 
   document.querySelectorAll('.brand img').forEach((image) => {
-    image.src = logoSrc;
+    image.src = headerLogoSrc;
     image.alt = 'Pogotowie Upadłościowe';
     image.removeAttribute('width');
     image.removeAttribute('height');
   });
 
   document.querySelectorAll('.footer-brand img').forEach((image) => {
-    image.src = logoSrc;
+    image.src = footerLogoSrc;
     image.alt = 'Pogotowie Upadłościowe';
     image.removeAttribute('width');
     image.removeAttribute('height');
-    image.style.height = '58px';
-    image.style.width = 'auto';
-    image.style.padding = '8px 12px';
-    image.style.borderRadius = '12px';
-    image.style.background = '#ffffff';
-    image.style.boxSizing = 'content-box';
+    image.removeAttribute('style');
   });
 }
 
@@ -31,7 +31,7 @@ function initializeUnifiedTopbar() {
   if (!document.querySelector('link[data-unified-topbar]')) {
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
-    stylesheet.href = 'assets/topbar-unified.css?v=20260819-01';
+    stylesheet.href = new URL('topbar-unified.css?v=20260822-05', siteAssetBaseUrl).href;
     stylesheet.dataset.unifiedTopbar = '';
     document.head.appendChild(stylesheet);
   }

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="Pogotowie Upadłościowe">
+  <defs>
+    <linearGradient id="symbol-gradient" x1="0" y1="235" x2="155" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0873F6"/>
+      <stop offset="0.48" stop-color="#064EDC"/>
+      <stop offset="1" stop-color="#071A3E"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" rx="220" fill="#FFFFFF"/>
+  <g transform="translate(215 42) scale(4.19)" fill="url(#symbol-gradient)">
+    <path d="M0 0h98c34 0 57 24 57 57s-23 56-57 56H76V84h22c17 0 28-10 28-27S115 29 98 29H29v47H0V0Z"/>
+    <path d="M0 87h29v67c0 18 10 31 27 41l21.5 13L99 195c17-10 27-23 27-41v-41c12-5 22-12 29-22v63c0 30-15 52-42 69l-35.5 22L42 223C15 206 0 184 0 154V87Z" fill-rule="evenodd"/>
+    <path d="M54 57h25v94c0 12 5 20 15 26l-16.5 10-8-5C59 176 54 166 54 151V57Z"/>
+  </g>
+</svg>

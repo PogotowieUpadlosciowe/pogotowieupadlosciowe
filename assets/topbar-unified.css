@@ -50,17 +50,17 @@
 
 /* Finalne logo marki — zabezpieczenie również dla stron ze starszą wersją HTML/JS. */
 .brand img{
-  content:url("../images/logo/logo-final.svg?v=20260819-01");
+  content:url("../images/logo/logo-horizontal-light.svg?v=20260822-05");
 }
 
 .footer-brand img{
-  content:url("../images/logo/logo-final.svg?v=20260819-01");
+  content:url("../images/logo/logo-horizontal-dark.svg?v=20260822-05");
   height:58px !important;
   width:auto !important;
-  padding:8px 12px;
-  border-radius:12px;
-  background:#fff;
-  box-sizing:content-box;
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  box-sizing:border-box;
 }
 
 @media (max-width:1180px){

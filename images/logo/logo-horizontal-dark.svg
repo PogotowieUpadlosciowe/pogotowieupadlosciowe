@@ -10,9 +10,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <title
-     id="logo-title">Pogotowie Upadłościowe</title>
+     id="logo-title">Pogotowie Upadłościowe — wariant na ciemne tło</title>
   <desc
-     id="logo-description">Wektorowe logo Pogotowia Upadłościowego z monogramem PU i równymi napisami</desc>
+     id="logo-description">Wektorowe logo z jasnym napisem przeznaczone na ciemne tło</desc>
   <defs
      id="defs11">
     <linearGradient
@@ -24,15 +24,15 @@
        gradientUnits="userSpaceOnUse">
       <stop
          offset="0"
-         stop-color="#0873F6"
+         stop-color="#53A0FF"
          id="stop4" />
       <stop
-         offset="0.48"
-         stop-color="#064EDC"
+         offset="0.52"
+         stop-color="#B7DAFF"
          id="stop6" />
       <stop
          offset="1"
-         stop-color="#071A3E"
+         stop-color="#FFFFFF"
          id="stop8" />
     </linearGradient>
   </defs>
@@ -61,7 +61,7 @@
     <g
        aria-label="POGOTOWIE"
        id="text21"
-       style="fill:#071a3e">
+       style="fill:#ffffff">
       <path
          d="m 256.97656,74.595703 h 23.71289 q 10.57617,0 16.2168,4.712891 5.67773,4.675781 5.67773,13.359375 0,8.720701 -5.67773,13.433591 -5.64063,4.67578 -16.2168,4.67578 h -9.42578 V 130 h -14.28711 z m 14.28711,10.353516 v 15.474611 h 7.9043 q 4.15625,0 6.41992,-2.003908 2.26367,-2.041016 2.26367,-5.751953 0,-3.710938 -2.26367,-5.714844 -2.26367,-2.003906 -6.41992,-2.003906 z"
          id="path31" />
@@ -93,7 +93,7 @@
     <g
        aria-label="UPADŁOŚCIOWE"
        id="text23"
-       style="fill:#0873f6">
+       style="fill:#73b6ff">
       <path
          d="m 256.97656,174.5957 h 14.28711 v 33.21289 q 0,6.86524 2.22656,9.83399 2.26368,2.93164 7.34766,2.93164 5.12109,0 7.34766,-2.93164 2.26367,-2.96875 2.26367,-9.83399 V 174.5957 h 14.28711 v 33.21289 q 0,11.76368 -5.90039,17.51563 -5.90039,5.75195 -17.99805,5.75195 -12.06055,0 -17.96094,-5.75195 -5.90039,-5.75195 -5.90039,-17.51563 z"
          id="path50" />
