@@ -50,11 +50,11 @@
 
 /* Finalne logo marki — zabezpieczenie również dla stron ze starszą wersją HTML/JS. */
 .brand img{
-  content:url("../images/logo/logo-horizontal-light.svg?v=20260822-05");
+  content:url("../images/logo/logo-horizontal-light.svg?v=20260822-06");
 }
 
 .footer-brand img{
-  content:url("../images/logo/logo-horizontal-dark.svg?v=20260822-05");
+  content:url("../images/logo/logo-horizontal-dark.svg?v=20260822-06");
   height:58px !important;
   width:auto !important;
   padding:0;

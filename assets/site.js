@@ -3,8 +3,8 @@ const siteAssetBaseUrl = document.currentScript?.src
   : new URL('assets/', window.location.href);
 
 function initializeApprovedBrandLogo() {
-  const headerLogoSrc = new URL('../images/logo/logo-horizontal-light.svg?v=20260822-05', siteAssetBaseUrl).href;
-  const footerLogoSrc = new URL('../images/logo/logo-horizontal-dark.svg?v=20260822-05', siteAssetBaseUrl).href;
+  const headerLogoSrc = new URL('../images/logo/logo-horizontal-light.svg?v=20260822-06', siteAssetBaseUrl).href;
+  const footerLogoSrc = new URL('../images/logo/logo-horizontal-dark.svg?v=20260822-06', siteAssetBaseUrl).href;
 
   document.querySelectorAll('.brand img').forEach((image) => {
     image.src = headerLogoSrc;
@@ -31,7 +31,7 @@ function initializeUnifiedTopbar() {
   if (!document.querySelector('link[data-unified-topbar]')) {
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
-    stylesheet.href = new URL('topbar-unified.css?v=20260822-05', siteAssetBaseUrl).href;
+    stylesheet.href = new URL('topbar-unified.css?v=20260822-06', siteAssetBaseUrl).href;
     stylesheet.dataset.unifiedTopbar = '';
     document.head.appendChild(stylesheet);
   }
