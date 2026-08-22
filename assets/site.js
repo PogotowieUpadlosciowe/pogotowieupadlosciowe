@@ -24,6 +24,27 @@ function initializeApprovedBrandLogo() {
 
 initializeApprovedBrandLogo();
 
+function initializePendingCopyUpdates() {
+  document.querySelectorAll('.footer-brand > p').forEach((paragraph) => paragraph.remove());
+
+  const previousDisclaimer = 'Wynik ankiety ma charakter wyłącznie informacyjny i nie stanowi porady prawnej ani oceny możliwości ogłoszenia upadłości konsumenckiej.';
+  const updatedDisclaimer = 'Wynik ankiety ma charakter wyłącznie informacyjny i nie stanowi porady prawnej.';
+
+  document.querySelectorAll('.home-quick-result-next p').forEach((paragraph) => {
+    if (paragraph.textContent.trim() === previousDisclaimer) {
+      paragraph.textContent = updatedDisclaimer;
+    }
+  });
+
+  document.querySelectorAll('.booking-heading > p').forEach((paragraph) => {
+    if (paragraph.textContent.includes('Godziny rozpoczęcia są dostępne co 15 minut')) {
+      paragraph.remove();
+    }
+  });
+}
+
+initializePendingCopyUpdates();
+
 function initializeUnifiedTopbar() {
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
