@@ -38,11 +38,11 @@ function initializeUnifiedTopbar() {
 
   topbar.innerHTML = `
     <div class="container topbar-inner">
-      <a class="topbar-phone" href="tel:+48574650730">
+      <a class="topbar-phone" href="tel:+48455581497">
         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.28-1.28a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z"></path>
         </svg>
-        574 650 730
+        455 581 497
       </a>
       <div class="topbar-note">
         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -140,10 +140,15 @@ function initializeQuickCheck(root) {
     }
     const answers = Object.fromEntries(answerNames.map((name) => [name, quizForm.querySelector(`input[name="${name}"]:checked`)?.value]));
     let resultType;
-    if (answers.business === 'A') resultType = 'business';
-    else if (answers.payments === 'A') resultType = 'current';
-    else if (answers.delay === 'A') resultType = 'early';
-    else resultType = 'positive';
+    if (answers.business === 'A') {
+      resultType = 'business';
+    } else if (answers.payments === 'A') {
+      resultType = 'current';
+    } else if (answers.delay === 'A') {
+      resultType = 'early';
+    } else {
+      resultType = 'positive';
+    }
     showResult(resultType);
   });
   backButton.addEventListener('click', () => { if (currentStep > 0) { currentStep -= 1; updateStep(); } });
@@ -247,8 +252,11 @@ function initializeBookingPanel(panel) {
   function openPanel() {
     if (panel.open) return;
     returnFocus = document.activeElement;
-    if (typeof panel.showModal === 'function') panel.showModal();
-    else panel.setAttribute('open', '');
+    if (typeof panel.showModal === 'function') {
+      panel.showModal();
+    } else {
+      panel.setAttribute('open', '');
+    }
     panel.classList.add('is-open');
     document.documentElement.classList.add('booking-dialog-open');
     openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
@@ -257,8 +265,11 @@ function initializeBookingPanel(panel) {
   }
 
   function closePanel() {
-    if (typeof panel.close === 'function' && panel.open) panel.close();
-    else panel.removeAttribute('open');
+    if (typeof panel.close === 'function' && panel.open) {
+      panel.close();
+    } else {
+      panel.removeAttribute('open');
+    }
     panel.classList.remove('is-open');
     document.documentElement.classList.remove('booking-dialog-open');
     openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
@@ -268,18 +279,27 @@ function initializeBookingPanel(panel) {
       url.hash = '';
       const cleanUrl = `${url.pathname}${url.search}` || 'kontakt.html';
       window.history.replaceState({}, '', cleanUrl);
-    } catch {}
+    } catch {
+      // Brak operacji — np. w statycznym podglądzie bez poprawnego originu.
+    }
     const focusTarget = returnFocus instanceof HTMLElement ? returnFocus : openButtons[0];
     focusTarget?.focus();
   }
 
   openButtons.forEach((button) => button.addEventListener('click', () => openPanel()));
   closeButton?.addEventListener('click', closePanel);
-  panel.addEventListener('cancel', (event) => { event.preventDefault(); closePanel(); });
-  panel.addEventListener('click', (event) => { if (event.target === panel) closePanel(); });
+  panel.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closePanel();
+  });
+  panel.addEventListener('click', (event) => {
+    if (event.target === panel) closePanel();
+  });
 
   const params = new URLSearchParams(window.location.search);
-  if (params.get('rezerwacja') === '1') openPanel();
+  if (params.get('rezerwacja') === '1') {
+    openPanel();
+  }
 }
 
 document.querySelectorAll('[data-booking-panel]').forEach(initializeBookingPanel);

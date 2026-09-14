@@ -1,5 +1,6 @@
 const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev';
-const TURNSTILE_SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+const TURNSTILE_SCRIPT_URL =
+  'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
 const INVITATION_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
 
@@ -34,6 +35,7 @@ let securityReady = false;
 let orderConfig = null;
 let memoryRequestId = '';
 let invitationValidated = false;
+
 
 function formatInvitationDate(value) {
   if (!value) return '';
@@ -75,12 +77,16 @@ async function validateInvitation() {
       cache: 'no-store',
       referrerPolicy: 'no-referrer',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: INVITATION_TOKEN, request_id: getActiveRequestId() })
+      body: JSON.stringify({
+        token: INVITATION_TOKEN,
+        request_id: getActiveRequestId()
+      })
     });
 
     const payload = await response.json();
     if (!response.ok || !payload.valid) {
-      const accessMessage = payload.message || payload.error || 'Ten link jest nieprawidłowy, wygasł albo został już wykorzystany.';
+      const accessMessage = payload.message || payload.error ||
+        'Ten link jest nieprawidłowy, wygasł albo został już wykorzystany.';
       showInvitationGate(
         'Brak dostępu do ankiety',
         `${accessMessage} Jeśli link powinien być nadal aktywny, skontaktuj się z nami, aby otrzymać nowy dostęp do ankiety.`,
@@ -124,7 +130,9 @@ function showTurnstileStatus(message, type = '') {
 function setButtonReady(ready) {
   securityReady = ready;
   button.disabled = !ready;
-  button.textContent = ready ? 'Zamawiam z obowiązkiem zapłaty' : 'Przygotowujemy formularz…';
+  button.textContent = ready
+    ? 'Zamawiam z obowiązkiem zapłaty'
+    : 'Przygotowujemy formularz…';
 }
 
 function setText(id, value) {
@@ -138,8 +146,15 @@ function applyOrderConfig(config) {
   }
 
   const required = [
-    'schema_version', 'service_code', 'service_name', 'price_gross_minor', 'currency',
-    'price_display', 'regulation_version', 'privacy_version', 'contract_statement_version'
+    'schema_version',
+    'service_code',
+    'service_name',
+    'price_gross_minor',
+    'currency',
+    'price_display',
+    'regulation_version',
+    'privacy_version',
+    'contract_statement_version'
   ];
 
   if (required.some((key) => config[key] === undefined || config[key] === null || config[key] === '')) {
@@ -161,7 +176,10 @@ function isUuid(value) {
 }
 
 function createRequestId() {
-  if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+
   const bytes = new Uint8Array(16);
   window.crypto.getRandomValues(bytes);
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
@@ -174,34 +192,55 @@ function getActiveRequestId() {
   try {
     const stored = sessionStorage.getItem(REQUEST_ID_STORAGE_KEY);
     if (isUuid(stored)) return stored;
-  } catch {}
+  } catch {
+    // Session storage may be unavailable in restrictive browser modes.
+  }
+
   if (isUuid(memoryRequestId)) return memoryRequestId;
+
   const requestId = createRequestId();
   memoryRequestId = requestId;
-  try { sessionStorage.setItem(REQUEST_ID_STORAGE_KEY, requestId); } catch {}
+
+  try {
+    sessionStorage.setItem(REQUEST_ID_STORAGE_KEY, requestId);
+  } catch {
+    // In-memory fallback remains active.
+  }
+
   return requestId;
 }
 
 function clearActiveRequestId() {
   memoryRequestId = '';
-  try { sessionStorage.removeItem(REQUEST_ID_STORAGE_KEY); } catch {}
+  try {
+    sessionStorage.removeItem(REQUEST_ID_STORAGE_KEY);
+  } catch {
+    // Nothing else to do.
+  }
 }
 
 function loadTurnstileScript() {
   if (window.turnstile) return Promise.resolve();
+
   return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src^="${TURNSTILE_SCRIPT_URL.split('?')[0]}"]`);
+    const existing = document.querySelector(
+      `script[src^="${TURNSTILE_SCRIPT_URL.split('?')[0]}"]`
+    );
+
     if (existing) {
       existing.addEventListener('load', resolve, { once: true });
       existing.addEventListener('error', reject, { once: true });
       return;
     }
+
     const script = document.createElement('script');
     script.src = TURNSTILE_SCRIPT_URL;
     script.async = true;
     script.defer = true;
     script.onload = resolve;
-    script.onerror = () => reject(new Error('Nie udało się załadować zabezpieczenia formularza.'));
+    script.onerror = () => reject(
+      new Error('Nie udało się załadować zabezpieczenia formularza.')
+    );
     document.head.appendChild(script);
   });
 }
@@ -210,11 +249,15 @@ function resetTurnstile(message = 'Odnawiamy zabezpieczenie formularza…') {
   turnstileToken = '';
   setButtonReady(false);
   showTurnstileStatus(message);
-  if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
+
+  if (window.turnstile && turnstileWidgetId !== null) {
+    window.turnstile.reset(turnstileWidgetId);
+  }
 }
 
 async function initializeSecurity() {
   setButtonReady(false);
+
   const invitationOk = await validateInvitation();
   if (!invitationOk) {
     showTurnstileStatus('Weryfikacja bezpieczeństwa rozpocznie się po potwierdzeniu linku.');
@@ -224,17 +267,30 @@ async function initializeSecurity() {
 
   try {
     const response = await fetch(`${API_BASE}/public-config`, {
-      method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer'
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-store',
+      referrerPolicy: 'no-referrer'
     });
+
     const config = await response.json();
-    if (!response.ok) throw new Error(config.error || 'Nie udało się pobrać konfiguracji formularza.');
-    if (!config.form_enabled) throw new Error('Formularz jest obecnie wyłączony.');
+
+    if (!response.ok) {
+      throw new Error(config.error || 'Nie udało się pobrać konfiguracji formularza.');
+    }
+
+    if (!config.form_enabled) {
+      throw new Error('Formularz jest obecnie wyłączony.');
+    }
+
     if (!config.turnstile_enabled || !config.turnstile_site_key) {
       throw new Error('Weryfikacja bezpieczeństwa nie została jeszcze skonfigurowana.');
     }
 
     applyOrderConfig(config.order || FALLBACK_ORDER_CONFIG);
     await loadTurnstileScript();
+
     turnstileWidgetId = window.turnstile.render(turnstileBox, {
       sitekey: config.turnstile_site_key,
       theme: 'auto',
@@ -254,7 +310,10 @@ async function initializeSecurity() {
       'error-callback'() {
         turnstileToken = '';
         setButtonReady(false);
-        showTurnstileStatus('Nie udało się potwierdzić zabezpieczenia formularza. Spróbuj ponownie.', 'error');
+        showTurnstileStatus(
+          'Nie udało się potwierdzić zabezpieczenia formularza. Spróbuj ponownie.',
+          'error'
+        );
       }
     });
   } catch (error) {
@@ -267,9 +326,14 @@ async function initializeSecurity() {
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   statusBox.className = 'form-status';
+
   if (!form.reportValidity()) return;
+
   if (!invitationValidated || !securityReady || !turnstileToken || !orderConfig) {
-    showStatus('Poczekaj na zakończenie weryfikacji i pobranie aktualnych warunków zamówienia.', 'error');
+    showStatus(
+      'Poczekaj na zakończenie weryfikacji i pobranie aktualnych warunków zamówienia.',
+      'error'
+    );
     return;
   }
 
@@ -289,18 +353,35 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Składanie zamówienia…';
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
   let submittedSuccessfully = false;
 
   try {
     const response = await fetch(`${API_BASE}/submissions`, {
-      method: 'POST', mode: 'cors', credentials: 'omit', referrerPolicy: 'no-referrer',
-      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal: controller.signal
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+      signal: controller.signal
     });
+
     let payload = {};
-    try { payload = await response.json(); } catch {}
-    if (!response.ok) throw new Error(payload.error || `Nie udało się zapisać ankiety (HTTP ${response.status}).`);
+    try {
+      payload = await response.json();
+    } catch {
+      // A generic message is shown below if JSON is unavailable.
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        payload.error ||
+        `Nie udało się zapisać ankiety (HTTP ${response.status}).`
+      );
+    }
 
     submittedSuccessfully = true;
     clearActiveRequestId();
@@ -314,8 +395,12 @@ form.addEventListener('submit', async (event) => {
     );
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    const reference = payload.reference ? ` Numer zgłoszenia: ${payload.reference}.` : '';
-    const duplicateInfo = payload.duplicate ? ' To zgłoszenie było już zapisane — nie utworzono duplikatu.' : '';
+    const reference = payload.reference
+      ? ` Numer zgłoszenia: ${payload.reference}.`
+      : '';
+    const duplicateInfo = payload.duplicate
+      ? ' To zgłoszenie było już zapisane — nie utworzono duplikatu.'
+      : '';
     const emailInfo = payload.confirmation_email_status === 'sent'
       ? ' Potwierdzenie wysłaliśmy na podany adres e-mail.'
       : ' Potwierdzenie e-mail zostało przekazane do wysyłki.';
@@ -328,10 +413,13 @@ form.addEventListener('submit', async (event) => {
     const message = error.name === 'AbortError'
       ? 'Przekroczono czas oczekiwania. Zgłoszenie mogło zostać zapisane. Sprawdź skrzynkę e-mail; ponowne wysłanie z tej karty użyje tego samego identyfikatora i nie powinno utworzyć duplikatu.'
       : error.message;
+
     showStatus(message, 'error');
   } finally {
     clearTimeout(timeout);
-    if (!submittedSuccessfully) resetTurnstile();
+    if (!submittedSuccessfully) {
+      resetTurnstile();
+    }
   }
 });
 
