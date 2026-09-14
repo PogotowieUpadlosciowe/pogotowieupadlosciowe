@@ -19,6 +19,16 @@ const FALLBACK_ORDER_CONFIG = Object.freeze({
   contract_statement_version: 'OSW-2026-07-04-01'
 });
 
+// Treści widoczne dla klienta są utrzymywane razem z publiczną stroną i
+// dokumentami. Worker pozostaje źródłem danych technicznych zamówienia,
+// aktualnej ceny liczbowej oraz wersji dokumentów.
+const ORDER_DISPLAY_COPY = Object.freeze({
+  service_name: FALLBACK_ORDER_CONFIG.service_name,
+  fulfillment_text: FALLBACK_ORDER_CONFIG.fulfillment_text,
+  revisions_text: FALLBACK_ORDER_CONFIG.revisions_text,
+  scope_note: FALLBACK_ORDER_CONFIG.scope_note
+});
+
 const form = document.getElementById('ankieta-form');
 const button = document.getElementById('submit-button');
 const statusBox = document.getElementById('form-status');
@@ -140,6 +150,21 @@ function setText(id, value) {
   if (element && value) element.textContent = value;
 }
 
+function formatOrderPrice(priceGrossMinor, currency) {
+  const minorUnits = Number(priceGrossMinor);
+  if (!Number.isSafeInteger(minorUnits) || minorUnits < 0 || currency !== 'PLN') {
+    return FALLBACK_ORDER_CONFIG.price_display;
+  }
+
+  const wholeUnits = Math.floor(minorUnits / 100)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const remainder = minorUnits % 100;
+  return remainder
+    ? `${wholeUnits},${String(remainder).padStart(2, '0')} zł`
+    : `${wholeUnits} zł`;
+}
+
 function applyOrderConfig(config) {
   if (!config || typeof config !== 'object') {
     throw new Error('Nie udało się załadować danych zamówienia. Odśwież stronę i spróbuj ponownie.');
@@ -162,11 +187,11 @@ function applyOrderConfig(config) {
   }
 
   orderConfig = Object.freeze({ ...config });
-  setText('order-service-name', config.service_name);
-  setText('order-price-display', config.price_display);
-  setText('order-fulfillment-text', config.fulfillment_text);
-  setText('order-revisions-text', config.revisions_text);
-  setText('order-scope-note', config.scope_note);
+  setText('order-service-name', ORDER_DISPLAY_COPY.service_name);
+  setText('order-price-display', formatOrderPrice(config.price_gross_minor, config.currency));
+  setText('order-fulfillment-text', ORDER_DISPLAY_COPY.fulfillment_text);
+  setText('order-revisions-text', ORDER_DISPLAY_COPY.revisions_text);
+  setText('order-scope-note', ORDER_DISPLAY_COPY.scope_note);
   setText('regulation-version-display', config.regulation_version);
   setText('privacy-version-display', config.privacy_version);
 }
