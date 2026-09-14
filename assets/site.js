@@ -24,27 +24,6 @@ function initializeApprovedBrandLogo() {
 
 initializeApprovedBrandLogo();
 
-function initializePendingCopyUpdates() {
-  document.querySelectorAll('.footer-brand > p').forEach((paragraph) => paragraph.remove());
-
-  const previousDisclaimer = 'Wynik ankiety ma charakter wyłącznie informacyjny i nie stanowi porady prawnej ani oceny możliwości ogłoszenia upadłości konsumenckiej.';
-  const updatedDisclaimer = 'Wynik ankiety ma charakter wyłącznie informacyjny i nie stanowi porady prawnej.';
-
-  document.querySelectorAll('.home-quick-result-next p').forEach((paragraph) => {
-    if (paragraph.textContent.trim() === previousDisclaimer) {
-      paragraph.textContent = updatedDisclaimer;
-    }
-  });
-
-  document.querySelectorAll('.booking-heading > p').forEach((paragraph) => {
-    if (paragraph.textContent.includes('Godziny rozpoczęcia są dostępne co 15 minut')) {
-      paragraph.remove();
-    }
-  });
-}
-
-initializePendingCopyUpdates();
-
 function initializeUnifiedTopbar() {
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
@@ -59,11 +38,11 @@ function initializeUnifiedTopbar() {
 
   topbar.innerHTML = `
     <div class="container topbar-inner">
-      <a class="topbar-phone" href="tel:+48574650730">
+      <a class="topbar-phone" href="tel:+48455581497">
         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.28-1.28a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z"></path>
         </svg>
-        574 650 730
+        455 581 497
       </a>
       <div class="topbar-note">
         <svg aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
