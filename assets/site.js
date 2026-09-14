@@ -24,27 +24,6 @@ function initializeApprovedBrandLogo() {
 
 initializeApprovedBrandLogo();
 
-function initializePendingCopyUpdates() {
-  document.querySelectorAll('.footer-brand > p').forEach((paragraph) => paragraph.remove());
-
-  const previousDisclaimer = 'Wynik ankiety ma charakter wyłącznie informacyjny i nie stanowi porady prawnej ani oceny możliwości ogłoszenia upadłości konsumenckiej.';
-  const updatedDisclaimer = 'Wynik ankiety ma charakter wyłącznie informacyjny i nie stanowi porady prawnej.';
-
-  document.querySelectorAll('.home-quick-result-next p').forEach((paragraph) => {
-    if (paragraph.textContent.trim() === previousDisclaimer) {
-      paragraph.textContent = updatedDisclaimer;
-    }
-  });
-
-  document.querySelectorAll('.booking-heading > p').forEach((paragraph) => {
-    if (paragraph.textContent.includes('Godziny rozpoczęcia są dostępne co 15 minut')) {
-      paragraph.remove();
-    }
-  });
-}
-
-initializePendingCopyUpdates();
-
 function initializeUnifiedTopbar() {
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
@@ -161,15 +140,10 @@ function initializeQuickCheck(root) {
     }
     const answers = Object.fromEntries(answerNames.map((name) => [name, quizForm.querySelector(`input[name="${name}"]:checked`)?.value]));
     let resultType;
-    if (answers.business === 'A') {
-      resultType = 'business';
-    } else if (answers.payments === 'A') {
-      resultType = 'current';
-    } else if (answers.delay === 'A') {
-      resultType = 'early';
-    } else {
-      resultType = 'positive';
-    }
+    if (answers.business === 'A') resultType = 'business';
+    else if (answers.payments === 'A') resultType = 'current';
+    else if (answers.delay === 'A') resultType = 'early';
+    else resultType = 'positive';
     showResult(resultType);
   });
   backButton.addEventListener('click', () => { if (currentStep > 0) { currentStep -= 1; updateStep(); } });
@@ -273,11 +247,8 @@ function initializeBookingPanel(panel) {
   function openPanel() {
     if (panel.open) return;
     returnFocus = document.activeElement;
-    if (typeof panel.showModal === 'function') {
-      panel.showModal();
-    } else {
-      panel.setAttribute('open', '');
-    }
+    if (typeof panel.showModal === 'function') panel.showModal();
+    else panel.setAttribute('open', '');
     panel.classList.add('is-open');
     document.documentElement.classList.add('booking-dialog-open');
     openButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
@@ -286,11 +257,8 @@ function initializeBookingPanel(panel) {
   }
 
   function closePanel() {
-    if (typeof panel.close === 'function' && panel.open) {
-      panel.close();
-    } else {
-      panel.removeAttribute('open');
-    }
+    if (typeof panel.close === 'function' && panel.open) panel.close();
+    else panel.removeAttribute('open');
     panel.classList.remove('is-open');
     document.documentElement.classList.remove('booking-dialog-open');
     openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
@@ -300,27 +268,18 @@ function initializeBookingPanel(panel) {
       url.hash = '';
       const cleanUrl = `${url.pathname}${url.search}` || 'kontakt.html';
       window.history.replaceState({}, '', cleanUrl);
-    } catch {
-      // Brak operacji — np. w statycznym podglądzie bez poprawnego originu.
-    }
+    } catch {}
     const focusTarget = returnFocus instanceof HTMLElement ? returnFocus : openButtons[0];
     focusTarget?.focus();
   }
 
   openButtons.forEach((button) => button.addEventListener('click', () => openPanel()));
   closeButton?.addEventListener('click', closePanel);
-  panel.addEventListener('cancel', (event) => {
-    event.preventDefault();
-    closePanel();
-  });
-  panel.addEventListener('click', (event) => {
-    if (event.target === panel) closePanel();
-  });
+  panel.addEventListener('cancel', (event) => { event.preventDefault(); closePanel(); });
+  panel.addEventListener('click', (event) => { if (event.target === panel) closePanel(); });
 
   const params = new URLSearchParams(window.location.search);
-  if (params.get('rezerwacja') === '1') {
-    openPanel();
-  }
+  if (params.get('rezerwacja') === '1') openPanel();
 }
 
 document.querySelectorAll('[data-booking-panel]').forEach(initializeBookingPanel);

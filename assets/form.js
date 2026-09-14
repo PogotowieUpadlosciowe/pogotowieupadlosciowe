@@ -1,19 +1,18 @@
 const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev';
-const TURNSTILE_SCRIPT_URL =
-  'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+const TURNSTILE_SCRIPT_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
 const INVITATION_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
 
 const FALLBACK_ORDER_CONFIG = Object.freeze({
   schema_version: 1,
   service_code: 'consumer-bankruptcy-application-project',
-  service_name: 'Przygotowanie projektu wniosku',
+  service_name: 'Przygotowanie projektu wniosku o ogłoszenie upadłości konsumenckiej',
   price_gross_minor: 200000,
   currency: 'PLN',
-  price_display: '2000 zł',
-  fulfillment_text: 'Do 3 dni roboczych od płatności i otrzymania kompletu materiałów',
-  revisions_text: 'Jedna runda poprawek w cenie',
-  scope_note: 'Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do przelewu zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.',
+  price_display: '2 000 zł',
+  fulfillment_text: 'Do 3 dni roboczych od otrzymania kompletu wymaganych informacji i dokumentów oraz zaksięgowania płatności',
+  revisions_text: 'Bezpłatne poprawki przy weryfikacji projektu wniosku',
+  scope_note: 'Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do płatności zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.',
   regulation_version: 'REG-2026-07-04-01',
   privacy_version: 'PP-2026-07-04-01',
   contract_statement_version: 'OSW-2026-07-04-01'
@@ -36,7 +35,6 @@ let orderConfig = null;
 let memoryRequestId = '';
 let invitationValidated = false;
 
-
 function formatInvitationDate(value) {
   if (!value) return '';
   try {
@@ -55,15 +53,15 @@ function showInvitationGate(title, message, type = '', expiresAt = null) {
   invitationGateMessage.textContent = message;
   invitationGate.className = `invitation-gate ${type}`.trim();
   invitationExpiry.textContent = expiresAt
-    ? `Link jest ważny do: ${formatInvitationDate(expiresAt)}.`
+    ? `Dostęp do ankiety jest ważny do: ${formatInvitationDate(expiresAt)}.`
     : '';
 }
 
 async function validateInvitation() {
   if (!/^[A-Za-z0-9_-]{43}$/.test(INVITATION_TOKEN)) {
     showInvitationGate(
-      'Wymagany jest indywidualny link',
-      'Ta ankieta jest dostępna wyłącznie dla osób, które po rozmowie wstępnej otrzymały prywatny link.',
+      'Ankieta wymaga indywidualnego linku',
+      'Ta ankieta jest dostępna tylko przez indywidualny link otrzymany po rozmowie wstępnej.',
       'error'
     );
     return false;
@@ -77,17 +75,15 @@ async function validateInvitation() {
       cache: 'no-store',
       referrerPolicy: 'no-referrer',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: INVITATION_TOKEN,
-        request_id: getActiveRequestId()
-      })
+      body: JSON.stringify({ token: INVITATION_TOKEN, request_id: getActiveRequestId() })
     });
 
     const payload = await response.json();
     if (!response.ok || !payload.valid) {
+      const accessMessage = payload.message || payload.error || 'Ten link jest nieprawidłowy, wygasł albo został już wykorzystany.';
       showInvitationGate(
-        'Link nie jest aktywny',
-        payload.message || payload.error || 'Link jest nieprawidłowy, wygasł albo został wykorzystany.',
+        'Brak dostępu do ankiety',
+        `${accessMessage} Jeśli link powinien być nadal aktywny, skontaktuj się z nami, aby otrzymać nowy dostęp do ankiety.`,
         'error',
         payload.expires_at
       );
@@ -98,8 +94,8 @@ async function validateInvitation() {
     showInvitationGate(
       'Dostęp potwierdzony',
       payload.duplicate_retry
-        ? 'Zgłoszenie mogło już zostać zapisane. Możesz bezpiecznie ponowić wysłanie — system nie utworzy duplikatu.'
-        : 'Indywidualny link jest aktywny. Możesz bezpiecznie wypełnić ankietę.',
+        ? 'Zgłoszenie mogło już zostać zapisane. Możesz ponowić wysłanie — system nie utworzy duplikatu.'
+        : 'Dostęp do ankiety jest aktywny. Możesz ją teraz wypełnić.',
       'success',
       payload.expires_at
     );
@@ -107,8 +103,8 @@ async function validateInvitation() {
     return true;
   } catch (error) {
     showInvitationGate(
-      'Nie udało się sprawdzić linku',
-      'Spróbuj odświeżyć stronę. Jeżeli problem się powtarza, skontaktuj się z nami.',
+      'Nie udało się sprawdzić dostępu do ankiety',
+      'Odśwież stronę i spróbuj ponownie. Jeśli problem się powtarza, skontaktuj się z nami.',
       'error'
     );
     return false;
@@ -128,9 +124,7 @@ function showTurnstileStatus(message, type = '') {
 function setButtonReady(ready) {
   securityReady = ready;
   button.disabled = !ready;
-  button.textContent = ready
-    ? 'Zamawiam z obowiązkiem zapłaty'
-    : 'Ładowanie zabezpieczenia…';
+  button.textContent = ready ? 'Zamawiam z obowiązkiem zapłaty' : 'Przygotowujemy formularz…';
 }
 
 function setText(id, value) {
@@ -140,23 +134,16 @@ function setText(id, value) {
 
 function applyOrderConfig(config) {
   if (!config || typeof config !== 'object') {
-    throw new Error('Brakuje konfiguracji zamówienia. Odśwież stronę i spróbuj ponownie.');
+    throw new Error('Nie udało się załadować danych zamówienia. Odśwież stronę i spróbuj ponownie.');
   }
 
   const required = [
-    'schema_version',
-    'service_code',
-    'service_name',
-    'price_gross_minor',
-    'currency',
-    'price_display',
-    'regulation_version',
-    'privacy_version',
-    'contract_statement_version'
+    'schema_version', 'service_code', 'service_name', 'price_gross_minor', 'currency',
+    'price_display', 'regulation_version', 'privacy_version', 'contract_statement_version'
   ];
 
   if (required.some((key) => config[key] === undefined || config[key] === null || config[key] === '')) {
-    throw new Error('Konfiguracja zamówienia jest niepełna. Odśwież stronę i spróbuj ponownie.');
+    throw new Error('Nie udało się załadować wszystkich danych zamówienia. Odśwież stronę i spróbuj ponownie.');
   }
 
   orderConfig = Object.freeze({ ...config });
@@ -174,10 +161,7 @@ function isUuid(value) {
 }
 
 function createRequestId() {
-  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-    return window.crypto.randomUUID();
-  }
-
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
   const bytes = new Uint8Array(16);
   window.crypto.getRandomValues(bytes);
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
@@ -190,105 +174,67 @@ function getActiveRequestId() {
   try {
     const stored = sessionStorage.getItem(REQUEST_ID_STORAGE_KEY);
     if (isUuid(stored)) return stored;
-  } catch {
-    // Session storage may be unavailable in restrictive browser modes.
-  }
-
+  } catch {}
   if (isUuid(memoryRequestId)) return memoryRequestId;
-
   const requestId = createRequestId();
   memoryRequestId = requestId;
-
-  try {
-    sessionStorage.setItem(REQUEST_ID_STORAGE_KEY, requestId);
-  } catch {
-    // In-memory fallback remains active.
-  }
-
+  try { sessionStorage.setItem(REQUEST_ID_STORAGE_KEY, requestId); } catch {}
   return requestId;
 }
 
 function clearActiveRequestId() {
   memoryRequestId = '';
-  try {
-    sessionStorage.removeItem(REQUEST_ID_STORAGE_KEY);
-  } catch {
-    // Nothing else to do.
-  }
+  try { sessionStorage.removeItem(REQUEST_ID_STORAGE_KEY); } catch {}
 }
 
 function loadTurnstileScript() {
   if (window.turnstile) return Promise.resolve();
-
   return new Promise((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[src^="${TURNSTILE_SCRIPT_URL.split('?')[0]}"]`
-    );
-
+    const existing = document.querySelector(`script[src^="${TURNSTILE_SCRIPT_URL.split('?')[0]}"]`);
     if (existing) {
       existing.addEventListener('load', resolve, { once: true });
       existing.addEventListener('error', reject, { once: true });
       return;
     }
-
     const script = document.createElement('script');
     script.src = TURNSTILE_SCRIPT_URL;
     script.async = true;
     script.defer = true;
     script.onload = resolve;
-    script.onerror = () => reject(
-      new Error('Nie udało się załadować zabezpieczenia Turnstile.')
-    );
+    script.onerror = () => reject(new Error('Nie udało się załadować zabezpieczenia formularza.'));
     document.head.appendChild(script);
   });
 }
 
-function resetTurnstile(message = 'Weryfikacja jest odnawiana…') {
+function resetTurnstile(message = 'Odnawiamy zabezpieczenie formularza…') {
   turnstileToken = '';
   setButtonReady(false);
   showTurnstileStatus(message);
-
-  if (window.turnstile && turnstileWidgetId !== null) {
-    window.turnstile.reset(turnstileWidgetId);
-  }
+  if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
 }
 
 async function initializeSecurity() {
   setButtonReady(false);
-
   const invitationOk = await validateInvitation();
   if (!invitationOk) {
     showTurnstileStatus('Weryfikacja bezpieczeństwa rozpocznie się po potwierdzeniu linku.');
     return;
   }
-  showTurnstileStatus('Ładowanie weryfikacji bezpieczeństwa…');
+  showTurnstileStatus('Ładowanie zabezpieczenia formularza…');
 
   try {
     const response = await fetch(`${API_BASE}/public-config`, {
-      method: 'GET',
-      mode: 'cors',
-      credentials: 'omit',
-      cache: 'no-store',
-      referrerPolicy: 'no-referrer'
+      method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer'
     });
-
     const config = await response.json();
-
-    if (!response.ok) {
-      throw new Error(config.error || 'Nie udało się pobrać konfiguracji formularza.');
-    }
-
-    if (!config.form_enabled) {
-      throw new Error('Formularz jest obecnie wyłączony.');
-    }
-
+    if (!response.ok) throw new Error(config.error || 'Nie udało się pobrać konfiguracji formularza.');
+    if (!config.form_enabled) throw new Error('Formularz jest obecnie wyłączony.');
     if (!config.turnstile_enabled || !config.turnstile_site_key) {
       throw new Error('Weryfikacja bezpieczeństwa nie została jeszcze skonfigurowana.');
     }
 
     applyOrderConfig(config.order || FALLBACK_ORDER_CONFIG);
     await loadTurnstileScript();
-
     turnstileWidgetId = window.turnstile.render(turnstileBox, {
       sitekey: config.turnstile_site_key,
       theme: 'auto',
@@ -297,21 +243,18 @@ async function initializeSecurity() {
       callback(token) {
         turnstileToken = token;
         setButtonReady(true);
-        showTurnstileStatus('Weryfikacja bezpieczeństwa zakończona.', 'success');
+        showTurnstileStatus('Zabezpieczenie formularza jest gotowe.', 'success');
       },
       'expired-callback'() {
-        resetTurnstile('Weryfikacja wygasła. Trwa generowanie nowej.');
+        resetTurnstile('Zabezpieczenie formularza wygasło. Odnawiamy je automatycznie…');
       },
       'timeout-callback'() {
-        resetTurnstile('Weryfikacja przekroczyła czas. Trwa ponowna próba.');
+        resetTurnstile('Zabezpieczenie formularza wymaga ponownej weryfikacji.');
       },
       'error-callback'() {
         turnstileToken = '';
         setButtonReady(false);
-        showTurnstileStatus(
-          'Nie udało się przeprowadzić weryfikacji. Odśwież stronę albo spróbuj ponownie później.',
-          'error'
-        );
+        showTurnstileStatus('Nie udało się potwierdzić zabezpieczenia formularza. Spróbuj ponownie.', 'error');
       }
     });
   } catch (error) {
@@ -324,14 +267,9 @@ async function initializeSecurity() {
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   statusBox.className = 'form-status';
-
   if (!form.reportValidity()) return;
-
   if (!invitationValidated || !securityReady || !turnstileToken || !orderConfig) {
-    showStatus(
-      'Poczekaj na zakończenie weryfikacji i pobranie aktualnych warunków zamówienia.',
-      'error'
-    );
+    showStatus('Poczekaj na zakończenie weryfikacji i pobranie aktualnych warunków zamówienia.', 'error');
     return;
   }
 
@@ -351,35 +289,18 @@ form.addEventListener('submit', async (event) => {
 
   button.disabled = true;
   button.textContent = 'Składanie zamówienia…';
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
   let submittedSuccessfully = false;
 
   try {
     const response = await fetch(`${API_BASE}/submissions`, {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-      signal: controller.signal
+      method: 'POST', mode: 'cors', credentials: 'omit', referrerPolicy: 'no-referrer',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values), signal: controller.signal
     });
-
     let payload = {};
-    try {
-      payload = await response.json();
-    } catch {
-      // A generic message is shown below if JSON is unavailable.
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        payload.error ||
-        `Nie udało się zapisać ankiety (HTTP ${response.status}).`
-      );
-    }
+    try { payload = await response.json(); } catch {}
+    if (!response.ok) throw new Error(payload.error || `Nie udało się zapisać ankiety (HTTP ${response.status}).`);
 
     submittedSuccessfully = true;
     clearActiveRequestId();
@@ -393,31 +314,24 @@ form.addEventListener('submit', async (event) => {
     );
     window.history.replaceState({}, document.title, window.location.pathname);
 
-    const reference = payload.reference
-      ? ` Numer zgłoszenia: ${payload.reference}.`
-      : '';
-    const duplicateInfo = payload.duplicate
-      ? ' To zgłoszenie było już zapisane — nie utworzono duplikatu.'
-      : '';
+    const reference = payload.reference ? ` Numer zgłoszenia: ${payload.reference}.` : '';
+    const duplicateInfo = payload.duplicate ? ' To zgłoszenie było już zapisane — nie utworzono duplikatu.' : '';
     const emailInfo = payload.confirmation_email_status === 'sent'
       ? ' Potwierdzenie wysłaliśmy na podany adres e-mail.'
       : ' Potwierdzenie e-mail zostało przekazane do wysyłki.';
 
     showStatus(
-      `Dziękujemy. Ankieta i zamówienie zostały zapisane.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do przelewu.`,
+      `Ankieta została wysłana. Dziękujemy — skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`,
       'success'
     );
   } catch (error) {
     const message = error.name === 'AbortError'
       ? 'Przekroczono czas oczekiwania. Zgłoszenie mogło zostać zapisane. Sprawdź skrzynkę e-mail; ponowne wysłanie z tej karty użyje tego samego identyfikatora i nie powinno utworzyć duplikatu.'
       : error.message;
-
     showStatus(message, 'error');
   } finally {
     clearTimeout(timeout);
-    if (!submittedSuccessfully) {
-      resetTurnstile('Przygotowywanie nowej weryfikacji…');
-    }
+    if (!submittedSuccessfully) resetTurnstile();
   }
 });
 
