@@ -4,14 +4,9 @@ const TURNSTILE_SCRIPT_URL =
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
 const INVITATION_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
 const PREVIEW_HOST_SUFFIXES = Object.freeze(['.pages.dev', '.chatgpt.site']);
-const IS_PREVIEW_HOST =
+const DEMO_MODE =
   ['localhost', '127.0.0.1'].includes(window.location.hostname) ||
   PREVIEW_HOST_SUFFIXES.some((suffix) => window.location.hostname.endsWith(suffix));
-const REAL_TEST_MODE =
-  IS_PREVIEW_HOST &&
-  new URLSearchParams(window.location.search).get('real_test') === '1' &&
-  Boolean(INVITATION_TOKEN);
-const DEMO_MODE = IS_PREVIEW_HOST && !REAL_TEST_MODE;
 
 const FALLBACK_ORDER_CONFIG = Object.freeze({
   schema_version: 1,
@@ -122,12 +117,10 @@ async function validateInvitation() {
 
     invitationValidated = true;
     showInvitationGate(
-      REAL_TEST_MODE ? 'Tryb testu integracyjnego' : 'Dostęp potwierdzony',
-      REAL_TEST_MODE
-        ? 'Wypełniasz nową wersję ankiety z PR #12. Wysłanie utworzy rzeczywisty wpis testowy w systemie i może wysłać wiadomość e-mail.'
-        : (payload.duplicate_retry
-          ? 'Zgłoszenie mogło już zostać zapisane. Możesz ponowić wysłanie — system nie utworzy duplikatu.'
-          : 'Dostęp do ankiety jest aktywny. Możesz ją teraz wypełnić.'),
+      'Dostęp potwierdzony',
+      payload.duplicate_retry
+        ? 'Zgłoszenie mogło już zostać zapisane. Możesz ponowić wysłanie — system nie utworzy duplikatu.'
+        : 'Dostęp do ankiety jest aktywny. Możesz ją teraz wypełnić.',
       'success',
       payload.expires_at
     );
@@ -157,9 +150,7 @@ function setButtonReady(ready) {
   securityReady = ready;
   button.disabled = !ready;
   button.textContent = ready
-    ? (DEMO_MODE
-      ? 'Sprawdź wysłanie — tryb demo'
-      : (REAL_TEST_MODE ? 'Wyślij zgłoszenie testowe' : 'Zamawiam z obowiązkiem zapłaty'))
+    ? (DEMO_MODE ? 'Sprawdź wysłanie — tryb demo' : 'Zamawiam z obowiązkiem zapłaty')
     : 'Przygotowujemy formularz…';
 }
 
@@ -442,9 +433,7 @@ form.addEventListener('submit', async (event) => {
   values.turnstile_token = turnstileToken;
 
   button.disabled = true;
-  button.textContent = REAL_TEST_MODE
-    ? 'Wysyłanie zgłoszenia testowego…'
-    : 'Składanie zamówienia…';
+  button.textContent = 'Składanie zamówienia…';
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25000);
@@ -479,12 +468,10 @@ form.addEventListener('submit', async (event) => {
     clearActiveRequestId();
     form.reset();
     Array.from(form.elements).forEach((element) => { element.disabled = true; });
-    button.textContent = REAL_TEST_MODE ? 'Test zapisany' : 'Zamówienie złożone';
+    button.textContent = 'Zamówienie złożone';
     showInvitationGate(
-      REAL_TEST_MODE ? 'Test został zapisany' : 'Link został wykorzystany',
-      REAL_TEST_MODE
-        ? 'Testowa ankieta została zapisana w systemie. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.'
-        : 'Ankieta i zamówienie zostały zapisane. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.',
+      'Link został wykorzystany',
+      'Ankieta i zamówienie zostały zapisane. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.',
       'success'
     );
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -500,9 +487,7 @@ form.addEventListener('submit', async (event) => {
       : ' Potwierdzenie e-mail zostało przekazane do wysyłki.';
 
     showStatus(
-      REAL_TEST_MODE
-        ? `Testowa ankieta została zapisana.${reference}${duplicateInfo}${emailInfo} Sprawdź teraz wpis w panelu operatora oraz treść wiadomości e-mail.`
-        : `Ankieta została wysłana. Dziękujemy — skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`,
+      `Ankieta została wysłana. Dziękujemy — skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`,
       'success'
     );
   } catch (error) {
