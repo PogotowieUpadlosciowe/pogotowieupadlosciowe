@@ -411,6 +411,11 @@ button:disabled{opacity:.62;cursor:not-allowed;transform:none!important}
 .checkbox-row-contract{padding:18px;border:1px solid #cfdbe9;border-radius:15px;background:#fff}
 .checkbox-row-contract label{line-height:1.62}
 .checkbox-row-contract a{font-weight:800}
+.special-category-fieldset{margin:0;padding:18px;border:1px solid #cfdbe9;border-radius:15px;background:#fff}
+.special-category-fieldset legend{padding:0 6px;font-weight:700;line-height:1.5}
+.special-category-options{display:flex;flex-wrap:wrap;gap:12px 28px;margin:8px 0 4px}
+.special-category-options label{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.special-category-options input{width:18px;min-height:18px;margin:0}
 @media (max-width:700px){.order-summary-grid{grid-template-columns:1fr}.legal-meta{display:grid;gap:5px}.legal-document{line-height:1.65}}
 .contract-version-note{display:block;margin-top:9px;font-weight:500}
 .contract-version-note strong{color:var(--ink)}

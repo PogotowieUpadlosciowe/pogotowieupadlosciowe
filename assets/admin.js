@@ -91,6 +91,8 @@ const DETAIL_FIELDS = Object.freeze([
   ['legal_actions_assets', 'Czynności dotyczące majątku'],
   ['family_situation', 'Sytuacja rodzinna i zawodowa'],
   ['insolvency_story', 'Historia niewypłacalności'],
+  ['includes_special_category_data', 'Przekazanie danych szczególnej kategorii'],
+  ['special_category_consent', 'Wyraźna zgoda na dane szczególnej kategorii'],
   ['privacy', 'Potwierdzenie polityki prywatności']
 ]);
 

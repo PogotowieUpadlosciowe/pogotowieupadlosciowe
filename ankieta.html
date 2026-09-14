@@ -255,6 +255,7 @@
           18. Opisz, jak doszło do niewypłacalności i jakie okoliczności miały na to wpływ
          </label>
 <textarea id="insolvency_story" maxlength="8000" name="insolvency_story"></textarea>
+<p class="field-help">Jeżeli chcesz opisać okoliczności dotyczące zdrowia lub przekazać dokumenty zawierające takie informacje, zrób to wyłącznie wtedy, gdy jest to rzeczywiście potrzebne do przygotowania projektu, i zaznacz odpowiednią odpowiedź w części dotyczącej zgód.</p>
 </div>
 </div>
 </section>
@@ -277,6 +278,24 @@
 <p class="field-help" id="order-scope-note">Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do płatności zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.</p>
 </div>
 <div class="form-grid">
+<div class="question full">
+<fieldset aria-describedby="special-category-data-help" class="special-category-fieldset">
+<legend>Czy w ankiecie lub załącznikach przekazujesz dane dotyczące zdrowia albo inne dane szczególnej kategorii? *</legend>
+<div class="special-category-options">
+<label><input name="includes_special_category_data" required="" type="radio" value="no"/> Nie</label>
+<label><input name="includes_special_category_data" required="" type="radio" value="yes"/> Tak</label>
+</div>
+<p class="field-help" id="special-category-data-help">Przekazanie takich danych jest dobrowolne. Jeśli nie są potrzebne do przygotowania projektu wniosku, wybierz „Nie” i nie umieszczaj ich w formularzu ani załącznikach.</p>
+</fieldset>
+</div>
+<div class="question full" hidden="" id="special-category-consent-question">
+<div class="checkbox-row checkbox-row-contract">
+<input id="special_category_consent" name="special_category_consent" type="checkbox"/>
+<label for="special_category_consent" style="font-weight:500">
+          Wyraźnie zgadzam się na przetwarzanie dobrowolnie przekazanych przeze mnie danych dotyczących zdrowia lub innych danych szczególnej kategorii przez Mariusza Sztanderę w celu przygotowania projektu wniosku o ogłoszenie upadłości konsumenckiej. Wiem, że zgodę mogę wycofać w dowolnym momencie, pisząc na <a href="mailto:kontakt@pogotowieupadlosciowe.pl">kontakt@pogotowieupadlosciowe.pl</a>, bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej wycofaniem. *
+         </label>
+</div>
+</div>
 <div class="question full">
 <div class="checkbox-row checkbox-row-contract">
 <input id="privacy" name="privacy" required="" type="checkbox"/>

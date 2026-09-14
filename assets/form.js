@@ -38,6 +38,11 @@ const invitationGate = document.getElementById('invitation-gate');
 const invitationGateTitle = document.getElementById('invitation-gate-title');
 const invitationGateMessage = document.getElementById('invitation-gate-message');
 const invitationExpiry = document.getElementById('invitation-expiry');
+const specialCategoryConsentQuestion = document.getElementById('special-category-consent-question');
+const specialCategoryConsent = document.getElementById('special_category_consent');
+const specialCategoryChoices = Array.from(
+  document.querySelectorAll('input[name="includes_special_category_data"]')
+);
 
 let turnstileWidgetId = null;
 let turnstileToken = '';
@@ -148,6 +153,17 @@ function setButtonReady(ready) {
 function setText(id, value) {
   const element = document.getElementById(id);
   if (element && value) element.textContent = value;
+}
+
+function syncSpecialCategoryConsent() {
+  const selectedChoice = specialCategoryChoices.find((choice) => choice.checked);
+  const consentRequired = selectedChoice?.value === 'yes';
+
+  specialCategoryConsentQuestion.hidden = !consentRequired;
+  specialCategoryConsent.required = consentRequired;
+  specialCategoryConsent.setAttribute('aria-required', String(consentRequired));
+
+  if (!consentRequired) specialCategoryConsent.checked = false;
 }
 
 function formatOrderPrice(priceGrossMinor, currency) {
@@ -364,6 +380,7 @@ form.addEventListener('submit', async (event) => {
 
   const values = Object.fromEntries(new FormData(form).entries());
   values.privacy = Boolean(values.privacy);
+  values.special_category_consent = Boolean(values.special_category_consent);
   values.terms_and_privacy_accepted = values.privacy;
   values.early_start_requested = values.privacy;
   values.order_obligation_to_pay = true;
@@ -448,4 +465,8 @@ form.addEventListener('submit', async (event) => {
   }
 });
 
+specialCategoryChoices.forEach((choice) => {
+  choice.addEventListener('change', syncSpecialCategoryConsent);
+});
+syncSpecialCategoryConsent();
 initializeSecurity();
