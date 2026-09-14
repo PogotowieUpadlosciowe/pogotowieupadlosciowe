@@ -2,7 +2,9 @@ const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.wor
 const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
-const INVITATION_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+const PAGE_PARAMS = new URLSearchParams(window.location.search);
+const INVITATION_TOKEN = PAGE_PARAMS.get('token') || '';
+const TEST_DATA_MODE = PAGE_PARAMS.get('test_data') === '1';
 const PREVIEW_HOST_SUFFIXES = Object.freeze(['.pages.dev', '.chatgpt.site']);
 const DEMO_MODE =
   ['localhost', '127.0.0.1'].includes(window.location.hostname) ||
@@ -55,6 +57,36 @@ let orderConfig = null;
 let memoryRequestId = '';
 let invitationValidated = false;
 
+
+const TEST_FORM_DATA = Object.freeze({
+  full_name: 'TEST TECHNICZNY – NIE OBSŁUGIWAĆ',
+  phone: '455 581 497',
+  email: 'kontakt@pogotowieupadlosciowe.pl',
+  address: 'DANE FIKCYJNE – TEST SYSTEMU',
+  assets: 'Brak majątku – dane fikcyjne',
+  cash: '0 zł',
+  bank_accounts: '0 zł – dane fikcyjne',
+  debtors: 'Brak',
+  creditors_list: 'TEST Bank – 10 000 zł – zobowiązanie fikcyjne',
+  disputed_debts: 'Brak',
+  income_6m: '5 000 zł miesięcznie – dane fikcyjne',
+  expenses_6m: '4 000 zł miesięcznie – dane fikcyjne',
+  legal_actions_property: 'Brak',
+  legal_actions_assets: 'Brak',
+  family_situation: 'Osoba pracująca, prowadząca jednoosobowe gospodarstwo domowe – dane fikcyjne',
+  insolvency_story: 'TEST SYSTEMU. Fikcyjna utrata dochodów oraz czasowa choroba doprowadziły do problemów ze spłatą zobowiązań. Informacje nie dotyczą prawdziwej osoby.'
+});
+
+function fillTestData() {
+  Object.entries(TEST_FORM_DATA).forEach(([name, value]) => {
+    const field = form.elements.namedItem(name);
+    if (field) field.value = value;
+  });
+
+  const specialCategoryYes = specialCategoryChoices.find((choice) => choice.value === 'yes');
+  if (specialCategoryYes) specialCategoryYes.checked = true;
+  syncSpecialCategoryConsent();
+}
 
 function formatInvitationDate(value) {
   if (!value) return '';
@@ -125,6 +157,7 @@ async function validateInvitation() {
       payload.expires_at
     );
     form.hidden = false;
+    if (TEST_DATA_MODE) fillTestData();
     return true;
   } catch (error) {
     showInvitationGate(
