@@ -18,6 +18,12 @@ Repozytorium frontendu serwisu [pogotowieupadlosciowe.pl](https://pogotowieupadl
 
 Backend Cloudflare Worker, baza D1 oraz ich konfiguracja produkcyjna nie znajdują się w tym repozytorium.
 
+W ankiecie Worker przekazuje ustawienia techniczne, dostępność formularza, cenę
+liczbową i wersje dokumentów. Zatwierdzone opisy usługi widoczne w podsumowaniu
+zamówienia są utrzymywane w `assets/form.js`, aby pozostawały spójne z publiczną
+stroną i dokumentami również wtedy, gdy konfiguracja Workera zawiera starsze
+brzmienie tekstów.
+
 ## Zasady pracy
 
 1. Nie wprowadzaj zmian bezpośrednio na `main`.
