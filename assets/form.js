@@ -3,6 +3,10 @@ const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
 const INVITATION_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+const PREVIEW_HOST_SUFFIXES = Object.freeze(['.pages.dev', '.chatgpt.site']);
+const DEMO_MODE =
+  ['localhost', '127.0.0.1'].includes(window.location.hostname) ||
+  PREVIEW_HOST_SUFFIXES.some((suffix) => window.location.hostname.endsWith(suffix));
 
 const FALLBACK_ORDER_CONFIG = Object.freeze({
   schema_version: 1,
@@ -146,7 +150,7 @@ function setButtonReady(ready) {
   securityReady = ready;
   button.disabled = !ready;
   button.textContent = ready
-    ? 'Zamawiam z obowiązkiem zapłaty'
+    ? (DEMO_MODE ? 'Sprawdź wysłanie — tryb demo' : 'Zamawiam z obowiązkiem zapłaty')
     : 'Przygotowujemy formularz…';
 }
 
@@ -296,8 +300,31 @@ function resetTurnstile(message = 'Odnawiamy zabezpieczenie formularza…') {
   }
 }
 
+function initializeDemoMode() {
+  document.body.classList.add('demo-mode');
+  invitationValidated = true;
+  applyOrderConfig(FALLBACK_ORDER_CONFIG);
+  form.hidden = false;
+  turnstileBox.hidden = true;
+  showInvitationGate(
+    'Tryb demonstracyjny ankiety',
+    'Możesz swobodnie uzupełniać i sprawdzać formularz. Żadne wpisane dane nie zostaną wysłane, a zamówienie nie zostanie utworzone.',
+    'success'
+  );
+  showTurnstileStatus(
+    'Podgląd demonstracyjny nie wysyła danych i nie wymaga zabezpieczenia formularza.',
+    'success'
+  );
+  setButtonReady(true);
+}
+
 async function initializeSecurity() {
   setButtonReady(false);
+
+  if (DEMO_MODE) {
+    initializeDemoMode();
+    return;
+  }
 
   const invitationOk = await validateInvitation();
   if (!invitationOk) {
@@ -369,6 +396,18 @@ form.addEventListener('submit', async (event) => {
   statusBox.className = 'form-status';
 
   if (!form.reportValidity()) return;
+
+  if (DEMO_MODE) {
+    button.disabled = true;
+    button.textContent = 'Sprawdzanie ankiety…';
+    showStatus(
+      'Test zakończony poprawnie. Żadne dane nie zostały wysłane i nie utworzono zamówienia. Możesz nadal edytować formularz i ponawiać test.',
+      'success'
+    );
+    button.disabled = false;
+    button.textContent = 'Sprawdź wysłanie — tryb demo';
+    return;
+  }
 
   if (!invitationValidated || !securityReady || !turnstileToken || !orderConfig) {
     showStatus(
