@@ -2,6 +2,14 @@
 
 Ten plik zbiera najważniejsze informacje ze starszych raportów i plików README. Szczegółowa historia każdej zmiany pozostaje dostępna w historii Git.
 
+## 2026-09-16 — dokumenty prawne
+
+- wpisano 16 września 2026 r. jako datę wejścia w życie Regulaminu i Polityki prywatności;
+- wskazano, że Usługodawca korzysta ze zwolnienia z VAT i że podatek VAT nie jest doliczany do cen;
+- utworzono obowiązujące wersje `REG-2026-09-16-01` i `PP-2026-09-16-01`, zachowując dokumenty z 4 lipca jako archiwalne;
+- zaktualizowano ankietę do schematu zamówienia nr 2 i wersji oświadczenia `OSW-2026-09-16-01`;
+- usunięto nieaktualne oznaczenia dokumentów jako projektów roboczych oraz komunikaty o brakujących danych.
+
 ## 2026-08-18 — kalendarz wideorozmów
 
 - kalendarz otwiera się w wyśrodkowanym oknie modalnym zamiast rozwijać stronę;
