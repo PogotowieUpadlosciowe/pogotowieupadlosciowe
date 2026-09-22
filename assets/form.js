@@ -9,7 +9,7 @@ const DEMO_MODE =
   PREVIEW_HOST_SUFFIXES.some((suffix) => window.location.hostname.endsWith(suffix));
 
 const FALLBACK_ORDER_CONFIG = Object.freeze({
-  schema_version: 1,
+  schema_version: 2,
   service_code: 'consumer-bankruptcy-application-project',
   service_name: 'Przygotowanie projektu wniosku o ogłoszenie upadłości konsumenckiej',
   price_gross_minor: 200000,
@@ -18,9 +18,9 @@ const FALLBACK_ORDER_CONFIG = Object.freeze({
   fulfillment_text: 'Do 3 dni roboczych od otrzymania kompletu wymaganych informacji i dokumentów oraz zaksięgowania płatności',
   revisions_text: 'Bezpłatne poprawki przy weryfikacji projektu wniosku',
   scope_note: 'Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do płatności zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.',
-  regulation_version: 'REG-2026-07-04-01',
-  privacy_version: 'PP-2026-07-04-01',
-  contract_statement_version: 'OSW-2026-07-04-01'
+  regulation_version: 'REG-2026-09-16-01',
+  privacy_version: 'PP-2026-09-16-01',
+  contract_statement_version: 'OSW-2026-09-16-01'
 });
 
 // Treści widoczne dla klienta są utrzymywane razem z publiczną stroną i
