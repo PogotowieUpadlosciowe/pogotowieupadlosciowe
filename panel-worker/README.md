@@ -21,10 +21,8 @@ Nazwy wyświetlane w panelu są krótkie. Uprawnienia wynikają wyłącznie ze z
 
 Danych dostępowych ani adresów użytkowników nie zapisujemy w pliku ani w repozytorium. Po utworzeniu Workera przejdź do **Settings > Variables and Secrets** i dodaj:
 
-Zmienne tekstowe:
-
-- `ACCESS_TEAM_DOMAIN` — domena zespołu Access; ustalona w `wrangler.jsonc`;
-- `ACCESS_AUD` — Audience Tag aplikacji Access utworzonej dla panelu.
+Zmienne tekstowe `ACCESS_TEAM_DOMAIN` oraz `ACCESS_AUD` są już ustalone w
+`wrangler.jsonc` na podstawie utworzonej aplikacji Cloudflare Access.
 
 Sekrety (typ **Secret**):
 
@@ -49,7 +47,7 @@ npx wrangler secret put ADMIN_TOKEN
 2. Ustaw czas sesji aplikacji na 12 godzin.
 3. Dodaj regułę zezwalającą wyłącznie na oba ustalone adresy e-mail.
 4. Wymuś MFA w polityce Access albo w używanym dostawcy tożsamości.
-5. Skopiuj Audience Tag do `ACCESS_AUD`.
+5. Sprawdź, czy Audience Tag aplikacji jest zgodny z `ACCESS_AUD` w `wrangler.jsonc`.
 6. Dopiero po testach przypnij trasę DNS do wdrożonego Workera.
 
 ## Kontrola lokalna
