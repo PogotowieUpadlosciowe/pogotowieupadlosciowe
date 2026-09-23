@@ -13,6 +13,7 @@
   },
   "vars": {
     "API_ORIGIN": "https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev",
+    "ACCESS_TEAM_DOMAIN": "gentle-term-b8a9.cloudflareaccess.com",
     "ADMIN_DISPLAY_NAME": "Mariusz",
     "OPERATOR_DISPLAY_NAME": "Ania"
   }
