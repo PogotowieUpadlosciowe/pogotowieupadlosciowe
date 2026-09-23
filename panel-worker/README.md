@@ -23,7 +23,7 @@ Danych dostępowych ani adresów użytkowników nie zapisujemy w pliku ani w rep
 
 Zmienne tekstowe:
 
-- `ACCESS_TEAM_DOMAIN` — domena zespołu Access, np. `firma.cloudflareaccess.com`;
+- `ACCESS_TEAM_DOMAIN` — domena zespołu Access; ustalona w `wrangler.jsonc`;
 - `ACCESS_AUD` — Audience Tag aplikacji Access utworzonej dla panelu.
 
 Sekrety (typ **Secret**):
