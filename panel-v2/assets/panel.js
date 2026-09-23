@@ -57,7 +57,7 @@
         payment: "paid",
         materials: "incomplete",
         stage: 3,
-        owner: "Ania Kowalska",
+        owner: "Ania",
         amount: 2000,
         term: "6 paź 2026, 18:00",
         nextAction: "Poproś o brakujące zestawienia zadłużenia",
@@ -102,11 +102,11 @@
           { id: "t3", title: "Potwierdź otrzymanie wpłaty", due: "Wykonano wczoraj", priority: "normal", done: true }
         ],
         notes: [
-          { author: "Ania Kowalska", at: "dzisiaj, 08:15", text: "Klientka potwierdziła, że prześle brakujące umowy po południu." },
-          { author: "Mariusz Sztandera", at: "22 wrz, 16:40", text: "Wstępna analiza nie wykazała przeszkód do dalszej pracy nad wnioskiem." }
+          { author: "Ania", at: "dzisiaj, 08:15", text: "Klientka potwierdziła, że prześle brakujące umowy po południu." },
+          { author: "Mariusz", at: "22 wrz, 16:40", text: "Wstępna analiza nie wykazała przeszkód do dalszej pracy nad wnioskiem." }
         ],
         history: [
-          { title: "Dodano notatkę do sprawy", detail: "Ania Kowalska", at: "dzisiaj, 08:15" },
+          { title: "Dodano notatkę do sprawy", detail: "Ania", at: "dzisiaj, 08:15" },
           { title: "Dokumenty oznaczono jako niekompletne", detail: "Brakuje 2 pozycji z listy", at: "22 wrz, 16:42" },
           { title: "Płatność została potwierdzona", detail: "2 000,00 zł · przelew bankowy", at: "22 wrz, 14:07" },
           { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji i zgody", at: "22 wrz, 09:42" }
@@ -127,7 +127,7 @@
         payment: "awaiting",
         materials: "not_verified",
         stage: 2,
-        owner: "Mariusz Sztandera",
+        owner: "Mariusz",
         amount: 2000,
         term: "5 paź 2026, 15:30",
         nextAction: "Sprawdź zaksięgowanie przelewu",
@@ -164,7 +164,7 @@
           { id: "t1", title: "Sprawdź zaksięgowanie przelewu", due: "Dzisiaj, 14:00", priority: "high", done: false },
           { id: "t2", title: "Rozpocznij weryfikację dokumentów", due: "Po potwierdzeniu wpłaty", priority: "normal", done: false }
         ],
-        notes: [{ author: "Mariusz Sztandera", at: "wczoraj, 17:05", text: "Klient deklaruje przelew wykonany wczoraj wieczorem." }],
+        notes: [{ author: "Mariusz", at: "wczoraj, 17:05", text: "Klient deklaruje przelew wykonany wczoraj wieczorem." }],
         history: [
           { title: "Wysłano instrukcję płatności", detail: "E-mail do klienta", at: "21 wrz, 14:19" },
           { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: "21 wrz, 14:18" }
@@ -185,7 +185,7 @@
         payment: "paid",
         materials: "complete",
         stage: 4,
-        owner: "Ania Kowalska",
+        owner: "Ania",
         amount: 2000,
         term: "2 paź 2026, 11:00",
         nextAction: "Dokończ projekt uzasadnienia wniosku",
@@ -227,7 +227,7 @@
           { id: "t1", title: "Dokończ projekt uzasadnienia wniosku", due: "Jutro, 15:00", priority: "normal", done: false },
           { id: "t2", title: "Zweryfikuj wartości wierzytelności", due: "Wykonano 21 września", priority: "normal", done: true }
         ],
-        notes: [{ author: "Ania Kowalska", at: "dzisiaj, 09:02", text: "Projekt wniosku przygotowany w około 70%. Pozostało dopracowanie uzasadnienia." }],
+        notes: [{ author: "Ania", at: "dzisiaj, 09:02", text: "Projekt wniosku przygotowany w około 70%. Pozostało dopracowanie uzasadnienia." }],
         history: [
           { title: "Zaktualizowano postęp realizacji", detail: "Projekt wniosku: 70%", at: "dzisiaj, 09:02" },
           { title: "Dokumenty oznaczono jako kompletne", detail: "Weryfikacja zakończona", at: "19 wrz, 12:30" },
@@ -250,7 +250,7 @@
         payment: "not_set",
         materials: "not_verified",
         stage: 1,
-        owner: "Ania Kowalska",
+        owner: "Ania",
         amount: 2000,
         term: "Do ustalenia",
         nextAction: "Umów rozmowę wstępną",
@@ -279,7 +279,7 @@
         ],
         attachments: [],
         tasks: [{ id: "t1", title: "Umów rozmowę wstępną", due: "Dzisiaj, 16:00", priority: "normal", done: false }],
-        notes: [{ author: "Ania Kowalska", at: "22 wrz, 17:10", text: "Pierwsza próba kontaktu — klient prosił o telefon następnego dnia." }],
+        notes: [{ author: "Ania", at: "22 wrz, 17:10", text: "Pierwsza próba kontaktu — klient prosił o telefon następnego dnia." }],
         history: [
           { title: "Odnotowano próbę kontaktu", detail: "Telefonicznie", at: "22 wrz, 17:10" },
           { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: "22 wrz, 16:31" }
@@ -347,7 +347,7 @@
         payment: "paid",
         materials: "complete",
         stage: 5,
-        owner: "Mariusz Sztandera",
+        owner: "Mariusz",
         amount: 2000,
         term: "Zrealizowano 15 wrz 2026",
         nextAction: "Brak — sprawa zakończona",
@@ -373,7 +373,7 @@
         documents: [{ id: "d1", name: "Komplet dokumentów", state: "received", note: "Zweryfikowano" }],
         attachments: [{ name: "finalny-pakiet-demo.zip", size: "6,1 MB", date: "15 wrz 2026, 12:55" }],
         tasks: [{ id: "t1", title: "Przekaż gotowy projekt klientowi", due: "Wykonano 15 września", priority: "normal", done: true }],
-        notes: [{ author: "Mariusz Sztandera", at: "15 wrz, 13:04", text: "Projekt przekazany klientowi. Sprawa zamknięta jako zrealizowana." }],
+        notes: [{ author: "Mariusz", at: "15 wrz, 13:04", text: "Projekt przekazany klientowi. Sprawa zamknięta jako zrealizowana." }],
         history: [
           { title: "Sprawa została zakończona", detail: "Usługa zrealizowana", at: "15 wrz, 13:04" },
           { title: "Przekazano gotowy projekt", detail: "E-mail do klienta", at: "15 wrz, 12:58" },
@@ -388,10 +388,10 @@
       { id: "INV-DEMO-13F7", recipient: "Joanna Testowa", email: "joanna.testowa@example.com", created: "14 wrz 2026, 13:05", expires: "21 wrz 2026, 13:05", status: "expired" }
     ],
     audit: [
-      { at: "23 wrz 2026, 09:02", actor: "Ania Kowalska", action: "Zmieniono postęp sprawy", detail: "PU-DEMO-F93D70 · realizacja 70%" },
-      { at: "23 wrz 2026, 08:15", actor: "Ania Kowalska", action: "Dodano notatkę", detail: "PU-DEMO-A71C93" },
-      { at: "22 wrz 2026, 16:42", actor: "Mariusz Sztandera", action: "Zmieniono kompletność dokumentów", detail: "PU-DEMO-A71C93 · niekompletne" },
-      { at: "22 wrz 2026, 14:07", actor: "Mariusz Sztandera", action: "Potwierdzono płatność", detail: "PU-DEMO-A71C93 · 2 000,00 zł" },
+      { at: "23 wrz 2026, 09:02", actor: "Ania", action: "Zmieniono postęp sprawy", detail: "PU-DEMO-F93D70 · realizacja 70%" },
+      { at: "23 wrz 2026, 08:15", actor: "Ania", action: "Dodano notatkę", detail: "PU-DEMO-A71C93" },
+      { at: "22 wrz 2026, 16:42", actor: "Mariusz", action: "Zmieniono kompletność dokumentów", detail: "PU-DEMO-A71C93 · niekompletne" },
+      { at: "22 wrz 2026, 14:07", actor: "Mariusz", action: "Potwierdzono płatność", detail: "PU-DEMO-A71C93 · 2 000,00 zł" },
       { at: "22 wrz 2026, 09:42", actor: "System", action: "Utworzono sprawę", detail: "PU-DEMO-A71C93 · formularz ankiety" }
     ]
   };
@@ -553,7 +553,7 @@
   function addAudit(action, detail) {
     state.audit.unshift({
       at: "23 wrz 2026, przed chwilą",
-      actor: state.role === "admin" ? "Mariusz Sztandera" : "Ania Kowalska",
+      actor: state.role === "admin" ? "Mariusz" : "Ania",
       action,
       detail
     });
@@ -564,9 +564,9 @@
     document.querySelectorAll("[data-admin-only]").forEach((element) => {
       element.hidden = operator;
     });
-    dom.userName.textContent = operator ? "Ania Kowalska" : "Mariusz Sztandera";
+    dom.userName.textContent = operator ? "Ania" : "Mariusz";
     dom.userRole.textContent = operator ? "Operator" : "Administrator";
-    dom.userAvatar.textContent = operator ? "AK" : "MS";
+    dom.userAvatar.textContent = operator ? "A" : "M";
     dom.navCasesCount.textContent = String(activeCases().length);
     dom.navInvitationsCount.textContent = String(state.invitations.filter((item) => item.status === "active").length);
 
@@ -1170,8 +1170,8 @@
         ${pageHead({ eyebrow: "Role i dostęp", title: "Użytkownicy", subtitle: "Dostęp do panelu jest nadawany przez Cloudflare Access i dodatkowo ograniczany rolą w aplikacji.", actions: `<button class="button button-primary" type="button" data-action="add-user">${icon("plus")}Dodaj użytkownika</button>` })}
         <div class="info-banner">${icon("shield")}<div><strong>Logowanie z MFA</strong>Panel nie przechowuje haseł. Tożsamość jest potwierdzana przez Cloudflare Access, a uprawnienia są sprawdzane przez prywatny Worker.</div></div>
         <section class="card">
-          <div class="user-row"><div class="user-profile"><span class="avatar">MS</span><div><strong>Mariusz Sztandera</strong><span>administrator@example.invalid</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">Dzisiaj, 09:14</strong><span style="color:var(--ink-500);font-size:10.5px">Ostatnia aktywność</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user">Edytuj</button></div>
-          <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">AK</span><div><strong>Ania Kowalska</strong><span>operator@example.invalid</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">Dzisiaj, 09:02</strong><span style="color:var(--ink-500);font-size:10.5px">Ostatnia aktywność</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user">Edytuj</button></div>
+          <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>administrator@example.invalid</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">Dzisiaj, 09:14</strong><span style="color:var(--ink-500);font-size:10.5px">Ostatnia aktywność</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user">Edytuj</button></div>
+          <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>operator@example.invalid</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">Dzisiaj, 09:02</strong><span style="color:var(--ink-500);font-size:10.5px">Ostatnia aktywność</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user">Edytuj</button></div>
         </section>
         <section class="card section-card"><div class="card-head"><div><h2>Zakres ról</h2><p class="section-copy">Podstawowa matryca uprawnień.</p></div></div><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Obszar</th><th>Operator</th><th>Administrator</th></tr></thead><tbody>
           ${[
@@ -1265,7 +1265,7 @@
           <label class="form-label">Imię i nazwisko klienta<input class="field" name="recipient" required placeholder="np. Jan Kowalski"></label>
           <label class="form-label">Adres e-mail<input class="field" name="email" type="email" required placeholder="klient@example.com"></label>
           <label class="form-label">Ważność linku<select class="field" name="validity"><option value="7">7 dni</option><option value="3">3 dni</option><option value="1">24 godziny</option></select></label>
-          <label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania Kowalska</option><option>Mariusz Sztandera</option><option>Nie przypisuj</option></select></label>
+          <label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania</option><option>Mariusz</option><option>Nie przypisuj</option></select></label>
         </div>
         <div class="info-banner" style="margin-top:15px">${icon("shield")}<div>To prototyp. Powstanie fikcyjny wpis i przykładowy link, ale żadna wiadomość nie zostanie wysłana.</div></div>`,
       handler: (formData) => {
@@ -1310,7 +1310,7 @@
       handler: (data) => {
         const text = String(data.get("text") || "").trim();
         if (!text) return false;
-        const author = state.role === "admin" ? "Mariusz Sztandera" : "Ania Kowalska";
+        const author = state.role === "admin" ? "Mariusz" : "Ania";
         caseItem.notes.unshift({ author, at: "przed chwilą", text });
         caseItem.history.unshift({ title: "Dodano notatkę do sprawy", detail: author, at: "przed chwilą" });
         addAudit("Dodano notatkę", caseItem.ref);
