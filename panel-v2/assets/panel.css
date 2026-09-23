@@ -496,6 +496,10 @@ svg {
   margin-right: 8px;
 }
 
+.sidebar-close {
+  display: none;
+}
+
 #notifications-button {
   position: relative;
   border-color: var(--line);
@@ -1399,6 +1403,7 @@ svg {
   display: flex;
   gap: 3px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 0 4px;
   border-bottom: 1px solid var(--line-strong);
   scrollbar-width: thin;
