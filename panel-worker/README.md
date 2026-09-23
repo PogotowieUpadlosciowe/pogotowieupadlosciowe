@@ -19,21 +19,29 @@ Nazwy wyświetlane w panelu są krótkie. Uprawnienia wynikają wyłącznie ze z
 
 ## Konfiguracja przed pierwszym wdrożeniem
 
-W `wrangler.jsonc` trzeba zastąpić cztery wartości `UZUPELNIJ`:
+Danych dostępowych ani adresów użytkowników nie zapisujemy w pliku ani w repozytorium. Po utworzeniu Workera przejdź do **Settings > Variables and Secrets** i dodaj:
+
+Zmienne tekstowe:
 
 - `ACCESS_TEAM_DOMAIN` — domena zespołu Access, np. `firma.cloudflareaccess.com`;
-- `ACCESS_AUD` — Audience Tag aplikacji Access utworzonej dla panelu;
-- `ADMIN_EMAILS` — adres logowania Mariusza;
-- `OPERATOR_EMAILS` — adres logowania Ani.
+- `ACCESS_AUD` — Audience Tag aplikacji Access utworzonej dla panelu.
 
-Sekretu nie zapisujemy w pliku ani w repozytorium. Ustawia się go bezpośrednio w Cloudflare:
+Sekrety (typ **Secret**):
+
+- `ADMIN_EMAILS` — ustalony adres logowania Mariusza;
+- `OPERATOR_EMAILS` — ustalony adres logowania Ani;
+- `ADMIN_TOKEN` — wartość identyczna z `ADMIN_TOKEN` obecnego Workera API.
+
+Po dodaniu wartości wybierz **Deploy**. Pole `keep_vars` w konfiguracji chroni wartości ustawione w panelu przed usunięciem przy późniejszym wdrażaniu kodu przez Wrangler.
+
+Alternatywnie sekrety można ustawić z terminala, bez wpisywania ich do historii poleceń:
 
 ```bash
 cd panel-worker
+npx wrangler secret put ADMIN_EMAILS
+npx wrangler secret put OPERATOR_EMAILS
 npx wrangler secret put ADMIN_TOKEN
 ```
-
-Wartość musi być identyczna z `ADMIN_TOKEN` obecnego Workera API.
 
 ## Ustawienia Cloudflare Access
 
