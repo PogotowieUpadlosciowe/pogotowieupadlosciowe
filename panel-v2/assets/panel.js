@@ -678,7 +678,10 @@
     const copy = [...cases];
     if (state.caseSort === "name") copy.sort((a, b) => a.name.localeCompare(b.name, "pl"));
     if (state.caseSort === "status") copy.sort((a, b) => STATUS_LABELS[a.status].localeCompare(STATUS_LABELS[b.status], "pl"));
-    if (state.caseSort === "updated") copy.sort((a, b) => a.id.localeCompare(b.id)).reverse();
+    if (state.caseSort === "updated") {
+      const recency = ["DEMO-2026-005", "DEMO-2026-003", "DEMO-2026-001", "DEMO-2026-004", "DEMO-2026-002", "DEMO-2026-006"];
+      copy.sort((a, b) => recency.indexOf(a.id) - recency.indexOf(b.id));
+    }
     return copy;
   }
 
@@ -806,8 +809,8 @@
   }
 
   function renderOverview(caseItem) {
-    const received = caseItem.documents.filter((item) => item.state === "received").length;
-    const progress = Math.round((received / Math.max(1, caseItem.documents.length)) * 100);
+    const resolved = caseItem.documents.filter((item) => item.state !== "missing").length;
+    const progress = Math.round((resolved / Math.max(1, caseItem.documents.length)) * 100);
     return `
       <div class="case-overview-grid">
         <div class="main-stack">
@@ -816,7 +819,7 @@
             <ul class="task-list">${taskList(caseItem)}</ul>
           </section>
           <section class="card section-card">
-            <div class="card-head"><div><h2>Dokumenty klienta</h2><p class="section-copy">${received} z ${caseItem.documents.length} pozycji oznaczonych jako otrzymane.</p></div><a class="button button-quiet button-small" href="#case/${caseItem.id}/documents">Pełna lista ${icon("arrow")}</a></div>
+            <div class="card-head"><div><h2>Dokumenty klienta</h2><p class="section-copy">${resolved} z ${caseItem.documents.length} pozycji rozliczonych (otrzymano lub nie dotyczy).</p></div><a class="button button-quiet button-small" href="#case/${caseItem.id}/documents">Pełna lista ${icon("arrow")}</a></div>
             <div class="card-body" style="padding-top:14px;padding-bottom:4px">
               <div class="progress-block"><div class="progress-row"><span>Kompletność materiałów</span><strong>${progress}%</strong></div><div class="progress-bar"><span style="width:${progress}%"></span></div></div>
               <ul class="checklist" style="margin-top:10px">${checklist(caseItem, 4)}</ul>
@@ -866,8 +869,8 @@
           <div class="card-body"><div class="data-grid">
             <div class="data-item"><span>Imię i nazwisko</span><strong>${escapeHTML(caseItem.name)}</strong></div>
             <div class="data-item"><span>Miejscowość</span><strong>${escapeHTML(caseItem.city)}</strong></div>
-            ${maskedField(caseItem, "pesel", "PESEL", caseItem.pesel, "DEMO-••••••-001")}
-            ${maskedField(caseItem, "idNumber", "Dokument tożsamości", caseItem.idNumber, "DOWOD-••••-001")}
+            ${maskedField(caseItem, "pesel", "PESEL", caseItem.pesel, `DEMO-••••••-${caseItem.pesel.slice(-3)}`)}
+            ${maskedField(caseItem, "idNumber", "Dokument tożsamości", caseItem.idNumber, `DOWOD-••••-${caseItem.idNumber.slice(-3)}`)}
             ${maskedField(caseItem, "address", "Adres zamieszkania", caseItem.address, "••••••••••••••••")}
             <div class="data-item"><span>Telefon</span><strong>${escapeHTML(caseItem.phone)}</strong></div>
             <div class="data-item full"><span>E-mail</span><strong>${escapeHTML(caseItem.email)}</strong></div>
@@ -929,14 +932,14 @@
   }
 
   function renderDocuments(caseItem) {
-    const received = caseItem.documents.filter((item) => item.state === "received").length;
-    const progress = Math.round((received / Math.max(1, caseItem.documents.length)) * 100);
+    const resolved = caseItem.documents.filter((item) => item.state !== "missing").length;
+    const progress = Math.round((resolved / Math.max(1, caseItem.documents.length)) * 100);
     return `
       <div class="split-layout">
         <section class="card section-card">
           <div class="card-head"><div><h2>Lista wymaganych dokumentów</h2><p class="section-copy">Kliknij status po lewej, aby przejść między: brakuje, otrzymano i nie dotyczy.</p></div></div>
           <div class="card-body" style="padding-top:15px">
-            <div class="progress-block"><div class="progress-row"><span>Kompletność</span><strong>${received}/${caseItem.documents.length} · ${progress}%</strong></div><div class="progress-bar"><span style="width:${progress}%"></span></div></div>
+            <div class="progress-block"><div class="progress-row"><span>Kompletność</span><strong>${resolved}/${caseItem.documents.length} · ${progress}%</strong></div><div class="progress-bar"><span style="width:${progress}%"></span></div></div>
             <ul class="checklist" style="margin-top:12px">${checklist(caseItem)}</ul>
           </div>
           <div class="card-foot"><button class="button button-secondary button-small" type="button" data-action="send-reminder" data-case-id="${caseItem.id}">${icon("mail")}Wyślij przypomnienie o brakach</button></div>
@@ -1372,7 +1375,8 @@
         const order = ["missing", "received", "not_applicable"];
         documentItem.state = order[(order.indexOf(documentItem.state) + 1) % order.length];
         const received = caseItem.documents.filter((item) => item.state === "received").length;
-        caseItem.materials = received === caseItem.documents.length ? "complete" : received ? "incomplete" : "not_verified";
+        const unresolved = caseItem.documents.filter((item) => item.state === "missing").length;
+        caseItem.materials = unresolved === 0 ? "complete" : received ? "incomplete" : "not_verified";
         addAudit("Zmieniono status dokumentu", `${caseItem.ref} · ${documentItem.name}: ${CHECK_LABELS[documentItem.state]}`);
         render();
       }
