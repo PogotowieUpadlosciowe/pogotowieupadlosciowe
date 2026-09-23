@@ -166,6 +166,45 @@ svg {
   padding-top: 34px;
 }
 
+body.mode-live .demo-banner {
+  display: none;
+}
+
+body.mode-live .app-shell {
+  padding-top: 0;
+}
+
+body.mode-live .sidebar {
+  top: 0;
+}
+
+body.mode-live .workspace {
+  min-height: 100vh;
+}
+
+body.mode-live .topbar {
+  top: 0;
+}
+
+body.mode-live .role-preview {
+  display: none;
+}
+
+.live-readonly-note {
+  margin-top: 12px;
+  color: var(--ink-600);
+  font-size: 13px;
+}
+
+.raw-answer {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink-800);
+  font: inherit;
+  line-height: 1.65;
+}
+
 .sidebar {
   position: fixed;
   z-index: 70;

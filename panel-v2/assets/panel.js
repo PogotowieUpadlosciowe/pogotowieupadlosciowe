@@ -397,6 +397,11 @@
   };
 
   const state = {
+    mode: "demo",
+    session: null,
+    health: null,
+    loadError: "",
+    lastInviteUrls: new Map(),
     role: "admin",
     caseSearch: "",
     caseStatus: "all",
@@ -454,9 +459,277 @@
     return new Intl.NumberFormat("pl-PL", { style: "currency", currency: "PLN" }).format(value);
   }
 
+  function formatDate(value, fallback = "—") {
+    if (!value) return fallback;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat("pl-PL", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "Europe/Warsaw"
+    }).format(date);
+  }
+
+  function formatBytes(value) {
+    const bytes = Number(value || 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${new Intl.NumberFormat("pl-PL", { maximumFractionDigits: 1 }).format(bytes / (1024 ** index))} ${units[index]}`;
+  }
+
+  function personInitials(name) {
+    return String(name || "?")
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0] || "")
+      .join("")
+      .toUpperCase() || "?";
+  }
+
+  function valueOrDash(value) {
+    if (value === true) return "Tak";
+    if (value === false) return "Nie";
+    const text = String(value ?? "").trim();
+    return text || "—";
+  }
+
+  function stageFor(item) {
+    if (["completed", "rejected"].includes(item.status)) return 5;
+    if (item.status === "in_progress" || item.fulfillment_started_at) return 4;
+    if (item.materials_status === "complete") return 4;
+    if (item.payment_status === "paid") return 3;
+    return 2;
+  }
+
+  function nextActionFor(item) {
+    if (item.status === "completed") return ["Sprawa zakończona", "Brak dalszych działań"];
+    if (item.status === "rejected") return ["Sprawa zamknięta", "Brak dalszych działań"];
+    if (item.payment_status !== "paid") return ["Sprawdź zaksięgowanie płatności", formatDate(item.conditions_due_at, "Termin nieustalony")];
+    if (item.materials_status !== "complete") return ["Zweryfikuj komplet materiałów", "Po kontakcie z klientem"];
+    if (item.status === "in_progress") return ["Kontynuuj przygotowanie projektu wniosku", "Zgodnie z terminem sprawy"];
+    return ["Rozpocznij realizację usługi", "Płatność i materiały są kompletne"];
+  }
+
+  function parseAdminNotes(value, updatedAt) {
+    const text = String(value || "").trim();
+    if (!text) return [];
+    return [{ author: "Zespół", at: formatDate(updatedAt), text }];
+  }
+
+  function baseHistory(item) {
+    const history = [];
+    if (item.fulfillment_completed_at) history.push({ title: "Zakończono realizację usługi", detail: "Sprawa została wykonana", at: formatDate(item.fulfillment_completed_at) });
+    if (item.fulfillment_started_at) history.push({ title: "Rozpoczęto realizację usługi", detail: "Płatność i materiały zweryfikowane", at: formatDate(item.fulfillment_started_at) });
+    if (item.payment_received_at) history.push({ title: "Płatność została potwierdzona", detail: money(Number(item.payment_amount_minor || item.order_price_gross_minor || 0) / 100), at: formatDate(item.payment_received_at) });
+    history.push({ title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: formatDate(item.created_at) });
+    return history;
+  }
+
+  function mapSubmission(item) {
+    const name = valueOrDash(item.full_name);
+    const next = nextActionFor(item);
+    const address = valueOrDash(item.address);
+    const city = address === "—" ? "—" : address.split(",").at(-1).trim();
+    const materials = item.materials_status || "not_verified";
+    const documentState = materials === "complete" ? "received" : "missing";
+    return {
+      id: item.id,
+      ref: item.reference || item.id,
+      name,
+      initials: personInitials(name),
+      email: valueOrDash(item.email),
+      phone: valueOrDash(item.phone),
+      city,
+      createdAt: formatDate(item.created_at),
+      updatedAt: formatDate(item.updated_at || item.created_at),
+      status: item.status || "new",
+      payment: item.payment_status || "not_set",
+      materials,
+      stage: stageFor(item),
+      owner: "Nie przypisano",
+      amount: Number(item.order_price_gross_minor || 200000) / 100,
+      term: formatDate(item.conditions_due_at),
+      nextAction: next[0],
+      nextActionDue: next[1],
+      attention: item.payment_status !== "paid" ? "Płatność oczekuje na potwierdzenie" : materials !== "complete" ? "Materiały wymagają weryfikacji" : "",
+      priority: item.payment_status !== "paid" ? "high" : "normal",
+      pesel: String(item.pesel || ""),
+      nip: String(item.nip || ""),
+      idNumber: String(item.nip || ""),
+      address,
+      questionnaire: {
+        assets: valueOrDash(item.assets),
+        cash: valueOrDash(item.cash),
+        bankAccounts: valueOrDash(item.bank_accounts),
+        debtors: valueOrDash(item.debtors),
+        creditors: valueOrDash(item.creditors_list),
+        disputedDebts: valueOrDash(item.disputed_debts),
+        income: valueOrDash(item.income_6m),
+        expenses: valueOrDash(item.expenses_6m),
+        realEstateActions: valueOrDash(item.legal_actions_property),
+        assetActions: valueOrDash(item.legal_actions_assets),
+        familySituation: valueOrDash(item.family_situation),
+        insolvencyStory: valueOrDash(item.insolvency_story),
+        health: item.includes_special_category_data ? "Klient wskazał, że odpowiedzi zawierają dane szczególnej kategorii." : "Klient nie wskazał danych szczególnej kategorii."
+      },
+      creditors: [],
+      creditorsRaw: valueOrDash(item.creditors_list),
+      disputedDebtsRaw: valueOrDash(item.disputed_debts),
+      documents: [{
+        id: "materials",
+        name: "Komplet materiałów do sprawy",
+        state: documentState,
+        note: MATERIAL_LABELS[materials] || materials
+      }],
+      attachments: [],
+      tasks: [
+        { id: "current-action", title: next[0], due: next[1], priority: item.payment_status !== "paid" ? "high" : "normal", done: ["completed", "rejected"].includes(item.status) }
+      ],
+      notes: parseAdminNotes(item.admin_notes, item.updated_at),
+      history: baseHistory(item),
+      consent: {
+        regulation: Boolean(item.terms_and_privacy_accepted),
+        privacy: Boolean(item.privacy),
+        sensitive: Boolean(item.special_category_consent),
+        hash: valueOrDash(item.order_acceptance_hash)
+      },
+      regulationVersion: valueOrDash(item.regulation_version),
+      privacyVersion: valueOrDash(item.privacy_version),
+      statementVersion: valueOrDash(item.contract_statement_version),
+      serviceName: valueOrDash(item.order_service),
+      adminEmailStatus: String(item.admin_email_status || "unknown"),
+      clientEmailStatus: String(item.client_email_status || "unknown"),
+      paymentInstructionsStatus: String(item.payment_instructions_status || "unknown"),
+      attachmentCount: Number(item.attachment_count || 0),
+      detailsLoaded: false,
+      detailsLoading: false,
+      _raw: item
+    };
+  }
+
+  function mapInvitation(item, inviteUrl = "") {
+    const label = String(item.label || "").trim();
+    return {
+      id: item.id,
+      recipient: label || "Bez etykiety",
+      email: "",
+      created: formatDate(item.created_at),
+      expires: formatDate(item.expires_at),
+      status: item.status || "expired",
+      inviteUrl
+    };
+  }
+
+  async function apiRequest(path, options = {}) {
+    const headers = new Headers(options.headers);
+    headers.set("Accept", "application/json");
+    if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    const response = await fetch(path, { ...options, headers, credentials: "same-origin" });
+    const contentType = response.headers.get("Content-Type") || "";
+    const body = contentType.includes("application/json") ? await response.json() : null;
+    if (!response.ok) throw new Error(body?.error || `Operacja nie powiodła się (${response.status}).`);
+    return body;
+  }
+
+  function applyLiveBodyMode() {
+    dom.body.classList.toggle("mode-live", state.mode === "live");
+    dom.body.classList.toggle("mode-demo", state.mode !== "live");
+    dom.rolePreview.disabled = state.mode === "live";
+  }
+
+  async function refreshLiveCases() {
+    const response = await apiRequest("/api/submissions");
+    state.cases = Array.isArray(response?.items) ? response.items.map(mapSubmission) : [];
+  }
+
+  async function loadCaseDetails(caseItem) {
+    if (state.mode !== "live" || caseItem.detailsLoaded || caseItem.detailsLoading) return;
+    caseItem.detailsLoading = true;
+    try {
+      const [attachments, events] = await Promise.all([
+        apiRequest(`/api/submissions/${encodeURIComponent(caseItem.id)}/attachments`),
+        apiRequest(`/api/submissions/${encodeURIComponent(caseItem.id)}/events`)
+      ]);
+      caseItem.attachments = (attachments?.items || []).map((item) => ({
+        id: item.id,
+        name: valueOrDash(item.name),
+        size: formatBytes(item.size_bytes),
+        date: formatDate(item.created_at)
+      }));
+      if (Array.isArray(events?.items) && events.items.length) {
+        const labels = {
+          order_received: "Otrzymano zamówienie",
+          payment_marked_paid: "Płatność została potwierdzona",
+          payment_instructions_resent: "Ponownie wysłano dane do przelewu",
+          materials_marked_incomplete: "Materiały oznaczono jako niekompletne",
+          materials_marked_complete: "Materiały oznaczono jako kompletne",
+          fulfillment_started: "Rozpoczęto realizację usługi",
+          service_completed: "Zakończono realizację usługi",
+          case_settings_updated: "Zmieniono ustawienia sprawy"
+        };
+        caseItem.history = events.items.map((event) => ({
+          title: labels[event.event_type] || String(event.event_type || "Zdarzenie w sprawie").replaceAll("_", " "),
+          detail: valueOrDash(event.details?.note || event.details?.triggered_by || "Zapis systemowy"),
+          at: formatDate(event.created_at)
+        }));
+      }
+      caseItem.detailsLoaded = true;
+    } catch (error) {
+      toast("Nie udało się pobrać szczegółów", error.message, "warning");
+    } finally {
+      caseItem.detailsLoading = false;
+      const route = getRoute();
+      if (route.name === "case" && route.id === caseItem.id) render();
+    }
+  }
+
+  async function bootstrap() {
+    try {
+      const response = await fetch("/api/session", {
+        headers: { Accept: "application/json" },
+        credentials: "same-origin"
+      });
+      const contentType = response.headers.get("Content-Type") || "";
+      if (!response.ok || !contentType.includes("application/json")) throw new Error("demo");
+      const session = await response.json();
+      if (!session?.authenticated || !session?.user?.role) throw new Error("demo");
+
+      state.mode = "live";
+      state.session = session;
+      state.role = session.user.role;
+      applyLiveBodyMode();
+      const [submissions, invitations, health] = await Promise.all([
+        apiRequest("/api/submissions"),
+        apiRequest("/api/admin/invitations"),
+        apiRequest("/api/health")
+      ]);
+      state.cases = (submissions?.items || []).map(mapSubmission);
+      state.invitations = (invitations?.items || []).map((item) => mapInvitation(item));
+      state.health = health;
+    } catch (error) {
+      if (state.mode === "live") {
+        state.loadError = error.message || "Nie udało się pobrać danych panelu.";
+        state.cases = [];
+        state.invitations = [];
+      } else {
+        state.mode = "demo";
+        state.session = null;
+        state.role = "admin";
+        applyLiveBodyMode();
+      }
+    }
+
+    if (!window.location.hash) window.location.hash = "#dashboard";
+    else render();
+  }
+
   function todayLabel() {
     return new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-      .format(new Date("2026-09-23T09:30:00Z"));
+      .format(state.mode === "live" ? new Date() : new Date("2026-09-23T09:30:00Z"));
   }
 
   function statusBadge(status, labels = STATUS_LABELS) {
@@ -552,8 +825,8 @@
 
   function addAudit(action, detail) {
     state.audit.unshift({
-      at: "23 wrz 2026, przed chwilą",
-      actor: state.role === "admin" ? "Mariusz" : "Ania",
+      at: state.mode === "live" ? formatDate(new Date().toISOString()) : "23 wrz 2026, przed chwilą",
+      actor: state.session?.user?.name || (state.role === "admin" ? "Mariusz" : "Ania"),
       action,
       detail
     });
@@ -564,9 +837,10 @@
     document.querySelectorAll("[data-admin-only]").forEach((element) => {
       element.hidden = operator;
     });
-    dom.userName.textContent = operator ? "Ania" : "Mariusz";
+    dom.userName.textContent = state.session?.user?.name || (operator ? "Ania" : "Mariusz");
     dom.userRole.textContent = operator ? "Operator" : "Administrator";
-    dom.userAvatar.textContent = operator ? "A" : "M";
+    dom.userAvatar.textContent = personInitials(dom.userName.textContent).slice(0, 1);
+    dom.rolePreview.value = state.role;
     dom.navCasesCount.textContent = String(activeCases().length);
     dom.navInvitationsCount.textContent = String(state.invitations.filter((item) => item.status === "active").length);
 
@@ -578,11 +852,22 @@
   }
 
   function renderNotifications() {
-    const items = [
-      { caseId: "DEMO-2026-005", title: "Nowa ankieta czeka na przypisanie", meta: "Maria Szkoleniowa · dzisiaj, 07:54", tone: "#1769e0" },
-      { caseId: "DEMO-2026-001", title: "Termin zadania upływa dzisiaj", meta: "Brakujące dokumenty · 12:00", tone: "#b92d34" },
-      { caseId: "DEMO-2026-002", title: "Płatność nadal niepotwierdzona", meta: "Piotr Testowy · oczekuje 2 dni", tone: "#9a5a05" }
-    ];
+    const items = state.mode === "live"
+      ? state.cases.filter((item) => item.attention).slice(0, 5).map((item) => ({
+          caseId: item.id,
+          title: item.attention,
+          meta: `${item.name} · ${item.ref}`,
+          tone: item.priority === "high" ? "#b92d34" : "#9a5a05"
+        }))
+      : [
+          { caseId: "DEMO-2026-005", title: "Nowa ankieta czeka na przypisanie", meta: "Maria Szkoleniowa · dzisiaj, 07:54", tone: "#1769e0" },
+          { caseId: "DEMO-2026-001", title: "Termin zadania upływa dzisiaj", meta: "Brakujące dokumenty · 12:00", tone: "#b92d34" },
+          { caseId: "DEMO-2026-002", title: "Płatność nadal niepotwierdzona", meta: "Piotr Testowy · oczekuje 2 dni", tone: "#9a5a05" }
+        ];
+    if (!items.length) {
+      dom.notificationList.innerHTML = `<div class="empty-state" style="padding:24px"><p>Brak nowych alertów.</p></div>`;
+      return;
+    }
     dom.notificationList.innerHTML = items.map((item) => `
       <button class="notification-item" type="button" data-action="notification-case" data-case-id="${item.caseId}" style="width:100%;border:0;background:transparent;text-align:left">
         <span class="attention-marker" style="--marker-color:${item.tone};--marker-bg:#eef3f9"></span>
@@ -600,7 +885,10 @@
     const urgent = tasks.filter((task) => task.priority === "high").length;
     const waiting = activeCases().filter((item) => item.payment === "awaiting").length;
     const missingDocs = activeCases().filter((item) => item.materials === "incomplete").length;
-    const greeting = state.role === "admin" ? "Dzień dobry, Mariusz" : "Dzień dobry, Aniu";
+    const sessionName = state.session?.user?.name;
+    const greeting = sessionName
+      ? `Dzień dobry, ${sessionName === "Ania" ? "Aniu" : sessionName}`
+      : state.role === "admin" ? "Dzień dobry, Mariusz" : "Dzień dobry, Aniu";
 
     dom.root.innerHTML = `
       <section class="page dashboard-page">
@@ -611,7 +899,7 @@
           actions: `<button class="button button-primary" type="button" data-action="new-invitation">${icon("plus")}Nowy link do ankiety</button>`
         })}
         <div class="metric-grid">
-          ${metricCard("Aktywne sprawy", activeCases().length, "1 nowa od ostatniej wizyty", "cases")}
+          ${metricCard("Aktywne sprawy", activeCases().length, state.mode === "live" ? `${state.cases.filter((item) => item.status === "new").length} nowych` : "1 nowa od ostatniej wizyty", "cases")}
           ${metricCard("Zadania pilne", urgent, "Do wykonania dzisiaj", "task", "var(--danger)", "var(--danger-bg)")}
           ${metricCard("Płatności oczekujące", waiting, "Łącznie 2 000,00 zł", "creditor", "var(--warning)", "var(--warning-bg)")}
           ${metricCard("Braki w dokumentach", missingDocs, "Wymagają kontaktu z klientem", "file", "var(--purple)", "var(--purple-bg)")}
@@ -663,10 +951,10 @@
             <section class="card">
               <div class="card-head no-border"><div><span class="eyebrow">Stan systemu</span><h2>Wszystko działa</h2></div>${statusBadge("active", { active: "Online" })}</div>
               <div class="card-body" style="padding-top:8px">
-                <div class="kpi-line"><span>Formularz ankiety</span><strong>Aktywny</strong></div>
-                <div class="kpi-line"><span>Wysyłka e-mail</span><strong>2 odbiorców</strong></div>
-                <div class="kpi-line"><span>Ostatnia kopia</span><strong>Dzisiaj, 02:00</strong></div>
-                <div class="kpi-line"><span>Sesja</span><strong>Chroniona MFA</strong></div>
+                <div class="kpi-line"><span>Formularz ankiety</span><strong>${state.mode === "live" ? (state.health?.form_enabled === false ? "Wyłączony" : "Aktywny") : "Aktywny"}</strong></div>
+                <div class="kpi-line"><span>Wysyłka e-mail</span><strong>${state.mode === "live" ? (state.health?.email_configured ? "Skonfigurowana" : "Wymaga konfiguracji") : "2 odbiorców"}</strong></div>
+                <div class="kpi-line"><span>Szyfrowanie danych</span><strong>${state.mode === "live" ? (state.health?.encryption_configured ? "Aktywne" : "Błąd konfiguracji") : "Aktywne"}</strong></div>
+                <div class="kpi-line"><span>Sesja</span><strong>Cloudflare Access</strong></div>
               </div>
             </section>
           </aside>
@@ -739,7 +1027,7 @@
                 </tbody>
               </table>
             </div>` : `<div class="empty-state"><span class="empty-state-icon">${icon("search")}</span><h2>Brak pasujących spraw</h2><p>Zmień wyszukiwaną frazę albo filtr statusu.</p></div>`}
-          <div class="pagination-bar"><span>Wyświetlono ${visible.length} z ${state.cases.length} spraw demonstracyjnych</span><span>Dane fikcyjne · bez połączenia z produkcją</span></div>
+          <div class="pagination-bar"><span>Wyświetlono ${visible.length} z ${state.cases.length} spraw${state.mode === "demo" ? " demonstracyjnych" : ""}</span><span>${state.mode === "live" ? "Dane pobrane z bezpiecznego Workera" : "Dane fikcyjne · bez połączenia z produkcją"}</span></div>
         </section>
       </section>`;
   }
@@ -793,7 +1081,7 @@
   function taskList(caseItem) {
     return caseItem.tasks.map((task) => `
       <li class="task-item">
-        <button class="task-checkbox ${task.done ? "done" : ""}" type="button" aria-label="${task.done ? "Przywróć zadanie" : "Oznacz zadanie jako wykonane"}" data-action="toggle-task" data-case-id="${caseItem.id}" data-task-id="${task.id}">${task.done ? icon("check") : ""}</button>
+        <button class="task-checkbox ${task.done ? "done" : ""}" type="button" aria-label="${task.done ? "Przywróć zadanie" : "Oznacz zadanie jako wykonane"}" data-action="toggle-task" data-case-id="${caseItem.id}" data-task-id="${task.id}" ${state.mode === "live" ? "disabled" : ""}>${task.done ? icon("check") : ""}</button>
         <span class="item-copy"><strong style="${task.done ? "text-decoration:line-through;color:var(--ink-500)" : ""}">${escapeHTML(task.title)}</strong><span>${escapeHTML(task.due)}</span></span>
         ${priorityBadge(task.priority)}
       </li>`).join("");
@@ -802,7 +1090,7 @@
   function checklist(caseItem, limit = Infinity) {
     return caseItem.documents.slice(0, limit).map((documentItem) => `
       <li class="checklist-item">
-        <button class="check-state ${documentItem.state}" type="button" data-action="cycle-document" data-case-id="${caseItem.id}" data-document-id="${documentItem.id}" aria-label="Zmień status dokumentu">${documentItem.state === "received" ? icon("check") : documentItem.state === "not_applicable" ? "—" : ""}</button>
+        <button class="check-state ${documentItem.state}" type="button" data-action="cycle-document" data-case-id="${caseItem.id}" data-document-id="${documentItem.id}" aria-label="Zmień status dokumentu" ${state.mode === "live" ? "disabled" : ""}>${documentItem.state === "received" ? icon("check") : documentItem.state === "not_applicable" ? "—" : ""}</button>
         <span class="checklist-copy"><strong>${escapeHTML(documentItem.name)}</strong><span>${escapeHTML(documentItem.note)}</span></span>
         <span class="status-badge status-${documentItem.state === "received" ? "complete" : documentItem.state === "missing" ? "incomplete" : "neutral"}">${escapeHTML(CHECK_LABELS[documentItem.state])}</span>
       </li>`).join("");
@@ -815,7 +1103,7 @@
       <div class="case-overview-grid">
         <div class="main-stack">
           <section class="card section-card">
-            <div class="card-head"><div><h2>Zadania</h2><p class="section-copy">Konkretne czynności przypisane do tej sprawy.</p></div><button class="button button-secondary button-small" type="button" data-action="add-task" data-case-id="${caseItem.id}">${icon("plus")}Dodaj zadanie</button></div>
+            <div class="card-head"><div><h2>Zadania</h2><p class="section-copy">${state.mode === "live" ? "Najbliższy krok wynikający z bieżącego stanu sprawy." : "Konkretne czynności przypisane do tej sprawy."}</p></div><button class="button button-secondary button-small" type="button" data-action="add-task" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("plus")}Dodaj zadanie</button></div>
             <ul class="task-list">${taskList(caseItem)}</ul>
           </section>
           <section class="card section-card">
@@ -835,7 +1123,7 @@
                 <div class="summary-item"><span>Wartość usługi</span><strong>${money(caseItem.amount)}</strong></div>
                 <div class="summary-item"><span>Dokumenty</span><strong>${MATERIAL_LABELS[caseItem.materials]}</strong></div>
                 <div class="summary-item"><span>Termin</span><strong>${escapeHTML(caseItem.term)}</strong></div>
-                <div class="summary-item full"><span>Łączne zadłużenie</span><strong>${money(caseItem.creditors.reduce((sum, item) => sum + item.amount, 0))}</strong></div>
+                <div class="summary-item full"><span>${state.mode === "live" ? "Wierzyciele" : "Łączne zadłużenie"}</span><strong>${state.mode === "live" ? "Odpowiedź w zakładce Wierzyciele" : money(caseItem.creditors.reduce((sum, item) => sum + item.amount, 0))}</strong></div>
               </div>
             </div>
           </section>
@@ -861,6 +1149,51 @@
 
   function renderQuestionnaire(caseItem) {
     const q = caseItem.questionnaire;
+    if (state.mode === "live") {
+      return `
+        <div class="main-stack">
+          <div class="info-banner">${icon("lock")}<div><strong>Dane szczególnie chronione</strong>Dostęp do tej strony jest chroniony przez Cloudflare Access. Nie kopiuj danych klienta do nieszyfrowanych notatek ani wiadomości.</div></div>
+          <section class="card section-card">
+            <div class="card-head"><div><h2>Dane identyfikacyjne i kontaktowe</h2><p class="section-copy">Dane podane przez klienta w ankiecie.</p></div></div>
+            <div class="card-body"><div class="data-grid">
+              <div class="data-item"><span>Imię i nazwisko</span><strong>${escapeHTML(caseItem.name)}</strong></div>
+              ${maskedField(caseItem, "pesel", "PESEL", caseItem.pesel, caseItem.pesel ? `••••••••${caseItem.pesel.slice(-3)}` : "—")}
+              ${maskedField(caseItem, "nip", "NIP", caseItem.nip, caseItem.nip ? `••••••${caseItem.nip.slice(-4)}` : "—")}
+              ${maskedField(caseItem, "address", "Adres zamieszkania", caseItem.address, caseItem.address === "—" ? "—" : "••••••••••••••••")}
+              <div class="data-item"><span>Telefon</span><strong>${escapeHTML(caseItem.phone)}</strong></div>
+              <div class="data-item"><span>E-mail</span><strong>${escapeHTML(caseItem.email)}</strong></div>
+            </div></div>
+          </section>
+          <section class="card section-card">
+            <div class="card-head"><div><h2>Odpowiedzi z ankiety</h2><p class="section-copy">Pełny zapis odpowiedzi klienta, bez automatycznej interpretacji.</p></div></div>
+            <div class="card-body"><div class="data-grid">
+              <div class="data-item full"><span>Składniki majątku</span><strong>${escapeHTML(q.assets)}</strong></div>
+              <div class="data-item"><span>Posiadana gotówka</span><strong>${escapeHTML(q.cash)}</strong></div>
+              <div class="data-item"><span>Środki na rachunkach</span><strong>${escapeHTML(q.bankAccounts)}</strong></div>
+              <div class="data-item full"><span>Dłużnicy klienta</span><strong>${escapeHTML(q.debtors)}</strong></div>
+              <div class="data-item full"><span>Wierzyciele, kwoty i terminy</span><strong>${escapeHTML(q.creditors)}</strong></div>
+              <div class="data-item full"><span>Długi sporne</span><strong>${escapeHTML(q.disputedDebts)}</strong></div>
+              <div class="data-item"><span>Dochody za 6 miesięcy</span><strong>${escapeHTML(q.income)}</strong></div>
+              <div class="data-item"><span>Koszty za 6 miesięcy</span><strong>${escapeHTML(q.expenses)}</strong></div>
+              <div class="data-item full"><span>Czynności dotyczące nieruchomości</span><strong>${escapeHTML(q.realEstateActions)}</strong></div>
+              <div class="data-item full"><span>Czynności dotyczące majątku</span><strong>${escapeHTML(q.assetActions)}</strong></div>
+              <div class="data-item full"><span>Sytuacja rodzinna i zawodowa</span><strong>${escapeHTML(q.familySituation)}</strong></div>
+              <div class="data-item full"><span>Historia niewypłacalności</span><strong>${escapeHTML(q.insolvencyStory)}</strong></div>
+              <div class="data-item full"><span>Dane szczególnej kategorii</span><strong>${escapeHTML(q.health)}</strong><p>Zgoda: ${caseItem.consent.sensitive ? "udzielona" : "nie dotyczy"}</p></div>
+            </div></div>
+          </section>
+          <section class="card section-card">
+            <div class="card-head"><div><h2>Dowód akceptacji</h2><p class="section-copy">Stan zgód zapisany w chwili wysłania ankiety.</p></div>${statusBadge("active", { active: "Zweryfikowano" })}</div>
+            <div class="card-body"><div class="data-grid">
+              <div class="data-item"><span>Regulamin</span><strong>${caseItem.consent.regulation ? "Zaakceptowano" : "Brak"}</strong></div>
+              <div class="data-item"><span>Polityka prywatności</span><strong>${caseItem.consent.privacy ? "Potwierdzono" : "Brak"}</strong></div>
+              <div class="data-item"><span>Zgoda na dane szczególnej kategorii</span><strong>${caseItem.consent.sensitive ? "Wyrażono" : "Nie dotyczy"}</strong></div>
+              <div class="data-item"><span>Wersje dokumentów</span><strong>${escapeHTML(caseItem.regulationVersion)} · ${escapeHTML(caseItem.privacyVersion)}</strong></div>
+              <div class="data-item full"><span>Hash akceptacji</span><strong style="font-family:ui-monospace,monospace;font-size:11px;overflow-wrap:anywhere">${escapeHTML(caseItem.consent.hash)}</strong></div>
+            </div></div>
+          </section>
+        </div>`;
+    }
     return `
       <div class="main-stack">
         <div class="info-banner">${icon("lock")}<div><strong>Dane szczególnie chronione</strong>Dostęp do pól oznaczonych ikoną oka jest rejestrowany w dzienniku audytowym. W prototypie dane są fikcyjne.</div></div>
@@ -905,6 +1238,20 @@
   }
 
   function renderCreditors(caseItem) {
+    if (state.mode === "live") {
+      return `
+        <div class="main-stack">
+          <section class="card section-card">
+            <div class="card-head"><div><h2>Wierzyciele, kwoty i terminy</h2><p class="section-copy">Oryginalna odpowiedź klienta. Panel nie dzieli jej automatycznie na pozycje, żeby nie zmienić znaczenia danych.</p></div></div>
+            <div class="card-body"><pre class="raw-answer">${escapeHTML(caseItem.creditorsRaw)}</pre></div>
+          </section>
+          <section class="card section-card">
+            <div class="card-head"><div><h2>Długi sporne</h2><p class="section-copy">Informacja przekazana w ankiecie.</p></div></div>
+            <div class="card-body"><pre class="raw-answer">${escapeHTML(caseItem.disputedDebtsRaw)}</pre></div>
+          </section>
+          <div class="info-banner">${icon("shield")}<div><strong>Edycja listy wierzycieli będzie osobnym etapem</strong>Do czasu dodania struktury danych w bazie źródłowa odpowiedź pozostaje tylko do odczytu.</div></div>
+        </div>`;
+    }
     const total = caseItem.creditors.reduce((sum, item) => sum + item.amount, 0);
     return `
       <section class="card table-card">
@@ -942,17 +1289,17 @@
             <div class="progress-block"><div class="progress-row"><span>Kompletność</span><strong>${resolved}/${caseItem.documents.length} · ${progress}%</strong></div><div class="progress-bar"><span style="width:${progress}%"></span></div></div>
             <ul class="checklist" style="margin-top:12px">${checklist(caseItem)}</ul>
           </div>
-          <div class="card-foot"><button class="button button-secondary button-small" type="button" data-action="send-reminder" data-case-id="${caseItem.id}">${icon("mail")}Wyślij przypomnienie o brakach</button></div>
+          <div class="card-foot"><button class="button button-secondary button-small" type="button" data-action="send-reminder" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("mail")}Wyślij przypomnienie o brakach</button></div>
         </section>
         <aside class="side-stack">
           <section class="card section-card">
-            <div class="card-head"><div><h2>Załączniki</h2><p class="section-copy">${caseItem.attachments.length} plików w bezpiecznym magazynie.</p></div><button class="button button-primary button-small" type="button" data-action="upload-file" data-case-id="${caseItem.id}">${icon("plus")}Dodaj plik</button></div>
+            <div class="card-head"><div><h2>Załączniki</h2><p class="section-copy">${caseItem.attachments.length} plików w bezpiecznym magazynie.</p></div><button class="button button-primary button-small" type="button" data-action="upload-file" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("plus")}Dodaj plik</button></div>
             <div>
               ${caseItem.attachments.length ? caseItem.attachments.map((file) => `
                 <div class="document-item">
                   <span class="document-icon">${icon("file")}</span>
                   <span class="item-copy"><strong>${escapeHTML(file.name)}</strong><span>${escapeHTML(file.size)} · ${escapeHTML(file.date)}</span></span>
-                  <button class="icon-button" type="button" data-action="mock-download" aria-label="Pobierz ${escapeHTML(file.name)}">${icon("download")}</button>
+                  <button class="icon-button" type="button" data-action="${state.mode === "live" ? "download-attachment" : "mock-download"}" data-case-id="${caseItem.id}" ${file.id ? `data-attachment-id="${escapeHTML(file.id)}"` : ""} aria-label="Pobierz ${escapeHTML(file.name)}">${icon("download")}</button>
                 </div>`).join("") : `<div class="empty-state"><span class="empty-state-icon">${icon("file")}</span><h2>Brak plików</h2><p>Nie dodano jeszcze załączników.</p></div>`}
             </div>
           </section>
@@ -962,12 +1309,17 @@
   }
 
   function bankAccount(caseItem) {
+    if (state.mode === "live") {
+      return `<strong>Skonfigurowany bezpiecznie w Workerze</strong><p>Pełny numer nie jest przesyłany do przeglądarki panelu.</p>`;
+    }
     const key = `${caseItem.id}:bank`;
     const revealed = state.revealed.has(key);
     return `<div class="masked-value"><code>${revealed ? "PL 00 0000 0000 0000 0000 0000 0000 (DEMO)" : "PL 00 0000 •••• •••• •••• 0000"}</code><button class="reveal-button" type="button" data-action="reveal" data-case-id="${caseItem.id}" data-field="bank" title="${revealed ? "Ukryj" : "Pokaż"} numer rachunku">${icon("eye")}</button></div>`;
   }
 
   function renderOrder(caseItem) {
+    const emailLabel = (status) => status === "sent" ? "Wysłano" : status === "failed" ? "Błąd" : status === "pending" ? "W toku" : "Brak danych";
+    const emailColor = (status) => status === "sent" ? "var(--success)" : status === "failed" ? "var(--danger)" : "var(--ink-700)";
     return `
       <div class="main-stack">
         <div class="${caseItem.payment === "paid" ? "success-banner" : "warning-banner"}">${icon(caseItem.payment === "paid" ? "check" : "creditor")}<div><strong>${caseItem.payment === "paid" ? "Płatność potwierdzona" : "Płatność oczekuje na potwierdzenie"}</strong>${caseItem.payment === "paid" ? "Zamówienie może być realizowane zgodnie z ustalonym terminem." : "Po zaksięgowaniu przelewu oznacz płatność jako opłaconą."}</div></div>
@@ -975,13 +1327,13 @@
           <section class="card section-card">
             <div class="card-head"><div><h2>Dane zamówienia</h2><p class="section-copy">Warunki zapisane w chwili wysłania ankiety.</p></div>${statusBadge(caseItem.payment, PAYMENT_LABELS)}</div>
             <div class="card-body"><div class="data-grid">
-              <div class="data-item full"><span>Usługa</span><strong>Przygotowanie projektu wniosku o ogłoszenie upadłości konsumenckiej</strong></div>
+              <div class="data-item full"><span>Usługa</span><strong>${escapeHTML(state.mode === "live" ? caseItem.serviceName : "Przygotowanie projektu wniosku o ogłoszenie upadłości konsumenckiej")}</strong></div>
               <div class="data-item"><span>Cena zamówienia</span><strong>${money(caseItem.amount)}</strong><p>Zwolnienie z VAT</p></div>
               <div class="data-item"><span>Termin warunków</span><strong>${escapeHTML(caseItem.term)}</strong></div>
               <div class="data-item"><span>Data złożenia</span><strong>${escapeHTML(caseItem.createdAt)}</strong></div>
-              <div class="data-item"><span>Wersja regulaminu</span><strong>REG-2026-09-23-01</strong></div>
-              <div class="data-item"><span>Wersja polityki prywatności</span><strong>PP-2026-09-23-01</strong></div>
-              <div class="data-item"><span>Wersja oświadczenia</span><strong>OSW-2026-09-23-01</strong></div>
+              <div class="data-item"><span>Wersja regulaminu</span><strong>${escapeHTML(state.mode === "live" ? caseItem.regulationVersion : "REG-2026-09-23-01")}</strong></div>
+              <div class="data-item"><span>Wersja polityki prywatności</span><strong>${escapeHTML(state.mode === "live" ? caseItem.privacyVersion : "PP-2026-09-23-01")}</strong></div>
+              <div class="data-item"><span>Wersja oświadczenia</span><strong>${escapeHTML(state.mode === "live" ? caseItem.statementVersion : "OSW-2026-09-23-01")}</strong></div>
             </div></div>
           </section>
           <aside class="side-stack">
@@ -997,9 +1349,9 @@
             <section class="card section-card">
               <div class="card-head"><div><h2>Wysyłka wiadomości</h2><p class="section-copy">Stan potwierdzeń po złożeniu zamówienia.</p></div></div>
               <div class="card-body">
-                <div class="kpi-line"><span>E-mail do klienta</span><strong style="color:var(--success)">Wysłano</strong></div>
-                <div class="kpi-line"><span>kontakt@example.invalid</span><strong style="color:var(--success)">Wysłano</strong></div>
-                <div class="kpi-line"><span>kopia@example.invalid</span><strong style="color:var(--success)">Wysłano</strong></div>
+                <div class="kpi-line"><span>E-mail do klienta</span><strong style="color:${emailColor(caseItem.clientEmailStatus)}">${state.mode === "live" ? emailLabel(caseItem.clientEmailStatus) : "Wysłano"}</strong></div>
+                <div class="kpi-line"><span>Powiadomienie administratora</span><strong style="color:${emailColor(caseItem.adminEmailStatus)}">${state.mode === "live" ? emailLabel(caseItem.adminEmailStatus) : "Wysłano"}</strong></div>
+                <div class="kpi-line"><span>Dane do płatności</span><strong style="color:${emailColor(caseItem.paymentInstructionsStatus)}">${state.mode === "live" ? emailLabel(caseItem.paymentInstructionsStatus) : "Wysłano"}</strong></div>
               </div>
             </section>
           </aside>
@@ -1025,8 +1377,11 @@
   function renderCase(caseId, requestedTab) {
     const caseItem = getCase(caseId);
     if (!caseItem) {
-      renderNotFound("Nie znaleziono sprawy", "Ta sprawa nie istnieje w zestawie demonstracyjnym.");
+      renderNotFound("Nie znaleziono sprawy", state.mode === "live" ? "Ta sprawa nie istnieje albo nie jest już aktywna." : "Ta sprawa nie istnieje w zestawie demonstracyjnym.");
       return;
+    }
+    if (state.mode === "live" && !caseItem.detailsLoaded && !caseItem.detailsLoading) {
+      void loadCaseDetails(caseItem);
     }
     const tab = CASE_TABS.some(([id]) => id === requestedTab) ? requestedTab : "overview";
     const tabLabel = CASE_TABS.find(([id]) => id === tab)?.[1] || "Przebieg";
@@ -1044,7 +1399,7 @@
         ${caseHero(caseItem)}
         <section class="next-action-card">
           <div class="next-action-main"><span class="next-action-icon">${icon("arrow")}</span><span class="next-action-copy"><span>Następne działanie</span><strong>${escapeHTML(caseItem.nextAction)}</strong><small style="display:block;color:var(--ink-600);margin-top:2px">${escapeHTML(caseItem.nextActionDue)}</small></span></div>
-          ${caseItem.status !== "completed" ? `<button class="button button-primary button-small" type="button" data-action="complete-next" data-case-id="${caseItem.id}">${icon("check")}Oznacz jako wykonane</button>` : ""}
+          ${caseItem.status !== "completed" ? `<button class="button button-primary button-small" type="button" data-action="complete-next" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("check")}Oznacz jako wykonane</button>` : ""}
         </section>
         ${caseStage(caseItem)}
         ${caseTabs(caseItem, tab)}
@@ -1053,6 +1408,11 @@
   }
 
   function renderInvitations() {
+    const invitationStatus = (status) => {
+      const labels = { active: "Aktywny", used: "Wykorzystany", expired: "Wygasł", revoked: "Unieważniony" };
+      const tone = status === "active" ? "active" : status === "used" ? "complete" : "neutral";
+      return statusBadge(tone, { [tone]: labels[status] || status });
+    };
     setBreadcrumbs([{ label: "Linki do ankiety" }]);
     dom.root.innerHTML = `
       <section class="page">
@@ -1068,21 +1428,23 @@
             <thead><tr><th>Odbiorca</th><th>Utworzono</th><th>Wygasa</th><th>Status</th><th>Działania</th></tr></thead>
             <tbody>${state.invitations.map((item) => `
               <tr>
-                <td class="primary-cell"><strong>${escapeHTML(item.recipient)}</strong><span>${escapeHTML(item.email)} · ${escapeHTML(item.id)}</span></td>
+                <td class="primary-cell"><strong>${escapeHTML(item.recipient)}</strong><span>${item.email ? `${escapeHTML(item.email)} · ` : ""}${escapeHTML(item.id)}</span></td>
                 <td data-label="Utworzono">${escapeHTML(item.created)}</td>
                 <td data-label="Wygasa">${escapeHTML(item.expires)}</td>
-                <td data-label="Status">${item.status === "active" ? statusBadge("active", { active: "Aktywny" }) : statusBadge("neutral", { neutral: "Wygasł" })}</td>
-                <td data-label="Działania"><div class="row-actions"><button class="button button-secondary button-small" type="button" data-action="copy-invitation" data-invitation-id="${item.id}" ${item.status !== "active" ? "disabled" : ""}>Kopiuj link</button><button class="button button-quiet button-small" type="button" data-action="send-invitation" data-invitation-id="${item.id}" ${item.status !== "active" ? "disabled" : ""}>Wyślij</button></div></td>
+                <td data-label="Status">${invitationStatus(item.status)}</td>
+                <td data-label="Działania"><div class="row-actions"><button class="button button-secondary button-small" type="button" data-action="copy-invitation" data-invitation-id="${item.id}" ${(item.status !== "active" || (state.mode === "live" && !item.inviteUrl)) ? "disabled" : ""}>Kopiuj link</button><button class="button button-quiet button-small" type="button" data-action="send-invitation" data-invitation-id="${item.id}" ${state.mode === "live" || item.status !== "active" ? "disabled" : ""}>Wyślij</button></div></td>
               </tr>`).join("")}</tbody>
           </table></div>
-          <div class="pagination-bar"><span>${state.invitations.filter((item) => item.status === "active").length} aktywne linki</span><span>Domyślna ważność: 7 dni</span></div>
+          <div class="pagination-bar"><span>${state.invitations.filter((item) => item.status === "active").length} aktywne linki</span><span>Ważność: 7 dni · pełny link jest widoczny tylko po utworzeniu</span></div>
         </section>
       </section>`;
   }
 
   function renderArchive() {
     setBreadcrumbs([{ label: "Archiwum" }]);
-    const archived = state.cases.filter((item) => item.status === "completed");
+    const archived = state.cases.filter((item) => ["completed", "rejected"].includes(item.status));
+    const archiveLabels = { not_scheduled: "Brak terminu", scheduled: "Zaplanowana", archiving: "W toku", archived: "Zarchiwizowana", error: "Błąd" };
+    const closureLabels = { none: "Nie określono", service_completed: "Usługa zrealizowana", no_purchase: "Brak zakupu", cancelled: "Anulowana", refunded: "Zwrot", dispute: "Spór" };
     dom.root.innerHTML = `
       <section class="page">
         ${pageHead({ eyebrow: "Zakończone sprawy", title: "Archiwum", subtitle: "Sprawy zamknięte i oczekujące na końcową archiwizację danych." })}
@@ -1093,9 +1455,9 @@
             <tbody>${archived.map((item) => `
               <tr class="clickable" data-action="open-case" data-case-id="${item.id}">
                 <td class="primary-cell"><strong>${escapeHTML(item.name)}</strong><span>${escapeHTML(item.ref)}</span></td>
-                <td data-label="Zamknięto">15 wrz 2026</td>
-                <td data-label="Sposób">Usługa zrealizowana</td>
-                <td data-label="Archiwizacja">${statusBadge("scheduled", { scheduled: "Zaplanowana: 3 gru" })}</td>
+                <td data-label="Zamknięto">${escapeHTML(state.mode === "live" ? formatDate(item._raw?.closed_at) : "15 wrz 2026")}</td>
+                <td data-label="Sposób">${escapeHTML(state.mode === "live" ? (closureLabels[item._raw?.closure_reason] || valueOrDash(item._raw?.closure_reason)) : "Usługa zrealizowana")}</td>
+                <td data-label="Archiwizacja">${state.mode === "live" ? statusBadge(item._raw?.archive_status || "not_scheduled", archiveLabels) : statusBadge("scheduled", { scheduled: "Zaplanowana: 3 gru" })}</td>
                 <td data-label="Działania"><button class="button button-secondary button-small" type="button">Otwórz</button></td>
               </tr>`).join("")}</tbody>
           </table></div>
@@ -1109,6 +1471,23 @@
 
   function renderRetention() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Retencja danych" }]);
+    if (state.mode === "live") {
+      const holds = state.cases.filter((item) => item._raw?.retention_hold).length;
+      const scheduled = state.cases.filter((item) => item._raw?.archive_at && !item._raw?.archived_at).length;
+      const archived = state.cases.filter((item) => item._raw?.archived_at).length;
+      dom.root.innerHTML = `<section class="page">
+        ${adminHeader("Retencja danych", "Bieżący stan reguł przechowywania dla aktywnych spraw.")}
+        <div class="warning-banner">${icon("shield")}<div><strong>Automatyczne usuwanie pozostaje wyłączone</strong>Obecny Worker archiwizuje dane, ale trwałe usuwanie nadal działa wyłącznie jako raport i wymaga osobnej decyzji administratora.</div></div>
+        <div class="metric-grid">
+          ${metricCard("Aktywne rekordy", state.cases.length, "Pobrane z obecnego Workera", "archive")}
+          ${metricCard("Zaplanowana archiwizacja", scheduled, "Rekordy z wyznaczonym terminem", "history", "var(--warning)", "var(--warning-bg)")}
+          ${metricCard("Zarchiwizowane", archived, "W bieżącej liście spraw", "database", "var(--success)", "var(--success-bg)")}
+          ${metricCard("Blokady retencji", holds, "Wyjątki wymagające zachowania danych", "lock")}
+        </div>
+        <div class="info-banner">${icon("shield")}<div><strong>Pełny raport pozostaje w obecnym API</strong>W tym wydaniu Panelu 2.0 nie uruchamiamy z interfejsu archiwizacji ani usuwania. To celowa blokada przed przypadkową operacją na danych.</div></div>
+      </section>`;
+      return;
+    }
     dom.root.innerHTML = `
       <section class="page">
         ${adminHeader("Retencja danych", "Kontroluj terminy przechowywania, blokady i planowane usunięcia.")}
@@ -1130,6 +1509,19 @@
 
   function renderBackups() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Kopie zapasowe" }]);
+    if (state.mode === "live") {
+      dom.root.innerHTML = `<section class="page">
+        ${pageHead({ eyebrow: "Bezpieczeństwo danych", title: "Kopie zapasowe", subtitle: "Eksport zaszyfrowanej kopii obecnego systemu.", actions: `<button class="button button-primary" type="button" data-action="download-backup">${icon("download")}Pobierz kopię teraz</button>` })}
+        <div class="info-banner">${icon("lock")}<div><strong>Kopia jest zaszyfrowana</strong>Plik zawiera zaszyfrowane rekordy, dowody akceptacji, linki i historię spraw. Pobieranie jest dostępne wyłącznie administratorowi.</div></div>
+        <div class="metric-grid">
+          ${metricCard("API kopii", state.health?.backup_export_version ? `wersja ${state.health.backup_export_version}` : "Aktywne", "Obsługiwane przez obecnego Workera", "database", "var(--success)", "var(--success-bg)")}
+          ${metricCard("Szyfrowanie", state.health?.storage_encryption || "AES-GCM", "Dane pozostają chronione", "lock")}
+          ${metricCard("Archiwum plików", state.health?.archive_configured ? "Skonfigurowane" : "Wymaga kontroli", "Prywatny magazyn R2", "archive")}
+          ${metricCard("Dostęp", "Administrator", "Operator nie może pobrać kopii", "shield")}
+        </div>
+      </section>`;
+      return;
+    }
     dom.root.innerHTML = `
       <section class="page">
         ${pageHead({ eyebrow: "Bezpieczeństwo danych", title: "Kopie zapasowe", subtitle: "Stan automatycznych kopii bazy i załączników.", actions: `<button class="button button-primary" type="button" data-action="create-backup">${icon("database")}Utwórz kopię teraz</button>` })}
@@ -1152,6 +1544,13 @@
 
   function renderAudit() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Dziennik audytowy" }]);
+    if (state.mode === "live") {
+      dom.root.innerHTML = `<section class="page">
+        ${pageHead({ eyebrow: "Kontrola dostępu", title: "Dziennik audytowy", subtitle: "Historia biznesowa jest dostępna w każdej sprawie." })}
+        <div class="info-banner">${icon("history")}<div><strong>Globalny dziennik będzie osobnym etapem backendu</strong>Obecny system zapisuje zdarzenia każdej sprawy, ale nie ma jeszcze jednej, niezmiennej tabeli obejmującej logowania i wszystkie działania użytkowników. Panel nie pokazuje w tym miejscu danych demonstracyjnych jako prawdziwego audytu.</div></div>
+      </section>`;
+      return;
+    }
     dom.root.innerHTML = `
       <section class="page">
         ${pageHead({ eyebrow: "Kontrola dostępu", title: "Dziennik audytowy", subtitle: "Niezmienny rejestr działań, dostępu do danych chronionych i operacji administratora.", actions: `<button class="button button-secondary" type="button" data-action="export-audit">${icon("download")}Eksportuj CSV</button>` })}
@@ -1167,11 +1566,11 @@
     setBreadcrumbs([{ label: "Administracja" }, { label: "Użytkownicy" }]);
     dom.root.innerHTML = `
       <section class="page">
-        ${pageHead({ eyebrow: "Role i dostęp", title: "Użytkownicy", subtitle: "Dostęp do panelu jest nadawany przez Cloudflare Access i dodatkowo ograniczany rolą w aplikacji.", actions: `<button class="button button-primary" type="button" data-action="add-user">${icon("plus")}Dodaj użytkownika</button>` })}
+        ${pageHead({ eyebrow: "Role i dostęp", title: "Użytkownicy", subtitle: "Dostęp do panelu jest nadawany przez Cloudflare Access i dodatkowo ograniczany rolą w aplikacji.", actions: `<button class="button button-primary" type="button" data-action="add-user" ${state.mode === "live" ? "disabled" : ""}>${icon("plus")}Dodaj użytkownika</button>` })}
         <div class="info-banner">${icon("shield")}<div><strong>Logowanie z MFA</strong>Panel nie przechowuje haseł. Tożsamość jest potwierdzana przez Cloudflare Access, a uprawnienia są sprawdzane przez prywatny Worker.</div></div>
         <section class="card">
-          <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>administrator@example.invalid</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">Dzisiaj, 09:14</strong><span style="color:var(--ink-500);font-size:10.5px">Ostatnia aktywność</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user">Edytuj</button></div>
-          <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>operator@example.invalid</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">Dzisiaj, 09:02</strong><span style="color:var(--ink-500);font-size:10.5px">Ostatnia aktywność</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user">Edytuj</button></div>
+          <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>${state.mode === "live" ? "Konto administratora w Cloudflare Access" : "administrator@example.invalid"}</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">${state.mode === "live" ? "Dostęp aktywny" : "Dzisiaj, 09:14"}</strong><span style="color:var(--ink-500);font-size:10.5px">${state.mode === "live" ? "Role sprawdzane przy każdym żądaniu" : "Ostatnia aktywność"}</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" ${state.mode === "live" ? "disabled" : ""}>Edytuj</button></div>
+          <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>${state.mode === "live" ? "Konto operatora w Cloudflare Access" : "operator@example.invalid"}</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">${state.mode === "live" ? "Dostęp aktywny" : "Dzisiaj, 09:02"}</strong><span style="color:var(--ink-500);font-size:10.5px">${state.mode === "live" ? "Bez sekcji administracyjnych" : "Ostatnia aktywność"}</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" ${state.mode === "live" ? "disabled" : ""}>Edytuj</button></div>
         </section>
         <section class="card section-card"><div class="card-head"><div><h2>Zakres ról</h2><p class="section-copy">Podstawowa matryca uprawnień.</p></div></div><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Obszar</th><th>Operator</th><th>Administrator</th></tr></thead><tbody>
           ${[
@@ -1187,6 +1586,32 @@
 
   function renderSettings() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Konfiguracja" }]);
+    if (state.mode === "live") {
+      dom.root.innerHTML = `<section class="page">
+        ${pageHead({ eyebrow: "Ustawienia systemu", title: "Konfiguracja", subtitle: "Stan najważniejszych zabezpieczeń i usług zaplecza." })}
+        <section class="card section-card">
+          <div class="card-head"><div><h2>Bezpieczeństwo i sesje</h2><p class="section-copy">Parametry aktywnego panelu prywatnego.</p></div></div>
+          <div class="card-body"><div class="settings-grid">
+            <div class="setting-tile"><span>Logowanie</span><strong>Cloudflare Access</strong><p>Role są sprawdzane przez prywatny Worker.</p><span class="setting-state">${statusBadge("active", { active: "Aktywne" })}</span></div>
+            <div class="setting-tile"><span>Użytkownik</span><strong>${escapeHTML(state.session?.user?.name || "—")}</strong><p>${state.role === "admin" ? "Administrator" : "Operator"}</p></div>
+            <div class="setting-tile"><span>Szyfrowanie danych</span><strong>${escapeHTML(state.health?.storage_encryption || "Brak danych")}</strong><p>${state.health?.encryption_configured ? "Konfiguracja prawidłowa" : "Wymaga kontroli"}</p></div>
+            <div class="setting-tile"><span>Sesja</span><strong>12 godzin</strong><p>Jawne wylogowanie znajduje się w menu konta.</p></div>
+          </div></div>
+        </section>
+        <section class="card section-card">
+          <div class="card-head"><div><h2>Usługi zaplecza</h2><p class="section-copy">Odczyt stanu z obecnego Workera.</p></div></div>
+          <div class="card-body"><div class="settings-grid">
+            <div class="setting-tile"><span>Wysyłka e-mail</span><strong>${state.health?.email_configured ? "Skonfigurowana" : "Wymaga konfiguracji"}</strong></div>
+            <div class="setting-tile"><span>Archiwum R2</span><strong>${state.health?.archive_configured ? "Skonfigurowane" : "Wymaga konfiguracji"}</strong></div>
+            <div class="setting-tile"><span>Linki prywatne</span><strong>${state.health?.private_form_links_required ? "Wymagane" : "Brak danych"}</strong></div>
+            <div class="setting-tile"><span>Ważność linku</span><strong>${escapeHTML(state.health?.invitation_validity_days || 7)} dni</strong></div>
+            <div class="setting-tile full"><span>Dane płatności</span><strong>${state.health?.payment_instructions_configured ? "Skonfigurowane w obecnym Workerze" : "Wymagają konfiguracji"}</strong><p>Numer rachunku i sekrety nie są przesyłane do przeglądarki.</p></div>
+          </div></div>
+        </section>
+        <div class="info-banner">${icon("shield")}<div><strong>Zmiany konfiguracji wykonuje administrator w Cloudflare</strong>Panel pokazuje stan, ale nie udostępnia sekretów ani możliwości ich edycji w przeglądarce.</div></div>
+      </section>`;
+      return;
+    }
     dom.root.innerHTML = `
       <section class="page">
         ${pageHead({ eyebrow: "Ustawienia systemu", title: "Konfiguracja", subtitle: "Najważniejsze parametry biznesowe, bezpieczeństwa i wysyłki.", actions: `<button class="button button-primary" type="button" data-action="save-settings">${icon("check")}Zapisz zmiany</button>` })}
@@ -1232,8 +1657,18 @@
     dom.root.innerHTML = `<section class="page"><div class="card empty-state"><span class="empty-state-icon">${icon("search")}</span><h1>${escapeHTML(title)}</h1><p>${escapeHTML(detail)}</p><a class="button button-primary" href="#dashboard">Wróć do pulpitu</a></div></section>`;
   }
 
+  function renderLoadError() {
+    setBreadcrumbs([{ label: "Błąd połączenia" }]);
+    dom.root.innerHTML = `<section class="page"><div class="card empty-state"><span class="empty-state-icon">${icon("shield")}</span><h1>Nie udało się pobrać danych panelu</h1><p>${escapeHTML(state.loadError || "Sprawdź połączenie z Workerem i spróbuj ponownie.")}</p><button class="button button-primary" type="button" data-action="reload-live">Spróbuj ponownie</button></div></section>`;
+  }
+
   function render() {
     const route = getRoute();
+    if (state.mode === "live" && state.loadError) {
+      updateChrome(route);
+      renderLoadError();
+      return;
+    }
     if (state.role === "operator" && ADMIN_ROUTES.has(route.name)) {
       navigate("#dashboard");
       toast("Brak dostępu", "Ta sekcja jest dostępna wyłącznie dla administratora.", "warning");
@@ -1256,6 +1691,7 @@
   }
 
   function newInvitationModal() {
+    const live = state.mode === "live";
     openModal({
       title: "Utwórz link do ankiety",
       eyebrow: "Jednorazowe zaproszenie",
@@ -1264,16 +1700,32 @@
         <div class="form-grid">
           <label class="form-label">Imię i nazwisko klienta<input class="field" name="recipient" required placeholder="np. Jan Kowalski"></label>
           <label class="form-label">Adres e-mail<input class="field" name="email" type="email" required placeholder="klient@example.com"></label>
-          <label class="form-label">Ważność linku<select class="field" name="validity"><option value="7">7 dni</option><option value="3">3 dni</option><option value="1">24 godziny</option></select></label>
-          <label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania</option><option>Mariusz</option><option>Nie przypisuj</option></select></label>
+          ${live ? "" : `<label class="form-label">Ważność linku<select class="field" name="validity"><option value="7">7 dni</option><option value="3">3 dni</option><option value="1">24 godziny</option></select></label><label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania</option><option>Mariusz</option><option>Nie przypisuj</option></select></label>`}
         </div>
-        <div class="info-banner" style="margin-top:15px">${icon("shield")}<div>To prototyp. Powstanie fikcyjny wpis i przykładowy link, ale żadna wiadomość nie zostanie wysłana.</div></div>`,
-      handler: (formData) => {
+        <div class="info-banner" style="margin-top:15px">${icon("shield")}<div>${live ? "Link będzie ważny 7 dni. Po utworzeniu skopiuj go od razu — pełnego tokenu nie można później odtworzyć z bazy." : "To prototyp. Powstanie fikcyjny wpis i przykładowy link, ale żadna wiadomość nie zostanie wysłana."}</div></div>`,
+      handler: async (formData) => {
         const recipient = String(formData.get("recipient") || "").trim();
         const email = String(formData.get("email") || "").trim();
         if (!recipient || !email) {
           toast("Uzupełnij dane", "Imię i adres e-mail są wymagane.", "warning");
           return false;
+        }
+        if (live) {
+          const result = await apiRequest("/api/admin/invitations", {
+            method: "POST",
+            body: JSON.stringify({ label: `${recipient} · ${email}` })
+          });
+          const invitation = mapInvitation(result.item, result.invite_url || "");
+          invitation.recipient = recipient;
+          invitation.email = email;
+          state.invitations.unshift(invitation);
+          if (invitation.inviteUrl) {
+            state.lastInviteUrls.set(invitation.id, invitation.inviteUrl);
+            await navigator.clipboard?.writeText(invitation.inviteUrl).catch(() => {});
+          }
+          toast("Link utworzony i skopiowany", "Przekaż go klientowi bezpiecznym kanałem.", "success");
+          navigate("#invitations");
+          return true;
         }
         const id = `INV-DEMO-${Math.random().toString(16).slice(2, 6).toUpperCase()}`;
         state.invitations.unshift({ id, recipient, email, created: "23 wrz 2026, przed chwilą", expires: "30 wrz 2026", status: "active" });
@@ -1307,14 +1759,28 @@
       title: "Dodaj notatkę wewnętrzną",
       confirm: "Zapisz notatkę",
       body: `<label class="form-label">Treść notatki<textarea class="textarea-field" name="text" required placeholder="Zapisz ustalenia z klientem lub informację dla zespołu."></textarea></label><div class="info-banner" style="margin-top:14px">${icon("lock")}<div>Notatka będzie widoczna wyłącznie dla użytkowników panelu.</div></div>`,
-      handler: (data) => {
+      handler: async (data) => {
         const text = String(data.get("text") || "").trim();
         if (!text) return false;
-        const author = state.role === "admin" ? "Mariusz" : "Ania";
+        const author = state.session?.user?.name || (state.role === "admin" ? "Mariusz" : "Ania");
+        if (state.mode === "live") {
+          const existing = String(caseItem._raw?.admin_notes || "").trim();
+          const line = `[${new Date().toISOString()}] ${author}: ${text}`;
+          const next = existing ? `${existing}\n\n${line}` : line;
+          if (next.length > 8000) {
+            toast("Notatka jest zbyt długa", "Usuń część starszej treści przed zapisaniem kolejnej notatki.", "warning");
+            return false;
+          }
+          await apiRequest(`/api/submissions/${encodeURIComponent(caseItem.id)}`, {
+            method: "PATCH",
+            body: JSON.stringify({ admin_notes: next })
+          });
+          caseItem._raw.admin_notes = next;
+        }
         caseItem.notes.unshift({ author, at: "przed chwilą", text });
         caseItem.history.unshift({ title: "Dodano notatkę do sprawy", detail: author, at: "przed chwilą" });
         addAudit("Dodano notatkę", caseItem.ref);
-        toast("Notatka zapisana", "Zmiana dotyczy wyłącznie prototypu.", "success");
+        toast("Notatka zapisana", state.mode === "live" ? "Zapisano ją w zaszyfrowanym rekordzie sprawy." : "Zmiana dotyczy wyłącznie prototypu.", "success");
         render();
         return true;
       }
@@ -1353,9 +1819,19 @@
     });
   }
 
-  function handleAction(button) {
+  async function handleAction(button) {
     const action = button.dataset.action;
     const caseItem = button.dataset.caseId ? getCase(button.dataset.caseId) : null;
+    const liveUnavailable = new Set([
+      "toggle-task", "cycle-document", "add-task", "add-creditor", "edit-creditor",
+      "complete-next", "mock-save", "save-settings", "send-reminder", "upload-file",
+      "case-menu", "admin-correction", "export-report", "export-audit", "create-backup",
+      "add-user", "edit-user"
+    ]);
+    if (state.mode === "live" && liveUnavailable.has(action)) {
+      toast("Funkcja jeszcze nieaktywna", "Panel nie zapisze tej operacji, dopóki nie powstanie jej bezpieczny model w backendzie.", "warning");
+      return;
+    }
     if (action === "open-case") navigate(`#case/${button.dataset.caseId}/overview`);
     else if (action === "notification-case") {
       dom.notificationPanel.hidden = true;
@@ -1398,7 +1874,21 @@
         title: "Potwierdź otrzymanie płatności",
         confirm: "Oznacz jako opłacone",
         body: `<div class="summary-grid"><div class="summary-item"><span>Klient</span><strong>${escapeHTML(caseItem.name)}</strong></div><div class="summary-item"><span>Kwota</span><strong>${money(caseItem.amount)}</strong></div><div class="summary-item full"><span>Numer sprawy</span><strong>${escapeHTML(caseItem.ref)}</strong></div></div><div class="warning-banner" style="margin-top:14px">${icon("creditor")}<div>W wersji docelowej tę operację należy wykonać dopiero po sprawdzeniu rachunku bankowego.</div></div>`,
-        handler: () => {
+        handler: async () => {
+          if (state.mode === "live") {
+            await apiRequest(`/api/submissions/${encodeURIComponent(caseItem.id)}/workflow`, {
+              method: "POST",
+              body: JSON.stringify({
+                action: "mark_paid",
+                amount_minor: Math.round(caseItem.amount * 100),
+                note: `Potwierdzone w Panelu 2.0 przez ${state.session?.user?.name || "użytkownika"}`
+              })
+            });
+            await refreshLiveCases();
+            toast("Płatność oznaczona jako opłacona", "Zmiana została zapisana w systemie.", "success");
+            render();
+            return true;
+          }
           caseItem.payment = "paid";
           caseItem.history.unshift({ title: "Płatność została potwierdzona", detail: `${money(caseItem.amount)} · prototyp`, at: "przed chwilą" });
           addAudit("Potwierdzono płatność", `${caseItem.ref} · ${money(caseItem.amount)}`);
@@ -1418,9 +1908,16 @@
     } else if (action === "contact" && caseItem) {
       genericDemoAction(button.dataset.channel === "phone" ? `Rozmowa z: ${caseItem.name}` : `Wiadomość do: ${caseItem.name}`, button.dataset.channel === "phone" ? `Panel otworzy numer ${caseItem.phone}.` : `Panel przygotuje wiadomość na ${caseItem.email}.`, button.dataset.channel === "phone" ? "Rozpocznij" : "Przygotuj wiadomość");
     } else if (action === "copy-invitation") {
-      const value = `https://example.invalid/ankieta.html?token=DEMO-${button.dataset.invitationId}`;
+      const invitation = state.invitations.find((item) => item.id === button.dataset.invitationId);
+      const value = state.mode === "live"
+        ? invitation?.inviteUrl || state.lastInviteUrls.get(button.dataset.invitationId) || ""
+        : `https://example.invalid/ankieta.html?token=DEMO-${button.dataset.invitationId}`;
+      if (!value) {
+        toast("Linku nie można ponownie wyświetlić", "Ze względów bezpieczeństwa pełny token jest dostępny tylko bezpośrednio po utworzeniu.", "warning");
+        return;
+      }
       navigator.clipboard?.writeText(value).catch(() => {});
-      toast("Link demonstracyjny skopiowany", "Nie prowadzi do formularza produkcyjnego.", "success");
+      toast(state.mode === "live" ? "Link skopiowany" : "Link demonstracyjny skopiowany", state.mode === "live" ? "Możesz przekazać go klientowi bezpiecznym kanałem." : "Nie prowadzi do formularza produkcyjnego.", "success");
     } else if (action === "send-invitation") genericDemoAction("Wyślij zaproszenie", "Panel wyśle klientowi bezpieczny link do ankiety.", "Wyślij");
     else if (action === "mock-save" || action === "save-settings") {
       toast("Zmiany zapisane w prototypie", "Nie wysłano żadnych danych do produkcji.", "success");
@@ -1438,11 +1935,27 @@
       genericDemoAction("Moje konto", "Dane profilu i ustawienia sesji będą zarządzane przez bezpieczny moduł tożsamości.", "Zamknij");
     } else if (action === "logout") {
       dom.userPopover.hidden = true;
-      genericDemoAction("Wyloguj z panelu", "W wersji docelowej zakończy to sesję Cloudflare Access na tym urządzeniu.", "Wyloguj");
+      if (state.mode === "live") window.location.assign("/cdn-cgi/access/logout");
+      else genericDemoAction("Wyloguj z panelu", "W wersji docelowej zakończy to sesję Cloudflare Access na tym urządzeniu.", "Wyloguj");
+    } else if (action === "download-attachment" && caseItem && button.dataset.attachmentId) {
+      window.location.assign(`/api/submissions/${encodeURIComponent(caseItem.id)}/attachments/${encodeURIComponent(button.dataset.attachmentId)}`);
+    } else if (action === "download-backup") {
+      window.location.assign("/api/admin/backup");
+    } else if (action === "reload-live") {
+      state.loadError = "";
+      try {
+        await refreshLiveCases();
+        const invitations = await apiRequest("/api/admin/invitations");
+        state.invitations = (invitations?.items || []).map((item) => mapInvitation(item));
+        render();
+      } catch (error) {
+        state.loadError = error.message;
+        render();
+      }
     }
   }
 
-  dom.modalForm.addEventListener("submit", (event) => {
+  dom.modalForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const submitter = event.submitter;
     if (submitter?.value === "cancel") {
@@ -1454,8 +1967,15 @@
       closeModal();
       return;
     }
-    const result = handler(new FormData(dom.modalForm));
-    if (result !== false) closeModal();
+    dom.modalConfirm.disabled = true;
+    try {
+      const result = await handler(new FormData(dom.modalForm));
+      if (result !== false) closeModal();
+    } catch (error) {
+      toast("Operacja nie powiodła się", error.message || "Spróbuj ponownie.", "warning");
+    } finally {
+      dom.modalConfirm.disabled = false;
+    }
   });
 
   dom.root.addEventListener("click", (event) => {
@@ -1496,6 +2016,7 @@
   });
 
   dom.rolePreview.addEventListener("change", () => {
+    if (state.mode === "live") return;
     state.role = dom.rolePreview.value;
     const label = state.role === "admin" ? "administratora" : "operatora";
     toast("Zmieniono podgląd roli", `Wyświetlasz teraz panel ${label}.`, "success");
@@ -1551,6 +2072,5 @@
   });
 
   window.addEventListener("hashchange", render);
-  if (!window.location.hash) window.location.hash = "#dashboard";
-  else render();
+  void bootstrap();
 })();

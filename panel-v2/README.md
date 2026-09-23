@@ -1,6 +1,9 @@
-# Panel Pogotowia Upadłościowego 2.0 — prototyp
+# Panel Pogotowia Upadłościowego 2.0
 
-Interaktywny prototyp nowego, prywatnego panelu operacyjnego. Wszystkie widoczne w nim osoby, numery spraw, dane finansowe i dokumenty są fikcyjne. Prototyp nie łączy się z produkcyjną bazą, Workerem ani magazynem plików.
+Interfejs nowego, prywatnego panelu operacyjnego działa w dwóch kontrolowanych trybach:
+
+- jako zwykła strona statyczna pokazuje wyłącznie dane fikcyjne i nie łączy się z produkcją;
+- uruchomiony przez `panel-worker` za Cloudflare Access pobiera prawdziwe sprawy z obecnego Workera i stosuje uprawnienia Mariusza (`admin`) oraz Ani (`operator`).
 
 Adresy e-mail, numery dokumentów i rachunek widoczne w prototypie są celowo niepoprawnymi wartościami demonstracyjnymi (`example.invalid`, `DEMO`). Prawidłowa konfiguracja produkcyjna nie jest zapisana w tej publicznej gałęzi.
 
@@ -17,9 +20,9 @@ Adresy e-mail, numery dokumentów i rachunek widoczne w prototypie są celowo ni
 - przełączanie podglądu między rolą administratora i operatora;
 - układ mobilny.
 
-## Docelowa architektura
+## Architektura prywatna
 
-Panel powinien działać na prywatnej domenie, np. `panel.pogotowieupadlosciowe.pl`, jako osobna aplikacja za Cloudflare Access i MFA. Interfejs i API powinny być obsługiwane przez prywatnego Workera w tym samym źródle, bez zapisywania tokenu administratora w `localStorage` ani `sessionStorage`.
+Panel jest przygotowany do działania na prywatnej domenie, np. `panel.pogotowieupadlosciowe.pl`, jako osobna aplikacja za Cloudflare Access i MFA. Interfejs i API obsługuje prywatny Worker z katalogu `panel-worker`. Token administratora pozostaje sekretem Workera i nie jest zapisywany w `localStorage`, `sessionStorage` ani kodzie strony.
 
 Worker weryfikuje tożsamość z Cloudflare Access oraz rolę użytkownika przy każdej operacji:
 
@@ -28,15 +31,14 @@ Worker weryfikuje tożsamość z Cloudflare Access oraz rolę użytkownika przy 
 
 Sesja może być ważna przez 12 godzin. Odświeżenie strony i zamknięcie karty nie powinny kończyć sesji przed jej wygaśnięciem; dostępny będzie jawny przycisk wylogowania.
 
-## Bezpieczna kolejność wdrożenia
+## Stan integracji
 
-1. Akceptacja wyglądu i przebiegu pracy na danych fikcyjnych.
-2. Utworzenie prywatnego Workera oraz Cloudflare Access/MFA.
-3. Podłączenie obecnej bazy i plików w trybie tylko do odczytu.
-4. Dodanie kontroli ról, audytu i brakujących tabel zadań, checklist i notatek.
-5. Włączenie operacji zapisu oraz testy na osobnych rekordach.
-6. Równoległe używanie starego i nowego panelu przez krótki okres.
-7. Przełączenie zespołu na Panel 2.0 z zachowaniem starego panelu jako czasowej ścieżki awaryjnej.
+- podłączone: sprawy, pełne odpowiedzi ankiety, zgody, statusy zamówienia i e-maili, historia zdarzeń, lista i pobieranie załączników oraz linki do ankiety;
+- zapisywane: nowe linki do ankiety, notatki wewnętrzne i potwierdzenie płatności;
+- zabezpieczone po stronie serwera: role, trasy administracyjne i dozwolony zakres zmian;
+- celowo wyłączone do następnego etapu: osobne zadania, strukturalna lista wierzycieli, edycja checklisty, wysyłka przypomnień i zarządzanie użytkownikami. Obecny backend nie ma jeszcze bezpiecznego modelu danych dla tych funkcji.
+
+Instrukcja konfiguracji i testów znajduje się w `panel-worker/README.md`.
 
 ## Uruchomienie lokalne
 
