@@ -1530,6 +1530,13 @@
   });
 
   document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link || link.getAttribute("href") === "#main-content") return;
+    event.preventDefault();
+    navigate(link.getAttribute("href"));
+  });
+
+  document.addEventListener("click", (event) => {
     if (!dom.userPopover.hidden && !dom.userPopover.contains(event.target) && !dom.userMenuButton.contains(event.target)) {
       dom.userPopover.hidden = true;
       dom.userMenuButton.setAttribute("aria-expanded", "false");
