@@ -48,6 +48,53 @@
   white-space:nowrap;
 }
 
+/* Starsze podstrony mają ten sam pasek zapisany w innej strukturze HTML.
+   Układ jest wyrównany już przy pierwszym renderze, zanim uruchomi się JS. */
+.topbar .topbar-inner > .topbar-note{
+  grid-column:2;
+  grid-row:1;
+}
+
+.topbar .topbar-contact{
+  display:contents;
+}
+
+.topbar .topbar-contact a{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  color:#19345d;
+  font-weight:650;
+  white-space:nowrap;
+}
+
+.topbar .topbar-contact a::before{
+  content:"";
+  width:17px;
+  height:17px;
+  flex:0 0 17px;
+}
+
+.topbar .topbar-note .topbar-dot{
+  width:17px;
+  height:17px;
+  flex:0 0 17px;
+  background:transparent;
+  box-shadow:none;
+}
+
+.topbar .topbar-contact a[href^="tel:"]{
+  grid-column:1;
+  grid-row:1;
+  justify-self:start;
+}
+
+.topbar .topbar-contact a[href^="mailto:"]{
+  grid-column:3;
+  grid-row:1;
+  justify-self:end;
+}
+
 /* Finalne logo marki — zabezpieczenie również dla stron ze starszą wersją HTML/JS. */
 .brand img{
   content:url("../images/logo/logo-horizontal-light.svg?v=20260822-06");

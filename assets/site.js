@@ -28,13 +28,15 @@ function initializeUnifiedTopbar() {
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
 
-  if (!document.querySelector('link[data-unified-topbar]')) {
+  if (!document.querySelector('link[href*="topbar-unified.css"]')) {
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
-    stylesheet.href = new URL('topbar-unified.css?v=20260822-06', siteAssetBaseUrl).href;
+    stylesheet.href = new URL('topbar-unified.css?v=20260924-01', siteAssetBaseUrl).href;
     stylesheet.dataset.unifiedTopbar = '';
     document.head.appendChild(stylesheet);
   }
+
+  if (topbar.querySelector('.topbar-phone') && topbar.querySelector('.topbar-email')) return;
 
   topbar.innerHTML = `
     <div class="container topbar-inner">
@@ -66,22 +68,35 @@ initializeUnifiedTopbar();
 const menuButton = document.querySelector('[data-menu-toggle]');
 const menu = document.getElementById('main-menu');
 
-function closeMenu() {
+function setMenuState(open) {
   if (!menuButton || !menu) return;
-  menu.classList.remove('open');
-  menuButton.setAttribute('aria-expanded', 'false');
-  document.body.classList.remove('menu-open');
+  menu.classList.toggle('open', open);
+  menuButton.setAttribute('aria-expanded', String(open));
+  menuButton.setAttribute('aria-label', open ? 'Zamknij menu' : 'Otwórz menu');
+  document.documentElement.classList.toggle('menu-open', open);
+  document.body.classList.toggle('menu-open', open);
+}
+
+function closeMenu() {
+  setMenuState(false);
 }
 
 if (menuButton && menu) {
   menuButton.addEventListener('click', () => {
-    const open = menu.classList.toggle('open');
-    menuButton.setAttribute('aria-expanded', String(open));
-    document.body.classList.toggle('menu-open', open);
+    setMenuState(menuButton.getAttribute('aria-expanded') !== 'true');
   });
   menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
   window.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMenu(); });
-  window.addEventListener('resize', () => { if (window.innerWidth > 900) closeMenu(); });
+  const desktopMedia = window.matchMedia('(min-width: 901px)');
+  const handleDesktopChange = (event) => {
+    if (event.matches) closeMenu();
+  };
+  if (desktopMedia.addEventListener) {
+    desktopMedia.addEventListener('change', handleDesktopChange);
+  } else {
+    desktopMedia.addListener(handleDesktopChange);
+  }
+  window.addEventListener('pageshow', closeMenu);
 }
 
 document.querySelectorAll('[data-year]').forEach((element) => {

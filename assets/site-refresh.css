@@ -679,7 +679,7 @@ html.booking-dialog-open body{overflow:hidden}
   :root{--pu-page-gutter:32px}
   .nav{min-height:72px}
   .brand img{height:47px}
-  .nav-links{top:72px;padding-top:20px}
+  .nav-links{top:100%;padding-top:20px}
   .nav-links a{padding:15px 17px;border-radius:12px;font-size:1rem}
   .nav-links .nav-contact-cta{margin:9px 0 0;text-align:center}
   .service-page main>section:first-child::before,
