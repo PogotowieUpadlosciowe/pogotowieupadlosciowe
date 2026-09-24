@@ -2,6 +2,11 @@
 
 Ten plik zbiera najważniejsze informacje ze starszych raportów i plików README. Szczegółowa historia każdej zmiany pozostaje dostępna w historii Git.
 
+## 2026-09-24 — porządek nazw i dokumentacji
+
+- uproszczono nazwę aktywnego arkusza strony głównej do `home.css`;
+- uaktualniono opis stanu serwisu i oddzielono szkic nowego panelu od wdrożenia produkcyjnego.
+
 ## 2026-09-16 — dokumenty prawne
 
 - wpisano 16 września 2026 r. jako datę wejścia w życie Regulaminu i Polityki prywatności;
