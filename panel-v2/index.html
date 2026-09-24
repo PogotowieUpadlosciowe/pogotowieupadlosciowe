@@ -9,13 +9,34 @@
   <link rel="icon" href="https://pogotowieupadlosciowe.pl/images/logo/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/panel.css">
 </head>
-<body class="mode-demo">
+<body class="mode-booting">
   <a class="skip-link" href="#main-content">Przejdź do treści</a>
+
+  <section class="session-screen boot-screen" id="boot-screen" aria-live="polite">
+    <div class="session-card">
+      <img src="https://pogotowieupadlosciowe.pl/images/logo/logo-horizontal-light.svg" alt="Pogotowie Upadłościowe">
+      <span class="session-spinner" aria-hidden="true"></span>
+      <h1>Sprawdzamy bezpieczną sesję</h1>
+      <p>Panel pojawi się po potwierdzeniu Twojego konta i uprawnień.</p>
+    </div>
+  </section>
 
   <div class="demo-banner" role="status">
     <span class="demo-dot" aria-hidden="true"></span>
     Bezpieczny prototyp — wszystkie widoczne dane są fikcyjne, a działania nie zapisują się w systemie produkcyjnym.
   </div>
+
+  <section class="session-screen signed-out-screen" id="signed-out-screen" hidden aria-live="polite">
+    <div class="session-card">
+      <img src="https://pogotowieupadlosciowe.pl/images/logo/logo-horizontal-light.svg" alt="Pogotowie Upadłościowe">
+      <span class="session-success" aria-hidden="true">
+        <svg class="icon"><use href="#icon-check"></use></svg>
+      </span>
+      <h1>Wylogowano bezpiecznie</h1>
+      <p>Sesja panelu została zakończona. Możesz teraz zalogować się ponownie, również na inne konto.</p>
+      <button class="button button-primary" id="login-again-button" type="button">Przejdź do logowania</button>
+    </div>
+  </section>
 
   <div class="app-shell">
     <aside class="sidebar" id="sidebar" aria-label="Nawigacja panelu">

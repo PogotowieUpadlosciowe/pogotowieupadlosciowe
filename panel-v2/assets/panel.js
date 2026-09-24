@@ -416,6 +416,9 @@
 
   const dom = {
     body: document.body,
+    bootScreen: document.getElementById("boot-screen"),
+    signedOutScreen: document.getElementById("signed-out-screen"),
+    loginAgainButton: document.getElementById("login-again-button"),
     root: document.getElementById("view-root"),
     breadcrumbs: document.getElementById("breadcrumbs"),
     rolePreview: document.getElementById("role-preview"),
@@ -723,8 +726,41 @@
       }
     }
 
+    dom.body.classList.remove("mode-booting");
+    dom.bootScreen.hidden = true;
     if (!window.location.hash) window.location.hash = "#dashboard";
     else render();
+  }
+
+  async function signOut() {
+    state.cases = [];
+    state.invitations = [];
+    state.audit = [];
+    state.session = null;
+    dom.root.replaceChildren();
+    dom.notificationPanel.hidden = true;
+    dom.userPopover.hidden = true;
+    dom.body.classList.add("is-signed-out");
+    dom.signedOutScreen.hidden = false;
+    dom.loginAgainButton.disabled = true;
+    dom.loginAgainButton.textContent = "Kończenie sesji…";
+
+    try {
+      await Promise.race([
+        fetch("/cdn-cgi/access/logout", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          redirect: "follow"
+        }),
+        new Promise((resolve) => window.setTimeout(resolve, 2500))
+      ]);
+    } catch {
+      // Cloudflare may return an opaque cross-origin response after clearing the cookie.
+    } finally {
+      dom.loginAgainButton.disabled = false;
+      dom.loginAgainButton.textContent = "Przejdź do logowania";
+    }
   }
 
   function todayLabel() {
@@ -1935,7 +1971,16 @@
       genericDemoAction("Moje konto", "Dane profilu i ustawienia sesji będą zarządzane przez bezpieczny moduł tożsamości.", "Zamknij");
     } else if (action === "logout") {
       dom.userPopover.hidden = true;
-      if (state.mode === "live") window.location.assign("/cdn-cgi/access/logout");
+      if (state.mode === "live") {
+        openModal({
+          title: "Wylogować z panelu?",
+          eyebrow: "Bezpieczna sesja",
+          body: "<p>Zakończymy sesję Cloudflare Access i usuniemy dane panelu z bieżącego widoku.</p>",
+          confirm: "Wyloguj",
+          danger: true,
+          handler: signOut
+        });
+      }
       else genericDemoAction("Wyloguj z panelu", "W wersji docelowej zakończy to sesję Cloudflare Access na tym urządzeniu.", "Wyloguj");
     } else if (action === "download-attachment" && caseItem && button.dataset.attachmentId) {
       window.location.assign(`/api/submissions/${encodeURIComponent(caseItem.id)}/attachments/${encodeURIComponent(button.dataset.attachmentId)}`);
@@ -2036,6 +2081,12 @@
   dom.userPopover.addEventListener("click", (event) => {
     const action = event.target.closest("[data-action]");
     if (action) handleAction(action);
+  });
+
+  dom.loginAgainButton.addEventListener("click", () => {
+    const loginUrl = new URL("/", window.location.origin);
+    loginUrl.searchParams.set("login", Date.now().toString());
+    window.location.replace(loginUrl.href);
   });
 
   dom.notificationsButton.addEventListener("click", () => {

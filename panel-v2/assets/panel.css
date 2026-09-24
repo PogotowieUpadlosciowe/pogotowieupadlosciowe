@@ -57,6 +57,85 @@ body {
   line-height: 1.5;
 }
 
+.session-screen {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--canvas);
+}
+
+.session-screen[hidden] {
+  display: none;
+}
+
+.session-card {
+  width: min(440px, 100%);
+  padding: 40px 34px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.session-card > img {
+  width: 190px;
+  max-width: 70%;
+  margin: 0 auto 30px;
+}
+
+.session-card h1 {
+  margin: 16px 0 8px;
+  font-size: clamp(24px, 5vw, 30px);
+  line-height: 1.15;
+}
+
+.session-card p {
+  margin: 0 auto 24px;
+  color: var(--ink-600);
+}
+
+.session-spinner,
+.session-success {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 50%;
+}
+
+.session-spinner {
+  display: block;
+  border: 4px solid var(--blue-100);
+  border-top-color: var(--blue-600);
+  animation: session-spin .8s linear infinite;
+}
+
+.session-success {
+  display: grid;
+  place-items: center;
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.session-success .icon {
+  width: 25px;
+  height: 25px;
+}
+
+.mode-booting .app-shell,
+.mode-booting .demo-banner,
+.is-signed-out .app-shell,
+.is-signed-out .demo-banner {
+  visibility: hidden;
+}
+
+@keyframes session-spin {
+  to { transform: rotate(360deg); }
+}
+
 button,
 input,
 select,
