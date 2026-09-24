@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="theme-color" content="#0a2346">
+  <title>Panel operacyjny — Pogotowie Upadłościowe</title>
+  <link rel="icon" href="https://pogotowieupadlosciowe.pl/images/logo/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/panel.css">
+</head>
+<body class="mode-booting">
+  <a class="skip-link" href="#main-content">Przejdź do treści</a>
+
+  <section class="session-screen boot-screen" id="boot-screen" aria-live="polite">
+    <div class="session-card">
+      <img src="https://pogotowieupadlosciowe.pl/images/logo/logo-horizontal-light.svg" alt="Pogotowie Upadłościowe">
+      <span class="session-spinner" aria-hidden="true"></span>
+      <h1>Sprawdzamy bezpieczną sesję</h1>
+      <p>Panel pojawi się po potwierdzeniu Twojego konta i uprawnień.</p>
+    </div>
+  </section>
+
+  <div class="demo-banner" role="status">
+    <span class="demo-dot" aria-hidden="true"></span>
+    Bezpieczny prototyp — wszystkie widoczne dane są fikcyjne, a działania nie zapisują się w systemie produkcyjnym.
+  </div>
+
+  <section class="session-screen signed-out-screen" id="signed-out-screen" hidden aria-live="polite">
+    <div class="session-card">
+      <img src="https://pogotowieupadlosciowe.pl/images/logo/logo-horizontal-light.svg" alt="Pogotowie Upadłościowe">
+      <span class="session-success" aria-hidden="true">
+        <svg class="icon"><use href="#icon-check"></use></svg>
+      </span>
+      <h1>Wylogowano bezpiecznie</h1>
+      <p>Sesja panelu została zakończona. Możesz teraz zalogować się ponownie, również na inne konto.</p>
+      <button class="button button-primary" id="login-again-button" type="button">Przejdź do logowania</button>
+    </div>
+  </section>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Nawigacja panelu">
+      <div class="sidebar-head">
+        <a class="brand" href="#dashboard" aria-label="Panel Pogotowia Upadłościowego — pulpit">
+          <img src="https://pogotowieupadlosciowe.pl/images/logo/logo-horizontal-light.svg" alt="Pogotowie Upadłościowe">
+          <span>Panel operacyjny</span>
+        </a>
+        <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Zamknij menu">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
+        </button>
+      </div>
+
+      <nav class="nav-groups">
+        <div class="nav-group">
+          <div class="nav-label">Praca bieżąca</div>
+          <a class="nav-link" data-route="dashboard" href="#dashboard">
+            <svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg>
+            <span>Pulpit</span>
+          </a>
+          <a class="nav-link" data-route="cases" href="#cases">
+            <svg class="icon" aria-hidden="true"><use href="#icon-cases"></use></svg>
+            <span>Sprawy</span>
+            <span class="nav-count" id="nav-cases-count">0</span>
+          </a>
+          <a class="nav-link" data-route="invitations" href="#invitations">
+            <svg class="icon" aria-hidden="true"><use href="#icon-link"></use></svg>
+            <span>Linki do ankiety</span>
+            <span class="nav-count" id="nav-invitations-count">0</span>
+          </a>
+          <a class="nav-link" data-route="archive" href="#archive">
+            <svg class="icon" aria-hidden="true"><use href="#icon-archive"></use></svg>
+            <span>Archiwum</span>
+          </a>
+        </div>
+
+        <div class="nav-group admin-only" data-admin-only>
+          <div class="nav-label">Administracja</div>
+          <a class="nav-link" data-route="retention" href="#retention">
+            <svg class="icon" aria-hidden="true"><use href="#icon-shield"></use></svg>
+            <span>Retencja danych</span>
+          </a>
+          <a class="nav-link" data-route="backups" href="#backups">
+            <svg class="icon" aria-hidden="true"><use href="#icon-database"></use></svg>
+            <span>Kopie zapasowe</span>
+          </a>
+          <a class="nav-link" data-route="audit" href="#audit">
+            <svg class="icon" aria-hidden="true"><use href="#icon-history"></use></svg>
+            <span>Dziennik audytowy</span>
+          </a>
+          <a class="nav-link" data-route="users" href="#users">
+            <svg class="icon" aria-hidden="true"><use href="#icon-users"></use></svg>
+            <span>Użytkownicy</span>
+          </a>
+          <a class="nav-link" data-route="settings" href="#settings">
+            <svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>
+            <span>Konfiguracja</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="system-status">
+          <span class="status-light" aria-hidden="true"></span>
+          <div>
+            <strong>System działa prawidłowo</strong>
+            <span>Ostatnia kontrola: przed chwilą</span>
+          </div>
+        </div>
+        <button class="user-card" id="user-menu-button" type="button" aria-expanded="false">
+          <span class="avatar" id="user-avatar">M</span>
+          <span class="user-copy">
+            <strong id="user-name">Mariusz</strong>
+            <span id="user-role">Administrator</span>
+          </span>
+          <svg class="icon icon-small" aria-hidden="true"><use href="#icon-chevron"></use></svg>
+        </button>
+      </div>
+    </aside>
+
+    <button class="sidebar-scrim" id="sidebar-scrim" type="button" aria-label="Zamknij menu" tabindex="-1"></button>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-button" id="menu-button" type="button" aria-label="Otwórz menu">
+            <svg class="icon" aria-hidden="true"><use href="#icon-menu"></use></svg>
+          </button>
+          <div class="breadcrumbs" id="breadcrumbs" aria-label="Okruszki nawigacyjne"></div>
+        </div>
+        <div class="topbar-actions">
+          <label class="role-preview" for="role-preview">
+            <span>Podgląd roli</span>
+            <select id="role-preview">
+              <option value="admin">Mariusz — administrator</option>
+              <option value="operator">Ania — operator</option>
+            </select>
+          </label>
+          <button class="icon-button" id="notifications-button" type="button" aria-label="Powiadomienia">
+            <svg class="icon" aria-hidden="true"><use href="#icon-bell"></use></svg>
+            <span class="notification-dot" aria-hidden="true"></span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <noscript>
+          <div class="empty-state">Do działania prototypu wymagane jest włączenie JavaScript.</div>
+        </noscript>
+        <div id="view-root"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="popover" id="user-popover" hidden>
+    <div class="popover-meta">
+      <strong>Sesja zabezpieczona</strong>
+      <span>Cloudflare Access · ważna 12 godzin</span>
+    </div>
+    <button type="button" data-action="profile">
+      <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+      Moje konto
+    </button>
+    <button type="button" data-action="logout">
+      <svg class="icon" aria-hidden="true"><use href="#icon-logout"></use></svg>
+      Wyloguj
+    </button>
+  </div>
+
+  <div class="notification-panel" id="notification-panel" hidden>
+    <div class="notification-head">
+      <div>
+        <span class="eyebrow">Centrum powiadomień</span>
+        <h2>Wymagają uwagi</h2>
+      </div>
+      <button class="icon-button" id="notifications-close" type="button" aria-label="Zamknij powiadomienia">
+        <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
+      </button>
+    </div>
+    <div id="notification-list"></div>
+  </div>
+
+  <dialog class="modal" id="action-modal">
+    <form method="dialog" id="action-modal-form">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow" id="modal-eyebrow">Działanie demonstracyjne</span>
+          <h2 id="modal-title">Potwierdź działanie</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Zamknij">
+          <svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-actions">
+        <button class="button button-secondary" value="cancel">Anuluj</button>
+        <button class="button button-primary" id="modal-confirm" value="default">Potwierdź</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8V21h-6v-6H9v6H3V10.8Z"/></symbol>
+    <symbol id="icon-cases" viewBox="0 0 24 24"><path d="M4 5h5l2 2h9v12H4V5Zm0 5h16"/></symbol>
+    <symbol id="icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.2 1.2M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.2-1.2"/></symbol>
+    <symbol id="icon-archive" viewBox="0 0 24 24"><path d="M3 4h18v4H3V4Zm2 4h14v12H5V8Zm4 4h6"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-3Zm-3 8 2 2 4-4"/></symbol>
+    <symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/></symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v6l4 2"/></symbol>
+    <symbol id="icon-users" viewBox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="icon-logout" viewBox="0 0 24 24"><path d="M10 17 15 12 10 7M15 12H3M14 3h7v18h-7"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 21h16"/></symbol>
+    <symbol id="icon-mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3V5Zm0 2 9 6 9-6"/></symbol>
+    <symbol id="icon-phone" viewBox="0 0 24 24"><path d="M6.6 3h3l1.2 5-2 1.2a15 15 0 0 0 6 6l1.2-2 5 1.2v3c0 2-1.6 3.6-3.6 3.6C9.5 21 3 14.5 3 6.6 3 4.6 4.6 3 6.6 3Z"/></symbol>
+    <symbol id="icon-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="icon-file" viewBox="0 0 24 24"><path d="M6 2h8l4 4v16H6V2Zm8 0v5h5M9 12h6M9 16h6"/></symbol>
+    <symbol id="icon-task" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 9 2 2 4-4M8 16h8"/></symbol>
+    <symbol id="icon-creditor" viewBox="0 0 24 24"><path d="M3 7h18v12H3V7Zm3 0V5h12v2M7 12h4M15 12h2M7 16h10"/></symbol>
+  </svg>
+
+  <script src="assets/panel.js" defer></script>
+</body>
+</html>
