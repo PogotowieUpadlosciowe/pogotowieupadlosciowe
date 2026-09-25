@@ -1,4 +1,4 @@
-const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev';
+const API_BASE = 'https://api.pogotowieupadlosciowe.pl';
 const TURNSTILE_SCRIPT_URL =
   'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 const REQUEST_ID_STORAGE_KEY = 'pu-active-submission-request-id-v1';
