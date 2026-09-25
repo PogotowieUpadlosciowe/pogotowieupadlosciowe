@@ -12,7 +12,7 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
-    "API_ORIGIN": "https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev",
+    "API_ORIGIN": "https://api.pogotowieupadlosciowe.pl",
     "ACCESS_TEAM_DOMAIN": "gentle-term-b8a9.cloudflareaccess.com",
     "ACCESS_AUD": "09d8fadb98af8c82432a1c33591e6a1bdc1345e277ffd0797ea489ed4a009b12",
     "ADMIN_DISPLAY_NAME": "Mariusz",
