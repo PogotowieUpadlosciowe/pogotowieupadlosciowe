@@ -1,4 +1,4 @@
-const API_BASE = 'https://pogotowieupadlosciowe-api-v2.pogotowieupadlosciowe.workers.dev';
+const API_BASE = 'https://api.pogotowieupadlosciowe.pl';
 
 const STATUS_LABELS = Object.freeze({
   new: 'Nowe',
