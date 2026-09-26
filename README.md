@@ -9,14 +9,14 @@ Repozytorium frontendu serwisu [pogotowieupadlosciowe.pl](https://pogotowieupadl
 - `index.html` — strona główna i Szybka ocena
 - `uslugi.html`, `cennik.html`, `faq.html`, `o-nas.html`, `kontakt.html` — strony publiczne
 - `ankieta.html` — prywatny formularz klienta
-- `admin.html` — obecny panel operatora; projekt nowego, prywatnego panelu jest rozwijany osobno w PR #17
+- `admin.html` — starszy interfejs panelu; prywatny panel działa pod `panel.pogotowieupadlosciowe.pl`, a jego kod jest rozwijany osobno w PR #17
 - `regulamin.html`, `polityka-prywatnosci.html` — opublikowane dokumenty prawne
 - `assets/` — arkusze stylów i JavaScript (arkusz strony głównej: `home.css`)
 - `images/` — obrazy i identyfikacja wizualna
 - `documents/` — wersjonowane dokumenty używane przez ankietę
 - `_headers`, `robots.txt`, `sitemap.xml` — konfiguracja publikacji i indeksowania
 
-Backend Cloudflare Worker, baza D1 oraz ich konfiguracja produkcyjna nie znajdują się w tym repozytorium. Obecny adres API zawiera `-v2` i jest używany przez ankietę oraz panel; to aktywny adres techniczny, którego zmiana wymaga migracji po stronie Cloudflare.
+Kod API Workera, baza D1 oraz ich konfiguracja produkcyjna nie znajdują się na gałęzi `main`. Ankieta i panel łączą się z API przez `https://api.pogotowieupadlosciowe.pl`. Techniczne nazwy aktywnych Workerów w Cloudflare wymagają osobnej migracji.
 
 W ankiecie Worker przekazuje ustawienia techniczne, dostępność formularza, cenę
 liczbową i wersje dokumentów. Zatwierdzone opisy usługi widoczne w podsumowaniu
