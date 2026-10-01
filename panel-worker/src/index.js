@@ -20,13 +20,7 @@ const ADMIN_WORKFLOW_ACTIONS = new Set([
   "close_no_purchase"
 ]);
 
-const OPERATOR_PATCH_KEYS = new Set(["status", "is_read", "admin_notes"]);
-const ADMIN_PATCH_KEYS = new Set([
-  ...OPERATOR_PATCH_KEYS,
-  "retention_hold",
-  "payment_status",
-  "closure_reason"
-]);
+const PATCH_KEYS = new Set(["admin_notes"]);
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -269,10 +263,12 @@ async function validatedBody(request, policy, role) {
   }
 
   if (policy.validate === "patch") {
-    const allowed = role === "admin" ? ADMIN_PATCH_KEYS : OPERATOR_PATCH_KEYS;
     const keys = Object.keys(body);
-    if (!keys.length || keys.some((key) => !allowed.has(key))) {
-      throw Object.assign(new Error("Ta rola nie może zmienić wskazanych pól."), { status: 403 });
+    if (!keys.length || keys.some((key) => !PATCH_KEYS.has(key))) {
+      throw Object.assign(new Error("Pola poza notatką wewnętrzną można zmieniać wyłącznie przez dozwolone operacje przebiegu sprawy."), { status: 403 });
+    }
+    if (typeof body.admin_notes !== "string" || body.admin_notes.length > 8000) {
+      throw Object.assign(new Error("Notatka wewnętrzna musi być tekstem o długości do 8000 znaków."), { status: 400 });
     }
   }
   if (policy.validate === "workflow") {
