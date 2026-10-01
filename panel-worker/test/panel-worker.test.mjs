@@ -109,6 +109,43 @@ test("operator nie może zmienić blokady retencji", async () => {
   assert.equal(upstreamCalls.length, 0);
 });
 
+test("operator nie może ominąć przebiegu sprawy przez bezpośrednią zmianę statusu", async () => {
+  const { env, identity, upstreamCalls } = await envFor();
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const response = await handleRequest(request(`/api/submissions/${id}`, identity.token, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "completed" })
+  }), env);
+  assert.equal(response.status, 403);
+  assert.equal(upstreamCalls.length, 0);
+});
+
+test("administrator zmienia status wyłącznie przez walidowaną operację przebiegu", async () => {
+  const { env, identity, upstreamCalls } = await envFor("mariusz@example.test");
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const response = await handleRequest(request(`/api/submissions/${id}`, identity.token, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ payment_status: "paid", closure_reason: "service_completed" })
+  }), env);
+  assert.equal(response.status, 403);
+  assert.equal(upstreamCalls.length, 0);
+});
+
+test("operator może zapisać notatkę o ograniczonej długości", async () => {
+  const { env, identity, upstreamCalls } = await envFor();
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const response = await handleRequest(request(`/api/submissions/${id}`, identity.token, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ admin_notes: "Uzgodniono termin kontaktu." })
+  }), env);
+  assert.equal(response.status, 200);
+  assert.equal(upstreamCalls.length, 1);
+  assert.equal(await new Response(upstreamCalls[0].body).text(), JSON.stringify({ admin_notes: "Uzgodniono termin kontaktu." }));
+});
+
 test("operator może pobrać sprawy, a token backendu nie pochodzi z przeglądarki", async () => {
   const { env, identity, upstreamCalls } = await envFor();
   const response = await handleRequest(request("/api/submissions", identity.token, {
