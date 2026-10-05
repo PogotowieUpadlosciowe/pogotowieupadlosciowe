@@ -7,9 +7,9 @@ const root = new URL("../../", import.meta.url);
 const html = await readFile(new URL("panel-v2/index.html", root), "utf8");
 const script = await readFile(new URL("panel-v2/assets/panel.js", root), "utf8");
 
-async function openPanel(fetchImpl) {
+async function openPanel(fetchImpl, url = "https://panel.pogotowieupadlosciowe.pl/") {
   const dom = new JSDOM(html, {
-    url: "https://panel.pogotowieupadlosciowe.pl/",
+    url,
     runScripts: "outside-only",
     pretendToBeVisual: true
   });
@@ -49,5 +49,33 @@ test("błąd danych sesji nie przełącza panelu na dane demonstracyjne", async 
   assert.equal(document.querySelector("#view-root").textContent.includes("Anna Przykładowa"), false);
   assert.equal(document.querySelector("#view-root").textContent.includes("wymaga ponownego logowania"), false);
   assert.equal(document.querySelector("#demo-banner"), null);
+  dom.window.close();
+});
+
+test("podgląd demonstracyjny nie zawiera starych wpisów ani testowych rekordów", async () => {
+  const dom = await openPanel(async () => {
+    throw new Error("Podgląd demonstracyjny nie powinien pobierać danych z API.");
+  }, "https://preview.pages.dev/panel-v2/");
+  const { document, location } = dom.window;
+  const root = document.querySelector("#view-root");
+  const oldDemoContent = [
+    "PU-DEMO", "INV-DEMO", "Anna Przykładowa", "Jan Archiwalny",
+    "18,4 MB", "21,7 MB", "23 wrz 2026", "example.invalid",
+    "Dzisiaj, 09:14", "kontakt@example.invalid"
+  ];
+
+  assert.equal(document.body.classList.contains("mode-demo"), true);
+  assert.match(root.textContent, /Aktywne sprawy\s*0/);
+  assert.match(root.textContent, /Brak zarejestrowanej aktywności/);
+
+  for (const route of ["cases", "invitations", "archive", "retention", "backups", "audit", "users", "settings"]) {
+    location.hash = `#${route}`;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    for (const staleText of oldDemoContent) {
+      assert.equal(root.textContent.includes(staleText), false, `${route} zawiera starą wartość: ${staleText}`);
+    }
+  }
+
+  assert.match(root.textContent, /Brak konfiguracji w podglądzie/);
   dom.window.close();
 });

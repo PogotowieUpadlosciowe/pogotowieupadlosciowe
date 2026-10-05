@@ -2,23 +2,16 @@
 
 Interfejs nowego, prywatnego panelu operacyjnego działa w dwóch kontrolowanych trybach:
 
-- jako zwykła strona statyczna pokazuje wyłącznie dane fikcyjne i nie łączy się z produkcją;
+- jako zwykła strona statyczna pokazuje pusty podgląd, bez spraw, zaproszeń, aktywności, kopii zapasowych ani konfiguracji produkcyjnej;
 - uruchomiony przez `panel-worker` za Cloudflare Access pobiera prawdziwe sprawy z obecnego Workera i stosuje uprawnienia Mariusza (`admin`) oraz Ani (`operator`).
 
-Adresy e-mail, numery dokumentów i rachunek widoczne w prototypie są celowo niepoprawnymi wartościami demonstracyjnymi (`example.invalid`, `DEMO`). Prawidłowa konfiguracja produkcyjna nie jest zapisana w tej publicznej gałęzi.
+Akcje wykonane w podglądzie są tymczasowe i znikają po odświeżeniu. Prawdziwe dane i konfiguracja są pobierane wyłącznie po zalogowaniu do prywatnego panelu.
 
 ## Co można sprawdzić
 
-- pulpit zadaniowy z priorytetami i alertami;
-- wyszukiwanie i filtrowanie spraw;
-- pełną kartę sprawy z etapami, zadaniami, notatkami i historią;
-- ankietę z maskowaniem danych chronionych i symulowanym audytem dostępu;
-- wierzycieli, dokumenty, załączniki, zamówienie i płatność;
-- tworzenie jednorazowych linków do ankiety;
-- archiwum;
-- widoki administratora: retencja, kopie zapasowe, audyt, użytkownicy i konfiguracja;
-- przełączanie podglądu między rolą administratora i operatora;
-- układ mobilny.
+- w statycznym podglądzie: nawigację, mobilny układ, puste listy i tymczasowe utworzenie linku demonstracyjnego;
+- po zalogowaniu do prywatnego panelu: sprawy, ich historię, dokumenty, załączniki, płatności, linki i dostępne widoki administratora;
+- w podglądzie można przełączać widok administratora i operatora. Nie zmienia to uprawnień produkcyjnych.
 
 ## Architektura prywatna
 
