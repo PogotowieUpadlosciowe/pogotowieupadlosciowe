@@ -41,361 +41,6 @@
 
   const ADMIN_ROUTES = new Set(["retention", "backups", "audit", "users", "settings"]);
 
-  const fixtures = {
-    cases: [
-      {
-        id: "DEMO-2026-001",
-        ref: "PU-DEMO-A71C93",
-        name: "Anna Przykładowa",
-        initials: "AP",
-        email: "anna.przykladowa@example.com",
-        phone: "+48 600 100 201",
-        city: "Wrocław",
-        createdAt: "22 wrz 2026, 09:42",
-        updatedAt: "dzisiaj, 08:15",
-        status: "waiting_documents",
-        payment: "paid",
-        materials: "incomplete",
-        stage: 3,
-        owner: "Ania",
-        amount: 2000,
-        term: "6 paź 2026, 18:00",
-        nextAction: "Poproś o brakujące zestawienia zadłużenia",
-        nextActionDue: "Dzisiaj do 12:00",
-        attention: "Brakuje 2 dokumentów",
-        priority: "high",
-        pesel: "DEMO-PESEL-001",
-        idNumber: "DOWOD-DEMO-001",
-        address: "Fikcyjny adres demonstracyjny 1, Wrocław",
-        questionnaire: {
-          maritalStatus: "Rozwiedziona",
-          household: "2 osoby",
-          employment: "Umowa o pracę",
-          income: "5 200,00 zł netto",
-          expenses: "4 100,00 zł miesięcznie",
-          assets: "Samochód osobowy, rok 2012",
-          health: "Pole demonstracyjne: odrębna zgoda zaznaczona",
-          realEstate: "Brak",
-          arrearsSince: "sierpień 2023",
-          business: "Działalność zamknięta w 2021 r."
-        },
-        creditors: [
-          { name: "Bank Przykładowy S.A.", kind: "Kredyt gotówkowy", amount: 48500, disputed: false },
-          { name: "Demo Finance sp. z o.o.", kind: "Pożyczka", amount: 17200, disputed: false },
-          { name: "Gmina Testowa", kind: "Zaległość administracyjna", amount: 3200, disputed: true }
-        ],
-        documents: [
-          { id: "d1", name: "Raport BIK", state: "received", note: "Otrzymano 22 września" },
-          { id: "d2", name: "Umowy kredytowe i pożyczkowe", state: "missing", note: "Brakuje 2 umów" },
-          { id: "d3", name: "Wyciągi bankowe za 6 miesięcy", state: "received", note: "6 plików PDF" },
-          { id: "d4", name: "Zaświadczenie o dochodach", state: "missing", note: "Wysłano przypomnienie" },
-          { id: "d5", name: "Dokumenty dotyczące nieruchomości", state: "not_applicable", note: "Klient nie posiada nieruchomości" }
-        ],
-        attachments: [
-          { name: "raport-bik-demo.pdf", size: "1,8 MB", date: "22 wrz 2026, 10:13" },
-          { name: "wyciagi-bankowe-demo.zip", size: "4,2 MB", date: "22 wrz 2026, 10:16" },
-          { name: "zaswiadczenie-zus-demo.pdf", size: "620 KB", date: "22 wrz 2026, 10:19" }
-        ],
-        tasks: [
-          { id: "t1", title: "Skontaktuj się w sprawie brakujących dokumentów", due: "Dzisiaj, 12:00", priority: "high", done: false },
-          { id: "t2", title: "Zweryfikuj listę wierzycieli", due: "24 wrz, 10:00", priority: "normal", done: false },
-          { id: "t3", title: "Potwierdź otrzymanie wpłaty", due: "Wykonano wczoraj", priority: "normal", done: true }
-        ],
-        notes: [
-          { author: "Ania", at: "dzisiaj, 08:15", text: "Klientka potwierdziła, że prześle brakujące umowy po południu." },
-          { author: "Mariusz", at: "22 wrz, 16:40", text: "Wstępna analiza nie wykazała przeszkód do dalszej pracy nad wnioskiem." }
-        ],
-        history: [
-          { title: "Dodano notatkę do sprawy", detail: "Ania", at: "dzisiaj, 08:15" },
-          { title: "Dokumenty oznaczono jako niekompletne", detail: "Brakuje 2 pozycji z listy", at: "22 wrz, 16:42" },
-          { title: "Płatność została potwierdzona", detail: "2 000,00 zł · przelew bankowy", at: "22 wrz, 14:07" },
-          { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji i zgody", at: "22 wrz, 09:42" }
-        ],
-        consent: { regulation: true, privacy: true, sensitive: true, hash: "wh8H88iAhwTthTfmZvBY3s4oKCKfO3dISr7LMuMtvUM" }
-      },
-      {
-        id: "DEMO-2026-002",
-        ref: "PU-DEMO-C48B21",
-        name: "Piotr Testowy",
-        initials: "PT",
-        email: "piotr.testowy@example.com",
-        phone: "+48 600 100 202",
-        city: "Poznań",
-        createdAt: "21 wrz 2026, 14:18",
-        updatedAt: "wczoraj, 17:05",
-        status: "analysis",
-        payment: "awaiting",
-        materials: "not_verified",
-        stage: 2,
-        owner: "Mariusz",
-        amount: 2000,
-        term: "5 paź 2026, 15:30",
-        nextAction: "Sprawdź zaksięgowanie przelewu",
-        nextActionDue: "Dzisiaj do 14:00",
-        attention: "Płatność oczekuje 2 dni",
-        priority: "high",
-        pesel: "DEMO-PESEL-002",
-        idNumber: "DOWOD-DEMO-002",
-        address: "Fikcyjny adres demonstracyjny 2, Poznań",
-        questionnaire: {
-          maritalStatus: "Żonaty",
-          household: "4 osoby",
-          employment: "Umowa zlecenie",
-          income: "4 400,00 zł netto",
-          expenses: "4 700,00 zł miesięcznie",
-          assets: "Brak istotnego majątku",
-          health: "Pole demonstracyjne: brak danych i zgody",
-          realEstate: "Brak",
-          arrearsSince: "styczeń 2024",
-          business: "Nigdy nie prowadził działalności"
-        },
-        creditors: [
-          { name: "Bank Demonstracyjny S.A.", kind: "Karta kredytowa", amount: 12800, disputed: false },
-          { name: "Pożyczka Test sp. z o.o.", kind: "Pożyczka", amount: 29600, disputed: false }
-        ],
-        documents: [
-          { id: "d1", name: "Raport BIK", state: "missing", note: "Nie przesłano" },
-          { id: "d2", name: "Umowy kredytowe i pożyczkowe", state: "missing", note: "Nie zweryfikowano" },
-          { id: "d3", name: "Wyciągi bankowe za 6 miesięcy", state: "missing", note: "Nie zweryfikowano" },
-          { id: "d4", name: "Zaświadczenie o dochodach", state: "received", note: "1 plik PDF" }
-        ],
-        attachments: [{ name: "dochody-piotr-demo.pdf", size: "740 KB", date: "21 wrz 2026, 14:40" }],
-        tasks: [
-          { id: "t1", title: "Sprawdź zaksięgowanie przelewu", due: "Dzisiaj, 14:00", priority: "high", done: false },
-          { id: "t2", title: "Rozpocznij weryfikację dokumentów", due: "Po potwierdzeniu wpłaty", priority: "normal", done: false }
-        ],
-        notes: [{ author: "Mariusz", at: "wczoraj, 17:05", text: "Klient deklaruje przelew wykonany wczoraj wieczorem." }],
-        history: [
-          { title: "Wysłano instrukcję płatności", detail: "E-mail do klienta", at: "21 wrz, 14:19" },
-          { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: "21 wrz, 14:18" }
-        ],
-        consent: { regulation: true, privacy: true, sensitive: false, hash: "demoHashPiotr93jdx72Klm" }
-      },
-      {
-        id: "DEMO-2026-003",
-        ref: "PU-DEMO-F93D70",
-        name: "Katarzyna Demo",
-        initials: "KD",
-        email: "katarzyna.demo@example.com",
-        phone: "+48 600 100 203",
-        city: "Gdańsk",
-        createdAt: "18 wrz 2026, 11:06",
-        updatedAt: "dzisiaj, 09:02",
-        status: "in_progress",
-        payment: "paid",
-        materials: "complete",
-        stage: 4,
-        owner: "Ania",
-        amount: 2000,
-        term: "2 paź 2026, 11:00",
-        nextAction: "Dokończ projekt uzasadnienia wniosku",
-        nextActionDue: "Jutro do 15:00",
-        attention: "Termin za 9 dni",
-        priority: "normal",
-        pesel: "DEMO-PESEL-003",
-        idNumber: "DOWOD-DEMO-003",
-        address: "Fikcyjny adres demonstracyjny 3, Gdańsk",
-        questionnaire: {
-          maritalStatus: "Panna",
-          household: "1 osoba",
-          employment: "Umowa o pracę",
-          income: "6 100,00 zł netto",
-          expenses: "5 350,00 zł miesięcznie",
-          assets: "Udział 1/8 w nieruchomości",
-          health: "Pole demonstracyjne: odrębna zgoda zaznaczona",
-          realEstate: "Udział spadkowy",
-          arrearsSince: "listopad 2022",
-          business: "Działalność zamknięta w 2020 r."
-        },
-        creditors: [
-          { name: "Bank Wzorcowy S.A.", kind: "Kredyt konsolidacyjny", amount: 110400, disputed: false },
-          { name: "Operator Demo S.A.", kind: "Usługi telekomunikacyjne", amount: 1900, disputed: false },
-          { name: "Fundusz Testowy", kind: "Cesja wierzytelności", amount: 26700, disputed: false }
-        ],
-        documents: [
-          { id: "d1", name: "Raport BIK", state: "received", note: "Zweryfikowano" },
-          { id: "d2", name: "Umowy kredytowe i pożyczkowe", state: "received", note: "Zweryfikowano" },
-          { id: "d3", name: "Wyciągi bankowe za 6 miesięcy", state: "received", note: "Zweryfikowano" },
-          { id: "d4", name: "Zaświadczenie o dochodach", state: "received", note: "Zweryfikowano" },
-          { id: "d5", name: "Dokumenty dotyczące nieruchomości", state: "received", note: "Zweryfikowano" }
-        ],
-        attachments: [
-          { name: "pakiet-dokumentow-demo.zip", size: "8,3 MB", date: "19 wrz 2026, 09:12" },
-          { name: "projekt-roboczy-v1-demo.docx", size: "192 KB", date: "22 wrz 2026, 16:22" }
-        ],
-        tasks: [
-          { id: "t1", title: "Dokończ projekt uzasadnienia wniosku", due: "Jutro, 15:00", priority: "normal", done: false },
-          { id: "t2", title: "Zweryfikuj wartości wierzytelności", due: "Wykonano 21 września", priority: "normal", done: true }
-        ],
-        notes: [{ author: "Ania", at: "dzisiaj, 09:02", text: "Projekt wniosku przygotowany w około 70%. Pozostało dopracowanie uzasadnienia." }],
-        history: [
-          { title: "Zaktualizowano postęp realizacji", detail: "Projekt wniosku: 70%", at: "dzisiaj, 09:02" },
-          { title: "Dokumenty oznaczono jako kompletne", detail: "Weryfikacja zakończona", at: "19 wrz, 12:30" },
-          { title: "Płatność została potwierdzona", detail: "2 000,00 zł", at: "18 wrz, 13:45" },
-          { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: "18 wrz, 11:06" }
-        ],
-        consent: { regulation: true, privacy: true, sensitive: true, hash: "demoHashKatarzyna21ppQz" }
-      },
-      {
-        id: "DEMO-2026-004",
-        ref: "PU-DEMO-B12E55",
-        name: "Tomasz Przykład",
-        initials: "TP",
-        email: "tomasz.przyklad@example.com",
-        phone: "+48 600 100 204",
-        city: "Łódź",
-        createdAt: "22 wrz 2026, 16:31",
-        updatedAt: "22 wrz, 17:10",
-        status: "contacted",
-        payment: "not_set",
-        materials: "not_verified",
-        stage: 1,
-        owner: "Ania",
-        amount: 2000,
-        term: "Do ustalenia",
-        nextAction: "Umów rozmowę wstępną",
-        nextActionDue: "Dzisiaj do 16:00",
-        attention: "Brak terminu rozmowy",
-        priority: "normal",
-        pesel: "DEMO-PESEL-004",
-        idNumber: "DOWOD-DEMO-004",
-        address: "Fikcyjny adres demonstracyjny 4, Łódź",
-        questionnaire: {
-          maritalStatus: "Żonaty",
-          household: "3 osoby",
-          employment: "Bezrobotny",
-          income: "1 800,00 zł",
-          expenses: "3 600,00 zł miesięcznie",
-          assets: "Samochód osobowy, rok 2008",
-          health: "Pole demonstracyjne: brak danych i zgody",
-          realEstate: "Brak",
-          arrearsSince: "maj 2024",
-          business: "Nigdy nie prowadził działalności"
-        },
-        creditors: [{ name: "Bank Szkoleniowy S.A.", kind: "Kredyt", amount: 63200, disputed: false }],
-        documents: [
-          { id: "d1", name: "Raport BIK", state: "missing", note: "Nie zweryfikowano" },
-          { id: "d2", name: "Umowy kredytowe i pożyczkowe", state: "missing", note: "Nie zweryfikowano" }
-        ],
-        attachments: [],
-        tasks: [{ id: "t1", title: "Umów rozmowę wstępną", due: "Dzisiaj, 16:00", priority: "normal", done: false }],
-        notes: [{ author: "Ania", at: "22 wrz, 17:10", text: "Pierwsza próba kontaktu — klient prosił o telefon następnego dnia." }],
-        history: [
-          { title: "Odnotowano próbę kontaktu", detail: "Telefonicznie", at: "22 wrz, 17:10" },
-          { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: "22 wrz, 16:31" }
-        ],
-        consent: { regulation: true, privacy: true, sensitive: false, hash: "demoHashTomasz11zxCv" }
-      },
-      {
-        id: "DEMO-2026-005",
-        ref: "PU-DEMO-D65A88",
-        name: "Maria Szkoleniowa",
-        initials: "MS",
-        email: "maria.szkoleniowa@example.com",
-        phone: "+48 600 100 205",
-        city: "Kraków",
-        createdAt: "dzisiaj, 07:54",
-        updatedAt: "dzisiaj, 07:54",
-        status: "new",
-        payment: "not_set",
-        materials: "not_verified",
-        stage: 1,
-        owner: "Nieprzypisana",
-        amount: 2000,
-        term: "Do ustalenia",
-        nextAction: "Przeczytaj ankietę i przypisz prowadzącego",
-        nextActionDue: "Dzisiaj do 10:00",
-        attention: "Nowa ankieta",
-        priority: "high",
-        pesel: "DEMO-PESEL-005",
-        idNumber: "DOWOD-DEMO-005",
-        address: "Fikcyjny adres demonstracyjny 5, Kraków",
-        questionnaire: {
-          maritalStatus: "Mężatka",
-          household: "2 osoby",
-          employment: "Emerytura",
-          income: "3 100,00 zł netto",
-          expenses: "2 950,00 zł miesięcznie",
-          assets: "Brak istotnego majątku",
-          health: "Pole demonstracyjne: odrębna zgoda zaznaczona",
-          realEstate: "Brak",
-          arrearsSince: "luty 2022",
-          business: "Nigdy nie prowadziła działalności"
-        },
-        creditors: [
-          { name: "Bank Demo S.A.", kind: "Kredyt", amount: 34700, disputed: false },
-          { name: "Fundusz Pokazowy", kind: "Cesja", amount: 11300, disputed: false }
-        ],
-        documents: [{ id: "d1", name: "Raport BIK", state: "missing", note: "Nie zweryfikowano" }],
-        attachments: [],
-        tasks: [{ id: "t1", title: "Przeczytaj ankietę i przypisz prowadzącego", due: "Dzisiaj, 10:00", priority: "high", done: false }],
-        notes: [],
-        history: [{ title: "Otrzymano nową ankietę", detail: "Sprawa oczekuje na przypisanie", at: "dzisiaj, 07:54" }],
-        consent: { regulation: true, privacy: true, sensitive: true, hash: "demoHashMaria77bnMa" }
-      },
-      {
-        id: "DEMO-2026-006",
-        ref: "PU-DEMO-E24F19",
-        name: "Jan Archiwalny",
-        initials: "JA",
-        email: "jan.archiwalny@example.com",
-        phone: "+48 600 100 206",
-        city: "Szczecin",
-        createdAt: "3 sie 2026, 12:20",
-        updatedAt: "15 wrz, 13:04",
-        status: "completed",
-        payment: "paid",
-        materials: "complete",
-        stage: 5,
-        owner: "Mariusz",
-        amount: 2000,
-        term: "Zrealizowano 15 wrz 2026",
-        nextAction: "Brak — sprawa zakończona",
-        nextActionDue: "—",
-        attention: "Archiwizacja za 71 dni",
-        priority: "low",
-        pesel: "DEMO-PESEL-006",
-        idNumber: "DOWOD-DEMO-006",
-        address: "Fikcyjny adres demonstracyjny 6, Szczecin",
-        questionnaire: {
-          maritalStatus: "Kawaler",
-          household: "1 osoba",
-          employment: "Umowa o pracę",
-          income: "4 900,00 zł netto",
-          expenses: "4 200,00 zł miesięcznie",
-          assets: "Brak",
-          health: "Pole demonstracyjne: brak danych i zgody",
-          realEstate: "Brak",
-          arrearsSince: "2020",
-          business: "Nie dotyczy"
-        },
-        creditors: [{ name: "Bank Archiwalny S.A.", kind: "Kredyt", amount: 55000, disputed: false }],
-        documents: [{ id: "d1", name: "Komplet dokumentów", state: "received", note: "Zweryfikowano" }],
-        attachments: [{ name: "finalny-pakiet-demo.zip", size: "6,1 MB", date: "15 wrz 2026, 12:55" }],
-        tasks: [{ id: "t1", title: "Przekaż gotowy projekt klientowi", due: "Wykonano 15 września", priority: "normal", done: true }],
-        notes: [{ author: "Mariusz", at: "15 wrz, 13:04", text: "Projekt przekazany klientowi. Sprawa zamknięta jako zrealizowana." }],
-        history: [
-          { title: "Sprawa została zakończona", detail: "Usługa zrealizowana", at: "15 wrz, 13:04" },
-          { title: "Przekazano gotowy projekt", detail: "E-mail do klienta", at: "15 wrz, 12:58" },
-          { title: "Otrzymano ankietę", detail: "Zapisano dowód akceptacji", at: "3 sie, 12:20" }
-        ],
-        consent: { regulation: true, privacy: true, sensitive: false, hash: "demoHashJan99ghTy" }
-      }
-    ],
-    invitations: [
-      { id: "INV-DEMO-41A8", recipient: "Ewa Próbna", email: "ewa.probna@example.com", created: "22 wrz 2026, 15:40", expires: "29 wrz 2026, 15:40", status: "active" },
-      { id: "INV-DEMO-92C1", recipient: "Adam Pokazowy", email: "adam.pokazowy@example.com", created: "21 wrz 2026, 10:12", expires: "28 wrz 2026, 10:12", status: "active" },
-      { id: "INV-DEMO-13F7", recipient: "Joanna Testowa", email: "joanna.testowa@example.com", created: "14 wrz 2026, 13:05", expires: "21 wrz 2026, 13:05", status: "expired" }
-    ],
-    audit: [
-      { at: "23 wrz 2026, 09:02", actor: "Ania", action: "Zmieniono postęp sprawy", detail: "PU-DEMO-F93D70 · realizacja 70%" },
-      { at: "23 wrz 2026, 08:15", actor: "Ania", action: "Dodano notatkę", detail: "PU-DEMO-A71C93" },
-      { at: "22 wrz 2026, 16:42", actor: "Mariusz", action: "Zmieniono kompletność dokumentów", detail: "PU-DEMO-A71C93 · niekompletne" },
-      { at: "22 wrz 2026, 14:07", actor: "Mariusz", action: "Potwierdzono płatność", detail: "PU-DEMO-A71C93 · 2 000,00 zł" },
-      { at: "22 wrz 2026, 09:42", actor: "System", action: "Utworzono sprawę", detail: "PU-DEMO-A71C93 · formularz ankiety" }
-    ]
-  };
-
   const state = {
     mode: "demo",
     session: null,
@@ -409,9 +54,9 @@
     revealed: new Set(),
     notificationRead: false,
     modalHandler: null,
-    cases: structuredClone(fixtures.cases),
-    invitations: structuredClone(fixtures.invitations),
-    audit: structuredClone(fixtures.audit)
+    cases: [],
+    invitations: [],
+    audit: []
   };
 
   const dom = {
@@ -547,6 +192,7 @@
       city,
       createdAt: formatDate(item.created_at),
       updatedAt: formatDate(item.updated_at || item.created_at),
+      updatedTimestamp: Date.parse(item.updated_at || item.created_at) || 0,
       status: item.status || "new",
       payment: item.payment_status || "not_set",
       materials,
@@ -611,7 +257,6 @@
       _raw: item
     };
   }
-
   function mapInvitation(item, inviteUrl = "") {
     const label = String(item.label || "").trim();
     return {
@@ -765,9 +410,8 @@
 
   function todayLabel() {
     return new Intl.DateTimeFormat("pl-PL", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
-      .format(state.mode === "live" ? new Date() : new Date("2026-09-23T09:30:00Z"));
+      .format(new Date());
   }
-
   function statusBadge(status, labels = STATUS_LABELS) {
     return `<span class="status-badge status-${escapeHTML(status)}">${escapeHTML(labels[status] || status)}</span>`;
   }
@@ -861,13 +505,12 @@
 
   function addAudit(action, detail) {
     state.audit.unshift({
-      at: state.mode === "live" ? formatDate(new Date().toISOString()) : "23 wrz 2026, przed chwilą",
+      at: formatDate(new Date().toISOString()),
       actor: state.session?.user?.name || (state.role === "admin" ? "Mariusz" : "Ania"),
       action,
       detail
     });
   }
-
   function updateChrome(route) {
     const operator = state.role === "operator";
     document.querySelectorAll("[data-admin-only]").forEach((element) => {
@@ -888,18 +531,12 @@
   }
 
   function renderNotifications() {
-    const items = state.mode === "live"
-      ? state.cases.filter((item) => item.attention).slice(0, 5).map((item) => ({
-          caseId: item.id,
-          title: item.attention,
-          meta: `${item.name} · ${item.ref}`,
-          tone: item.priority === "high" ? "#b92d34" : "#9a5a05"
-        }))
-      : [
-          { caseId: "DEMO-2026-005", title: "Nowa ankieta czeka na przypisanie", meta: "Maria Szkoleniowa · dzisiaj, 07:54", tone: "#1769e0" },
-          { caseId: "DEMO-2026-001", title: "Termin zadania upływa dzisiaj", meta: "Brakujące dokumenty · 12:00", tone: "#b92d34" },
-          { caseId: "DEMO-2026-002", title: "Płatność nadal niepotwierdzona", meta: "Piotr Testowy · oczekuje 2 dni", tone: "#9a5a05" }
-        ];
+    const items = state.cases.filter((item) => item.attention).slice(0, 5).map((item) => ({
+      caseId: item.id,
+      title: item.attention,
+      meta: `${item.name} · ${item.ref}`,
+      tone: item.priority === "high" ? "#b92d34" : "#9a5a05"
+    }));
     if (!items.length) {
       dom.notificationList.innerHTML = `<div class="empty-state" style="padding:24px"><p>Brak nowych alertów.</p></div>`;
       return;
@@ -911,7 +548,6 @@
         ${icon("arrow", "icon-small")}
       </button>`).join("");
   }
-
   function renderDashboard() {
     setBreadcrumbs([{ label: "Pulpit" }]);
     const tasks = state.cases
@@ -919,7 +555,9 @@
       .sort((a, b) => (a.priority === "high" ? -1 : 1) - (b.priority === "high" ? -1 : 1))
       .slice(0, 5);
     const urgent = tasks.filter((task) => task.priority === "high").length;
-    const waiting = activeCases().filter((item) => item.payment === "awaiting").length;
+    const awaitingPayment = activeCases().filter((item) => ["awaiting", "not_set"].includes(item.payment));
+    const waiting = awaitingPayment.length;
+    const waitingAmount = awaitingPayment.reduce((sum, item) => sum + item.amount, 0);
     const missingDocs = activeCases().filter((item) => item.materials === "incomplete").length;
     const sessionName = state.session?.user?.name;
     const greeting = sessionName
@@ -935,9 +573,9 @@
           actions: `<button class="button button-primary" type="button" data-action="new-invitation">${icon("plus")}Nowy link do ankiety</button>`
         })}
         <div class="metric-grid">
-          ${metricCard("Aktywne sprawy", activeCases().length, state.mode === "live" ? `${state.cases.filter((item) => item.status === "new").length} nowych` : "1 nowa od ostatniej wizyty", "cases")}
+          ${metricCard("Aktywne sprawy", activeCases().length, `${state.cases.filter((item) => item.status === "new").length} nowych`, "cases")}
           ${metricCard("Zadania pilne", urgent, "Do wykonania dzisiaj", "task", "var(--danger)", "var(--danger-bg)")}
-          ${metricCard("Płatności oczekujące", waiting, "Łącznie 2 000,00 zł", "creditor", "var(--warning)", "var(--warning-bg)")}
+          ${metricCard("Płatności oczekujące", waiting, `Łącznie ${money(waitingAmount)}`, "creditor", "var(--warning)", "var(--warning-bg)")}
           ${metricCard("Braki w dokumentach", missingDocs, "Wymagają kontaktu z klientem", "file", "var(--purple)", "var(--purple-bg)")}
         </div>
         <div class="dashboard-grid">
@@ -948,7 +586,7 @@
                 <a class="button button-quiet button-small" href="#cases">Wszystkie sprawy ${icon("arrow")}</a>
               </div>
               <ul class="task-list">
-                ${tasks.map((task) => `
+                ${tasks.length ? tasks.map((task) => `
                   <li class="task-item">
                     <button class="task-checkbox" type="button" aria-label="Oznacz zadanie jako wykonane" data-action="toggle-task" data-case-id="${task.caseItem.id}" data-task-id="${task.id}"></button>
                     <a class="item-copy" href="#case/${task.caseItem.id}/overview" style="text-decoration:none">
@@ -956,7 +594,7 @@
                       <span>${escapeHTML(task.caseItem.name)} · ${escapeHTML(task.caseItem.ref)}</span>
                     </a>
                     <div class="item-side">${priorityBadge(task.priority)}<span style="display:block;margin-top:4px">${escapeHTML(task.due)}</span></div>
-                  </li>`).join("")}
+                  </li>`).join("") : `<li class="empty-state" style="padding:24px"><p>Brak zadań do wykonania.</p></li>`}
               </ul>
             </section>
             <section class="card">
@@ -968,47 +606,44 @@
                     <span class="item-copy"><strong>${escapeHTML(item.name)}</strong><span>${escapeHTML(item.attention)}</span></span>
                     ${statusBadge(item.status)}
                     <span class="item-arrow">${icon("arrow", "icon-small")}</span>
-                  </a>`).join("")}
+                  </a>`).join("") || `<div class="empty-state" style="padding:24px"><p>Brak spraw wymagających uwagi.</p></div>`}
               </div>
             </section>
           </div>
           <aside class="side-stack">
             <section class="card">
-              <div class="card-head"><div><h2>Ostatnia aktywność</h2><p class="section-copy">Zmiany z dzisiaj i wczoraj.</p></div></div>
+              <div class="card-head"><div><h2>Ostatnia aktywność</h2><p class="section-copy">${state.mode === "live" ? "Działania z bieżącej sesji panelu. Pełna historia znajduje się w sprawach." : "Zdarzenia z bieżącej sesji podglądu."}</p></div></div>
               <ul class="activity-list">
-                ${state.audit.slice(0, 5).map((event) => `
+                ${state.audit.length ? state.audit.slice(0, 5).map((event) => `
                   <li class="activity-item">
                     <span class="activity-icon">${icon(event.actor === "System" ? "shield" : "history")}</span>
                     <span class="item-copy"><strong>${escapeHTML(event.action)}</strong><span>${escapeHTML(event.detail)} · ${escapeHTML(event.actor)}</span></span>
                     <span class="item-side">${escapeHTML(event.at.split(", ").slice(-1)[0])}</span>
-                  </li>`).join("")}
+                  </li>`).join("") : `<li class="empty-state" style="padding:24px"><p>Brak zarejestrowanej aktywności.</p></li>`}
               </ul>
             </section>
             <section class="card">
-              <div class="card-head no-border"><div><span class="eyebrow">Stan systemu</span><h2>Wszystko działa</h2></div>${statusBadge("active", { active: "Online" })}</div>
+              <div class="card-head no-border"><div><span class="eyebrow">Stan systemu</span><h2>${state.mode === "demo" ? "Podgląd demonstracyjny" : state.health?.ok && state.health?.encryption_configured && state.health?.email_configured ? "Połączenie działa" : "Wymaga sprawdzenia"}</h2></div></div>
               <div class="card-body" style="padding-top:8px">
-                <div class="kpi-line"><span>Formularz ankiety</span><strong>${state.mode === "live" ? (state.health?.form_enabled === false ? "Wyłączony" : "Aktywny") : "Aktywny"}</strong></div>
-                <div class="kpi-line"><span>Wysyłka e-mail</span><strong>${state.mode === "live" ? (state.health?.email_configured ? "Skonfigurowana" : "Wymaga konfiguracji") : "2 odbiorców"}</strong></div>
-                <div class="kpi-line"><span>Szyfrowanie danych</span><strong>${state.mode === "live" ? (state.health?.encryption_configured ? "Aktywne" : "Błąd konfiguracji") : "Aktywne"}</strong></div>
-                <div class="kpi-line"><span>Sesja</span><strong>Cloudflare Access</strong></div>
+                ${state.mode === "live" ? `
+                  <div class="kpi-line"><span>Formularz ankiety</span><strong>${state.health?.form_enabled === true ? "Aktywny" : state.health?.form_enabled === false ? "Wyłączony" : "Brak danych"}</strong></div>
+                  <div class="kpi-line"><span>Wysyłka e-mail</span><strong>${state.health?.email_configured ? "Skonfigurowana" : "Wymaga konfiguracji"}</strong></div>
+                  <div class="kpi-line"><span>Szyfrowanie danych</span><strong>${state.health?.encryption_configured ? "Aktywne" : "Błąd konfiguracji"}</strong></div>
+                  <div class="kpi-line"><span>Sesja</span><strong>Cloudflare Access</strong></div>
+                ` : `<p class="section-copy">Podgląd nie sprawdza stanu formularza, poczty, szyfrowania ani sesji produkcyjnej.</p>`}
               </div>
             </section>
           </aside>
         </div>
       </section>`;
   }
-
   function sortCases(cases) {
     const copy = [...cases];
     if (state.caseSort === "name") copy.sort((a, b) => a.name.localeCompare(b.name, "pl"));
-    if (state.caseSort === "status") copy.sort((a, b) => STATUS_LABELS[a.status].localeCompare(STATUS_LABELS[b.status], "pl"));
-    if (state.caseSort === "updated") {
-      const recency = ["DEMO-2026-005", "DEMO-2026-003", "DEMO-2026-001", "DEMO-2026-004", "DEMO-2026-002", "DEMO-2026-006"];
-      copy.sort((a, b) => recency.indexOf(a.id) - recency.indexOf(b.id));
-    }
+    if (state.caseSort === "status") copy.sort((a, b) => (STATUS_LABELS[a.status] || a.status).localeCompare(STATUS_LABELS[b.status] || b.status, "pl"));
+    if (state.caseSort === "updated") copy.sort((a, b) => (b.updatedTimestamp || 0) - (a.updatedTimestamp || 0));
     return copy;
   }
-
   function renderCases() {
     setBreadcrumbs([{ label: "Sprawy" }]);
     const query = state.caseSearch.trim().toLowerCase();
@@ -1526,23 +1161,20 @@
     }
     dom.root.innerHTML = `
       <section class="page">
-        ${adminHeader("Retencja danych", "Kontroluj terminy przechowywania, blokady i planowane usunięcia.")}
-        <div class="warning-banner">${icon("shield")}<div><strong>Automatyczne usuwanie pozostaje wyłączone</strong>Panel tylko raportuje terminy. Ostateczne usunięcie wymaga potwierdzenia administratora i jest odnotowywane w audycie.</div></div>
+        ${adminHeader("Retencja danych", "Podgląd danych dotyczących przechowywania spraw.")}
+        <div class="info-banner">${icon("shield")}<div><strong>Brak danych retencji w podglądzie</strong>Ten widok demonstracyjny nie odczytuje ustawień ani harmonogramu z produkcyjnego systemu.</div></div>
         <div class="metric-grid">
-          ${metricCard("Sprawy objęte retencją", "6", "Wszystkie rekordy mają regułę", "archive")}
-          ${metricCard("Do przeglądu w 30 dni", "1", "Wymaga decyzji administratora", "history", "var(--warning)", "var(--warning-bg)")}
-          ${metricCard("Blokady retencji", "0", "Brak aktywnych wyjątków", "lock", "var(--success)", "var(--success-bg)")}
-          ${metricCard("Błędy archiwizacji", "0", "Ostatnie 30 dni", "shield", "var(--success)", "var(--success-bg)")}
+          ${metricCard("Sprawy w podglądzie", state.cases.length, "Dane demonstracyjne", "archive")}
+          ${metricCard("Do przeglądu", "—", "Brak danych retencji", "history", "var(--warning)", "var(--warning-bg)")}
+          ${metricCard("Blokady retencji", "—", "Brak danych retencji", "lock")}
+          ${metricCard("Błędy archiwizacji", "—", "Brak danych retencji", "shield")}
         </div>
         <section class="card table-card">
-          <div class="card-head"><div><h2>Harmonogram retencji</h2><p class="section-copy">Najbliższe terminy przeglądu danych.</p></div><button class="button button-secondary button-small" type="button" data-action="export-report">${icon("download")}Eksportuj raport</button></div>
-          <div style="overflow-x:auto"><table class="data-table responsive-table"><thead><tr><th>Sprawa</th><th>Zamknięcie</th><th>Planowana archiwizacja</th><th>Blokada</th><th>Status</th></tr></thead><tbody>
-            <tr><td class="primary-cell"><strong>Jan Archiwalny</strong><span>PU-DEMO-E24F19</span></td><td data-label="Zamknięcie">15 wrz 2026</td><td data-label="Archiwizacja">3 gru 2026</td><td data-label="Blokada">Nie</td><td data-label="Status">${statusBadge("scheduled", { scheduled: "Zaplanowana" })}</td></tr>
-          </tbody></table></div>
+          <div class="card-head"><div><h2>Harmonogram retencji</h2><p class="section-copy">Dane będą widoczne po połączeniu z prywatnym panelem.</p></div></div>
+          <div class="empty-state"><span class="empty-state-icon">${icon("archive")}</span><h2>Brak rekordów harmonogramu</h2><p>W tym podglądzie nie ma spraw ani terminów archiwizacji.</p></div>
         </section>
       </section>`;
   }
-
   function renderBackups() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Kopie zapasowe" }]);
     if (state.mode === "live") {
@@ -1558,26 +1190,12 @@
       </section>`;
       return;
     }
-    dom.root.innerHTML = `
-      <section class="page">
-        ${pageHead({ eyebrow: "Bezpieczeństwo danych", title: "Kopie zapasowe", subtitle: "Stan automatycznych kopii bazy i załączników.", actions: `<button class="button button-primary" type="button" data-action="create-backup">${icon("database")}Utwórz kopię teraz</button>` })}
-        <div class="success-banner">${icon("check")}<div><strong>Ostatnia kopia zakończyła się prawidłowo</strong>Baza danych i indeks załączników zostały zapisane dzisiaj o 02:00.</div></div>
-        <div class="metric-grid">
-          ${metricCard("Ostatnia kopia", "02:00", "Dzisiaj · wynik prawidłowy", "database", "var(--success)", "var(--success-bg)")}
-          ${metricCard("Rozmiar bazy", "18,4 MB", "6 spraw w prototypie", "database")}
-          ${metricCard("Załączniki", "21,7 MB", "7 plików demonstracyjnych", "file", "var(--purple)", "var(--purple-bg)")}
-          ${metricCard("Okres przechowywania", "30 dni", "Codzienna rotacja kopii", "history")}
-        </div>
-        <section class="card table-card"><div class="card-head"><div><h2>Historia kopii</h2><p class="section-copy">Ostatnie operacje zabezpieczenia danych.</p></div></div><div style="overflow-x:auto"><table class="data-table responsive-table"><thead><tr><th>Data</th><th>Zakres</th><th>Rozmiar</th><th>Integralność</th><th>Status</th></tr></thead><tbody>
-          ${[
-            ["23 wrz 2026, 02:00", "Baza + indeks plików", "18,4 MB", "Zweryfikowana"],
-            ["22 wrz 2026, 02:00", "Baza + indeks plików", "18,1 MB", "Zweryfikowana"],
-            ["21 wrz 2026, 02:00", "Baza + indeks plików", "17,8 MB", "Zweryfikowana"]
-          ].map((row) => `<tr><td class="primary-cell"><strong>${row[0]}</strong><span>Automatyczna</span></td><td data-label="Zakres">${row[1]}</td><td data-label="Rozmiar">${row[2]}</td><td data-label="Integralność">${row[3]}</td><td data-label="Status">${statusBadge("complete", { complete: "Gotowa" })}</td></tr>`).join("")}
-        </tbody></table></div></section>
-      </section>`;
+    dom.root.innerHTML = `<section class="page">
+      ${pageHead({ eyebrow: "Bezpieczeństwo danych", title: "Kopie zapasowe", subtitle: "Podgląd nie jest połączony z usługą kopii zapasowych." })}
+      <div class="info-banner">${icon("lock")}<div><strong>Brak historii kopii w podglądzie</strong>Ta strona nie pokazuje ani nie tworzy kopii systemu. Informacje produkcyjne są dostępne wyłącznie w prywatnym panelu.</div></div>
+      <section class="card table-card"><div class="card-head"><div><h2>Historia kopii</h2><p class="section-copy">Zdarzenia kopii nie zostały wczytane.</p></div></div><div class="empty-state"><span class="empty-state-icon">${icon("database")}</span><h2>Brak wpisów</h2><p>Podgląd nie zawiera zapisanej historii kopii zapasowych.</p></div></section>
+    </section>`;
   }
-
   function renderAudit() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Dziennik audytowy" }]);
     if (state.mode === "live") {
@@ -1589,15 +1207,13 @@
     }
     dom.root.innerHTML = `
       <section class="page">
-        ${pageHead({ eyebrow: "Kontrola dostępu", title: "Dziennik audytowy", subtitle: "Niezmienny rejestr działań, dostępu do danych chronionych i operacji administratora.", actions: `<button class="button button-secondary" type="button" data-action="export-audit">${icon("download")}Eksportuj CSV</button>` })}
+        ${pageHead({ eyebrow: "Kontrola dostępu", title: "Dziennik audytowy", subtitle: "Zdarzenia wygenerowane w bieżącej sesji podglądu." })}
         <section class="card">
-          <div class="table-tools"><div class="table-tools-left"><label class="search-field">${icon("search")}<input class="field" type="search" placeholder="Szukaj zdarzenia, osoby lub sprawy"></label><select class="select-field"><option>Wszystkie typy zdarzeń</option><option>Dostęp do danych</option><option>Zmiana rekordu</option><option>Logowanie</option></select></div></div>
-          <div>${state.audit.map((event) => `<div class="audit-event"><time>${escapeHTML(event.at)}</time><div><strong>${escapeHTML(event.action)}</strong><span>${escapeHTML(event.detail)}</span></div><div class="audit-actor">${escapeHTML(event.actor)}</div></div>`).join("")}</div>
-          <div class="pagination-bar"><span>${state.audit.length} zdarzeń w widoku demonstracyjnym</span><span>Rejestr tylko do odczytu</span></div>
+          ${state.audit.length ? state.audit.map((event) => `<div class="audit-event"><time>${escapeHTML(event.at)}</time><div><strong>${escapeHTML(event.action)}</strong><span>${escapeHTML(event.detail)}</span></div><div class="audit-actor">${escapeHTML(event.actor)}</div></div>`).join("") : `<div class="empty-state"><span class="empty-state-icon">${icon("history")}</span><h2>Brak zarejestrowanej aktywności</h2><p>W podglądzie nie wykonano jeszcze żadnych działań.</p></div>`}
+          <div class="pagination-bar"><span>${state.audit.length} zdarzeń w tej sesji</span><span>Podgląd nie zapisuje ich po odświeżeniu.</span></div>
         </section>
       </section>`;
   }
-
   function renderUsers() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Użytkownicy" }]);
     dom.root.innerHTML = `
@@ -1605,8 +1221,10 @@
         ${pageHead({ eyebrow: "Role i dostęp", title: "Użytkownicy", subtitle: "Dostęp do panelu jest nadawany przez Cloudflare Access i dodatkowo ograniczany rolą w aplikacji.", actions: `<button class="button button-primary" type="button" data-action="add-user" ${state.mode === "live" ? "disabled" : ""}>${icon("plus")}Dodaj użytkownika</button>` })}
         <div class="info-banner">${icon("shield")}<div><strong>Logowanie z MFA</strong>Panel nie przechowuje haseł. Tożsamość jest potwierdzana przez Cloudflare Access, a uprawnienia są sprawdzane przez prywatny Worker.</div></div>
         <section class="card">
-          <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>${state.mode === "live" ? "Konto administratora w Cloudflare Access" : "administrator@example.invalid"}</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">${state.mode === "live" ? "Dostęp aktywny" : "Dzisiaj, 09:14"}</strong><span style="color:var(--ink-500);font-size:10.5px">${state.mode === "live" ? "Role sprawdzane przy każdym żądaniu" : "Ostatnia aktywność"}</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" ${state.mode === "live" ? "disabled" : ""}>Edytuj</button></div>
-          <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>${state.mode === "live" ? "Konto operatora w Cloudflare Access" : "operator@example.invalid"}</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">${state.mode === "live" ? "Dostęp aktywny" : "Dzisiaj, 09:02"}</strong><span style="color:var(--ink-500);font-size:10.5px">${state.mode === "live" ? "Bez sekcji administracyjnych" : "Ostatnia aktywność"}</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" ${state.mode === "live" ? "disabled" : ""}>Edytuj</button></div>
+          ${state.mode === "live" ? `
+            <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>Konto administratora w Cloudflare Access</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">Dostęp aktywny</strong><span style="color:var(--ink-500);font-size:10.5px">Role sprawdzane przy każdym żądaniu</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" disabled>Edytuj</button></div>
+            <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>Konto operatora w Cloudflare Access</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">Dostęp aktywny</strong><span style="color:var(--ink-500);font-size:10.5px">Bez sekcji administracyjnych</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" disabled>Edytuj</button></div>
+          ` : `<div class="empty-state"><span class="empty-state-icon">${icon("users")}</span><h2>Brak danych użytkowników</h2><p>Lista kont i ich aktywności jest dostępna po zalogowaniu do prywatnego panelu.</p></div>`}
         </section>
         <section class="card section-card"><div class="card-head"><div><h2>Zakres ról</h2><p class="section-copy">Podstawowa matryca uprawnień.</p></div></div><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Obszar</th><th>Operator</th><th>Administrator</th></tr></thead><tbody>
           ${[
@@ -1619,10 +1237,16 @@
         </tbody></table></div></section>
       </section>`;
   }
-
   function renderSettings() {
     setBreadcrumbs([{ label: "Administracja" }, { label: "Konfiguracja" }]);
-    if (state.mode === "live") {
+        if (state.mode === "demo") {
+      dom.root.innerHTML = `<section class="page">
+        ${pageHead({ eyebrow: "Ustawienia systemu", title: "Konfiguracja", subtitle: "Ustawienia rzeczywistego panelu są odczytywane po zalogowaniu." })}
+        <div class="info-banner">${icon("shield")}<div><strong>Brak konfiguracji w podglądzie</strong>Ta strona nie pokazuje adresów, danych płatności, statusu usług ani harmonogramów z systemu produkcyjnego.</div></div>
+      </section>`;
+      return;
+    }
+if (state.mode === "live") {
       dom.root.innerHTML = `<section class="page">
         ${pageHead({ eyebrow: "Ustawienia systemu", title: "Konfiguracja", subtitle: "Stan najważniejszych zabezpieczeń i usług zaplecza." })}
         <section class="card section-card">
@@ -1648,46 +1272,8 @@
       </section>`;
       return;
     }
-    dom.root.innerHTML = `
-      <section class="page">
-        ${pageHead({ eyebrow: "Ustawienia systemu", title: "Konfiguracja", subtitle: "Najważniejsze parametry biznesowe, bezpieczeństwa i wysyłki.", actions: `<button class="button button-primary" type="button" data-action="save-settings">${icon("check")}Zapisz zmiany</button>` })}
-        <section class="card section-card">
-          <div class="card-head"><div><h2>Bezpieczeństwo i sesje</h2><p class="section-copy">Tożsamość weryfikowana przed każdym dostępem do prywatnego Workera.</p></div></div>
-          <div class="card-body"><div class="settings-grid">
-            <div class="setting-tile"><span>Logowanie</span><strong>Cloudflare Access + MFA</strong><p>Brak tokenu administratora w przeglądarce.</p><span class="setting-state">${statusBadge("active", { active: "Aktywne" })}</span></div>
-            <div class="setting-tile"><span>Czas sesji</span><strong>12 godzin</strong><p>Odświeżenie strony nie kończy sesji.</p></div>
-            <div class="setting-tile"><span>Wylogowanie</span><strong>Jawny przycisk w profilu</strong><p>Kończy sesję Access na urządzeniu.</p></div>
-            <div class="setting-tile"><span>Dostęp do danych chronionych</span><strong>Rejestrowany w audycie</strong><p>PESEL, adres, dokument i konto bankowe.</p></div>
-          </div></div>
-        </section>
-        <section class="card section-card">
-          <div class="card-head"><div><h2>Zamówienie i płatności</h2><p class="section-copy">Dane wykorzystywane w instrukcjach dla klienta.</p></div></div>
-          <div class="card-body"><div class="settings-grid">
-            <div class="setting-tile"><span>Cena usługi</span><strong>2 000,00 zł</strong><p>Zwolnienie z VAT</p></div>
-            <div class="setting-tile"><span>Odbiorca płatności</span><strong>Mariusz Sztandera</strong></div>
-            <div class="setting-tile full"><span>Rachunek firmowy</span><strong>PL 00 0000 0000 0000 0000 0000 0000 (DEMO)</strong></div>
-          </div></div>
-        </section>
-        <section class="card section-card">
-          <div class="card-head"><div><h2>Powiadomienia e-mail</h2><p class="section-copy">Minimalny zakres informacji — pełne dane pozostają w panelu.</p></div></div>
-          <div class="card-body"><div class="settings-grid">
-            <div class="setting-tile"><span>Adres główny</span><strong>kontakt@example.invalid</strong><span class="setting-state">${statusBadge("active", { active: "Aktywny" })}</span></div>
-            <div class="setting-tile"><span>Kopia powiadomień</span><strong>kopia@example.invalid</strong><span class="setting-state">${statusBadge("active", { active: "Aktywny" })}</span></div>
-            <div class="setting-tile full"><span>Dostawca wysyłki</span><strong>Resend</strong><p>Ostatnia próba: poprawna · oba adresy przyjęte do wysyłki.</p></div>
-          </div></div>
-        </section>
-        <section class="card section-card">
-          <div class="card-head"><div><h2>Automatyzacje</h2><p class="section-copy">Ustawienia, które nie wymagają ręcznej obsługi każdej sprawy.</p></div></div>
-          <div class="card-body"><div class="settings-grid">
-            <div class="setting-tile"><span>Codzienna kopia zapasowa</span><strong>02:00</strong><label class="toggle setting-state"><input type="checkbox" checked><span></span></label></div>
-            <div class="setting-tile"><span>Przypomnienia o zadaniach</span><strong>08:00 w dni robocze</strong><label class="toggle setting-state"><input type="checkbox" checked><span></span></label></div>
-            <div class="setting-tile"><span>Raport retencji</span><strong>Pierwszy dzień miesiąca</strong><label class="toggle setting-state"><input type="checkbox" checked><span></span></label></div>
-            <div class="setting-tile"><span>Automatyczne usuwanie</span><strong>Wyłączone</strong><label class="toggle setting-state"><input type="checkbox"><span></span></label></div>
-          </div></div>
-        </section>
-      </section>`;
-  }
 
+  }
   function renderNotFound(title = "Nie znaleziono strony", detail = "Wybierz inną sekcję z menu panelu.") {
     setBreadcrumbs([{ label: "Błąd" }]);
     dom.root.innerHTML = `<section class="page"><div class="card empty-state"><span class="empty-state-icon">${icon("search")}</span><h1>${escapeHTML(title)}</h1><p>${escapeHTML(detail)}</p><a class="button button-primary" href="#dashboard">Wróć do pulpitu</a></div></section>`;
@@ -1764,7 +1350,10 @@
           return true;
         }
         const id = `INV-DEMO-${Math.random().toString(16).slice(2, 6).toUpperCase()}`;
-        state.invitations.unshift({ id, recipient, email, created: "23 wrz 2026, przed chwilą", expires: "30 wrz 2026", status: "active" });
+        const createdAt = new Date();
+        const validityDays = Number(data.get("validity")) || 7;
+        const expiresAt = new Date(createdAt.getTime() + validityDays * 24 * 60 * 60 * 1000);
+        state.invitations.unshift({ id, recipient, email, created: formatDate(createdAt.toISOString()), expires: formatDate(expiresAt.toISOString()), status: "active" });
         addAudit("Utworzono link do ankiety", `${id} · ${recipient}`);
         toast("Link demonstracyjny utworzony", "Możesz go skopiować z listy. Nie prowadzi do produkcyjnej ankiety.", "success");
         navigate("#invitations");
