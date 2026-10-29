@@ -8,6 +8,17 @@
   Cache-Control: no-cache, must-revalidate
 
 /admin.html
+/ankieta.html
+/panel-v2/*
+/brandbook.html
+/404.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/documents/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: public, max-age=31536000, immutable
+
+/admin.html
   Cache-Control: no-store, max-age=0
 
 /ankieta.html
@@ -51,6 +62,3 @@
 
 /assets/styles.css
   Cache-Control: no-cache, must-revalidate
-
-/documents/*
-  Cache-Control: public, max-age=31536000, immutable

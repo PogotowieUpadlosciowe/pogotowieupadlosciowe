@@ -2,24 +2,24 @@
 
 Repozytorium frontendu serwisu [pogotowieupadlosciowe.pl](https://pogotowieupadlosciowe.pl/). Projekt obejmuje publiczną stronę informacyjną, prywatną ankietę klienta oraz panel operatora.
 
-> Stan: publiczna strona i prywatna ankieta działają produkcyjnie. Indeksowanie pozostaje wyłączone. Testy przeprowadzaj na danych fikcyjnych.
+> Stan: publiczna strona i prywatna ankieta działają produkcyjnie. Publiczne strony zostały zgłoszone do indeksowania w Google Search Console. Testy przeprowadzaj na danych fikcyjnych.
 
 ## Struktura
 
 - `index.html` — strona główna i Szybka ocena
 - `uslugi.html`, `cennik.html`, `faq.html`, `o-nas.html`, `kontakt.html` — strony publiczne
 - `ankieta.html` — prywatny formularz klienta
-- `admin.html` — starszy interfejs panelu
-- `panel-v2/` i `panel-worker/` — nowy prywatny panel operacyjny i jego Worker za Cloudflare Access
+- `admin.html` i `/admin` — starsze adresy panelu przekierowywane do prywatnego panelu pod `panel.pogotowieupadlosciowe.pl`
+- `panel-v2/` i `panel-worker/` — kod prywatnego panelu operacyjnego i jego Workera za Cloudflare Access
 - `regulamin.html`, `polityka-prywatnosci.html` — opublikowane dokumenty prawne
 - `assets/` — arkusze stylów i JavaScript (arkusz strony głównej: `home.css`)
 - `images/` — obrazy i identyfikacja wizualna
 - `documents/` — wersjonowane dokumenty używane przez ankietę
-- `_headers`, `robots.txt`, `sitemap.xml` — konfiguracja publikacji i indeksowania
+- `_headers`, `_redirects`, `robots.txt`, `sitemap.xml` — konfiguracja publikacji i indeksowania
 
 Kod API Workera, baza D1 oraz ich konfiguracja produkcyjna nie znajdują się na gałęzi `main`. Ankieta i panel łączą się z API przez `https://api.pogotowieupadlosciowe.pl`. Techniczne nazwy aktywnych Workerów w Cloudflare wymagają osobnej migracji.
 
-Testy panelu oraz regresji szybkiej ankiety uruchomisz z katalogu `panel-worker/` poleceniem `npm ci && npm run check`. Do lokalnego podglądu panelu użyj serwera statycznego zgodnie z instrukcją w `panel-v2/README.md`; fikcyjne dane są dostępne wyłącznie w środowisku demonstracyjnym.
+Testy panelu i regresji szybkiej ankiety uruchomisz z katalogu `panel-worker/` poleceniem `npm ci && npm run check`. Do lokalnego podglądu panelu użyj instrukcji w `panel-v2/README.md`.
 
 W ankiecie Worker przekazuje ustawienia techniczne, dostępność formularza, cenę
 liczbową i wersje dokumentów. Zatwierdzone opisy usługi widoczne w podsumowaniu
