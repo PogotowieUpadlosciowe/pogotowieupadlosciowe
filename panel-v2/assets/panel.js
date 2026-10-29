@@ -1411,7 +1411,7 @@
             <div class="setting-tile"><span>Wysyłka e-mail</span><strong>${state.health?.email_configured ? "Skonfigurowana" : "Wymaga konfiguracji"}</strong></div>
             <div class="setting-tile"><span>Archiwum R2</span><strong>${state.health?.archive_configured ? "Skonfigurowane" : "Wymaga konfiguracji"}</strong></div>
             <div class="setting-tile"><span>Linki prywatne</span><strong>${state.health?.private_form_links_required ? "Wymagane" : "Brak danych"}</strong></div>
-            <div class="setting-tile"><span>Ważność linku</span><strong>${escapeHTML(state.health?.invitation_validity_days || 7)} dni</strong></div>
+            <div class="setting-tile"><span>Ważność linku</span><strong>${escapeHTML(invitationValidityLabel())}</strong></div>
             <div class="setting-tile full"><span>Dane płatności</span><strong>${state.health?.payment_instructions_configured ? "Skonfigurowane w obecnym Workerze" : "Wymagają konfiguracji"}</strong><p>Numer rachunku i sekrety nie są przesyłane do przeglądarki.</p></div>
           </div></div>
         </section>
@@ -1484,7 +1484,7 @@
         <div class="form-grid">
           <label class="form-label">Imię i nazwisko klienta<input class="field" name="recipient" required placeholder="np. Jan Kowalski"></label>
           <label class="form-label">Adres e-mail<input class="field" name="email" type="email" required placeholder="klient@example.com"></label>
-          ${live ? "" : `<label class="form-label">Ważność linku<select class="field" name="validity"><option value="7">7 dni</option><option value="3">3 dni</option><option value="1">24 godziny</option></select></label><label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania</option><option>Mariusz</option><option>Nie przypisuj</option></select></label>`}
+          ${live ? "" : `<label class="form-label">Ważność linku<select class="field" name="validity"><option value="14">14 dni</option><option value="7">7 dni</option><option value="3">3 dni</option><option value="1">24 godziny</option></select></label><label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania</option><option>Mariusz</option><option>Nie przypisuj</option></select></label>`}
         </div>
         <div class="info-banner" style="margin-top:15px">${icon("shield")}<div>${live ? `Ważność linku: ${invitationValidityLabel()}. Po utworzeniu skopiuj go od razu — pełnego tokenu nie można później odtworzyć z bazy.` : "To prototyp. Powstanie fikcyjny wpis i przykładowy link, ale żadna wiadomość nie zostanie wysłana."}</div></div>`,
       handler: async (formData) => {
@@ -1511,7 +1511,7 @@
         }
         const id = `INV-DEMO-${Math.random().toString(16).slice(2, 6).toUpperCase()}`;
         const createdAt = new Date();
-        const validityDays = Number(formData.get("validity")) || 7;
+        const validityDays = Number(formData.get("validity")) || 14;
         const expiresAt = new Date(createdAt.getTime() + validityDays * 24 * 60 * 60 * 1000);
         state.invitations.unshift({ id, recipient, email, created: formatDate(createdAt.toISOString()), expires: formatDate(expiresAt.toISOString()), status: "active" });
         addAudit("Utworzono link do ankiety", `${id} · ${recipient}`);
