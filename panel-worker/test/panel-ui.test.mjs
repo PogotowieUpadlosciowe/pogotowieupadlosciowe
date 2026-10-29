@@ -79,3 +79,31 @@ test("podgląd demonstracyjny nie zawiera starych wpisów ani testowych rekordó
   assert.match(root.textContent, /Brak konfiguracji w podglądzie/);
   dom.window.close();
 });
+
+
+test("linki ankiet pokazują 14 dni z konfiguracji Workera, a zamknięcie nie waliduje pustego formularza", async () => {
+  const dom = await openPanel(async (path) => {
+    if (path === "/api/session") return json({ authenticated: true, user: { role: "admin", email: "admin@example.test", name: "Mariusz" } });
+    if (path === "/api/submissions") return json({ items: [] });
+    if (path === "/api/admin/invitations") return json({ items: [] });
+    if (path === "/api/health") return json({ invitation_validity_days: 14 });
+    return json({ items: [] });
+  });
+  const { document, location } = dom.window;
+  location.hash = "#invitations";
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  const root = document.querySelector("#view-root");
+  assert.match(root.textContent, /Ważność: 14 dni/);
+  root.querySelector('[data-action="new-invitation"]').click();
+
+  const modal = document.querySelector("#action-modal");
+  assert.equal(modal.open, true);
+  const modalBody = document.querySelector("#modal-body");
+  assert.match(modalBody.textContent, /Ważność linku: 14 dni/);
+  assert.doesNotMatch(modalBody.textContent, /7 dni/);
+
+  document.querySelector('#action-modal-form [aria-label="Zamknij"]').click();
+  assert.equal(modal.open, false);
+  dom.window.close();
+});
