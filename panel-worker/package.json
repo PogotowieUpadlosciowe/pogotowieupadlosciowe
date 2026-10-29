@@ -1,0 +1,13 @@
+{
+  "name": "pogotowie-upadlosciowe-panel-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/index.js && node --test test/*.test.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "jsdom": "30.1.1",
+    "wrangler": "^4.39.0"
+  }
+}
