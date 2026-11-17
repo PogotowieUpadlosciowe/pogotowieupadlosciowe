@@ -10,7 +10,7 @@ Akcje wykonane w podglądzie są tymczasowe i znikają po odświeżeniu. Prawdzi
 ## Co można sprawdzić
 
 - w statycznym podglądzie: nawigację, mobilny układ, puste listy i tymczasowe utworzenie linku demonstracyjnego;
-- po zalogowaniu do prywatnego panelu: sprawy, ich historię, dokumenty, załączniki, płatności, linki i dostępne widoki administratora;
+- po zalogowaniu do prywatnego panelu: sprawy, ich podsumowanie i historię, dokumenty, załączniki, płatności, wysyłkę linku do ankiety e-mailem i dostępne widoki administratora;
 - w podglądzie można przełączać widok administratora i operatora. Nie zmienia to uprawnień produkcyjnych.
 
 ## Architektura prywatna
@@ -27,9 +27,10 @@ Sesja może być ważna przez 12 godzin. Odświeżenie strony i zamknięcie kart
 ## Stan integracji
 
 - podłączone: sprawy, pełne odpowiedzi ankiety, zgody, statusy zamówienia i e-maili, historia zdarzeń, lista i pobieranie załączników oraz linki do ankiety;
-- zapisywane: nowe linki do ankiety, notatki wewnętrzne i potwierdzenie płatności;
+- zapisywane: nowe linki do ankiety, opcjonalna wysyłka zaproszenia na podany adres e-mail, ukrywanie linków w historii, notatki wewnętrzne i potwierdzenie płatności;
+- usunięcie linku z historii nie usuwa zapisanej ankiety ani powiązanej sprawy; aktywny link jest przy tym unieważniany;
 - zabezpieczone po stronie serwera: role, trasy administracyjne i dozwolony zakres zmian;
-- celowo wyłączone do następnego etapu: osobne zadania, strukturalna lista wierzycieli, edycja checklisty, wysyłka przypomnień i zarządzanie użytkownikami. Obecny backend nie ma jeszcze bezpiecznego modelu danych dla tych funkcji.
+- celowo wyłączone do następnego etapu: ręczne zadania, strukturalna lista wierzycieli, edycja checklisty, wysyłka przypomnień, korekty administracyjne i zarządzanie użytkownikami. Panel pokazuje te ograniczenia, a produkcyjne przyciski nie udają zapisanych zmian.
 
 Instrukcja konfiguracji i testów znajduje się w `panel-worker/README.md`.
 

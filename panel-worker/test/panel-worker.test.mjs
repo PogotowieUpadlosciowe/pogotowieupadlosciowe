@@ -82,6 +82,14 @@ test("allowlist nie udostępnia nieznanych tras", () => {
   assert.equal(routePolicy("/api/submissions", "GET").upstream, "/submissions");
 });
 
+test("usunięcie linku z historii jest przekazywane wyłącznie dla operatora i administratora", () => {
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const policy = routePolicy(`/api/admin/invitations/${id}/history`, "DELETE");
+  assert.deepEqual(policy.roles, ["operator", "admin"]);
+  assert.equal(policy.upstream, `/admin/invitations/${id}/history`);
+  assert.equal(routePolicy(`/api/admin/invitations/${id}/history`, "GET"), null);
+});
+
 test("sesja zwraca wyłącznie rolę i krótką nazwę konta", async () => {
   const { env, identity } = await envFor();
   const response = await handleRequest(request("/api/session", identity.token), env);

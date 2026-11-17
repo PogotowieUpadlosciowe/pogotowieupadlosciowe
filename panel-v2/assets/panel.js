@@ -277,7 +277,9 @@
     return {
       id: item.id,
       recipient: label || "Bez etykiety",
-      email: "",
+      email: String(item.email || ""),
+      emailStatus: String(item.email_status || (item.email ? "unknown" : "not_requested")),
+      emailSentAt: item.email_sent_at || null,
       created: formatDate(item.created_at),
       expires: formatDate(item.expires_at),
       status: item.status || "expired",
@@ -665,7 +667,7 @@
               <ul class="task-list">
                 ${tasks.length ? tasks.map((task) => `
                   <li class="task-item">
-                    <button class="task-checkbox" type="button" aria-label="Oznacz zadanie jako wykonane" data-action="toggle-task" data-case-id="${task.caseItem.id}" data-task-id="${task.id}"></button>
+                    ${state.mode === "live" ? `<span class="task-checkbox" aria-hidden="true" title="Zmiana statusu zadania nie jest jeszcze dostępna na pulpicie"></span>` : `<button class="task-checkbox" type="button" aria-label="Oznacz zadanie jako wykonane" data-action="toggle-task" data-case-id="${task.caseItem.id}" data-task-id="${task.id}"></button>`}
                     <a class="item-copy" href="#case/${task.caseItem.id}/overview" style="text-decoration:none">
                       <strong>${escapeHTML(task.title)}</strong>
                       <span>${escapeHTML(task.caseItem.name)} · ${escapeHTML(task.caseItem.ref)}</span>
@@ -795,7 +797,7 @@
           </div>
           <div class="case-contact-actions">
             ${state.mode === "live" ? `${caseItem.phone !== "—" ? `<a class="button button-secondary button-small" href="tel:${escapeHTML(caseItem.phone.replace(/[^+0-9]/g, ""))}">${icon("phone")}Zadzwoń</a>` : ""}${caseItem.email !== "—" ? `<a class="button button-secondary button-small" href="mailto:${encodeURIComponent(caseItem.email)}">${icon("mail")}Napisz</a>` : ""}` : `<button class="button button-secondary button-small" type="button" data-action="contact" data-channel="phone" data-case-id="${caseItem.id}">${icon("phone")}Zadzwoń</button><button class="button button-secondary button-small" type="button" data-action="contact" data-channel="mail" data-case-id="${caseItem.id}">${icon("mail")}Napisz</button>`}
-            <button class="button button-quiet button-small" type="button" data-action="case-menu" data-case-id="${caseItem.id}">${icon("more")}Więcej</button>
+            <button class="button button-quiet button-small" type="button" data-action="case-details" data-case-id="${caseItem.id}" aria-haspopup="dialog" aria-label="Więcej informacji o sprawie">${icon("more")}Więcej</button>
           </div>
         </div>
         <div class="case-meta-strip">
@@ -805,6 +807,34 @@
           <div class="case-meta-item"><span>Ostatnia zmiana</span><strong>${escapeHTML(caseItem.updatedAt)}</strong></div>
         </div>
       </section>`;
+  }
+
+  function caseDetailsModal(caseItem) {
+    openModal({
+      title: "Szczegóły sprawy",
+      eyebrow: caseItem.ref,
+      confirm: "Zamknij",
+      body: `
+        <div class="summary-grid">
+          <div class="summary-item"><span>Klient</span><strong>${escapeHTML(caseItem.name)}</strong></div>
+          <div class="summary-item"><span>Numer sprawy</span><strong>${escapeHTML(caseItem.ref)}</strong></div>
+          <div class="summary-item"><span>Status sprawy</span><strong>${escapeHTML(STATUS_LABELS[caseItem.status] || caseItem.status)}</strong></div>
+          <div class="summary-item"><span>Płatność</span><strong>${escapeHTML(PAYMENT_LABELS[caseItem.payment] || caseItem.payment)}</strong></div>
+          <div class="summary-item"><span>Materiały</span><strong>${escapeHTML(MATERIAL_LABELS[caseItem.materials] || caseItem.materials)}</strong></div>
+          <div class="summary-item"><span>Wartość zamówienia</span><strong>${money(caseItem.amount)}</strong></div>
+          <div class="summary-item"><span>E-mail</span><strong>${escapeHTML(caseItem.email)}</strong></div>
+          <div class="summary-item"><span>Telefon</span><strong>${escapeHTML(caseItem.phone)}</strong></div>
+          <div class="summary-item"><span>Termin</span><strong>${escapeHTML(caseItem.term)}</strong></div>
+          <div class="summary-item"><span>Utworzono</span><strong>${escapeHTML(caseItem.createdAt)}</strong></div>
+          <div class="summary-item full"><span>Ostatnia aktualizacja</span><strong>${escapeHTML(caseItem.updatedAt)}</strong></div>
+        </div>
+        <p class="section-copy" style="margin:14px 0 8px">Pełne odpowiedzi ankiety i zapisane zdarzenia znajdziesz w sekcjach sprawy.</p>
+        <div class="row-actions">
+          <a class="button button-secondary button-small" data-close-modal href="#case/${encodeURIComponent(caseItem.id)}/questionnaire">Otwórz ankietę</a>
+          <a class="button button-quiet button-small" data-close-modal href="#case/${encodeURIComponent(caseItem.id)}/history">Historia sprawy</a>
+        </div>`,
+      handler: () => true
+    });
   }
 
   function caseStage(caseItem) {
@@ -830,7 +860,7 @@
   function taskList(caseItem) {
     return caseItem.tasks.map((task) => `
       <li class="task-item">
-        <button class="task-checkbox ${task.done ? "done" : ""}" type="button" aria-label="${task.done ? "Przywróć zadanie" : "Oznacz zadanie jako wykonane"}" data-action="toggle-task" data-case-id="${caseItem.id}" data-task-id="${task.id}" ${state.mode === "live" ? "disabled" : ""}>${task.done ? icon("check") : ""}</button>
+        <button class="task-checkbox ${task.done ? "done" : ""}" type="button" aria-label="${task.done ? "Przywróć zadanie" : "Oznacz zadanie jako wykonane"}" data-action="toggle-task" data-case-id="${caseItem.id}" data-task-id="${task.id}" ${state.mode === "live" ? `disabled title="Zmiana statusu zadania nie jest jeszcze dostępna"` : ""}>${task.done ? icon("check") : ""}</button>
         <span class="item-copy"><strong style="${task.done ? "text-decoration:line-through;color:var(--ink-500)" : ""}">${escapeHTML(task.title)}</strong><span>${escapeHTML(task.due)}</span></span>
         ${priorityBadge(task.priority)}
       </li>`).join("");
@@ -839,7 +869,7 @@
   function checklist(caseItem, limit = Infinity) {
     return caseItem.documents.slice(0, limit).map((documentItem) => `
       <li class="checklist-item">
-        <button class="check-state ${documentItem.state}" type="button" data-action="cycle-document" data-case-id="${caseItem.id}" data-document-id="${documentItem.id}" aria-label="Zmień status dokumentu" ${state.mode === "live" ? "disabled" : ""}>${documentItem.state === "received" ? icon("check") : documentItem.state === "not_applicable" ? "—" : ""}</button>
+        <button class="check-state ${documentItem.state}" type="button" data-action="cycle-document" data-case-id="${caseItem.id}" data-document-id="${documentItem.id}" aria-label="Zmień status dokumentu" ${state.mode === "live" ? `disabled title="Status dokumentu zmienisz przez przebieg sprawy"` : ""}>${documentItem.state === "received" ? icon("check") : documentItem.state === "not_applicable" ? "—" : ""}</button>
         <span class="checklist-copy"><strong>${escapeHTML(documentItem.name)}</strong><span>${escapeHTML(documentItem.note)}</span></span>
         <span class="status-badge status-${documentItem.state === "received" ? "complete" : documentItem.state === "missing" ? "incomplete" : "neutral"}">${escapeHTML(CHECK_LABELS[documentItem.state])}</span>
       </li>`).join("");
@@ -915,7 +945,7 @@
         <div class="main-stack">
           ${state.mode === "live" ? `<section class="card section-card"><div class="card-head"><div><h2>Przebieg obsługi</h2><p class="section-copy">Każda zmiana wymaga potwierdzenia i jest zapisywana w sprawie.</p></div></div><div class="card-body" style="display:flex;flex-wrap:wrap;gap:10px">${workflowActions(caseItem).map(([action, label]) => `<button class="button button-secondary" type="button" data-action="workflow" data-workflow="${action}" data-case-id="${escapeHTML(caseItem.id)}">${label}</button>`).join("") || "Sprawa została zamknięta."}</div></section>` : ""}
           <section class="card section-card">
-            <div class="card-head"><div><h2>Zadania</h2><p class="section-copy">${state.mode === "live" ? "Najbliższy krok wynikający z bieżącego stanu sprawy." : "Konkretne czynności przypisane do tej sprawy."}</p></div><button class="button button-secondary button-small" type="button" data-action="add-task" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("plus")}Dodaj zadanie</button></div>
+            <div class="card-head"><div><h2>Zadania</h2><p class="section-copy">${state.mode === "live" ? "Najbliższy krok wynika z bieżącego stanu sprawy; ręczne dodawanie zadań nie jest jeszcze dostępne." : "Konkretne czynności przypisane do tej sprawy."}</p></div><button class="button button-secondary button-small" type="button" data-action="add-task" data-case-id="${caseItem.id}" ${state.mode === "live" ? `disabled title="Ręczne dodawanie zadań nie jest jeszcze dostępne"` : ""}>${icon("plus")}Dodaj zadanie</button></div>
             <ul class="task-list">${taskList(caseItem)}</ul>
           </section>
           <section class="card section-card">
@@ -1101,7 +1131,7 @@
             <div class="progress-block"><div class="progress-row"><span>Kompletność</span><strong>${resolved}/${caseItem.documents.length} · ${progress}%</strong></div><div class="progress-bar"><span style="width:${progress}%"></span></div></div>
             <ul class="checklist" style="margin-top:12px">${checklist(caseItem)}</ul>
           </div>
-          <div class="card-foot"><button class="button button-secondary button-small" type="button" data-action="send-reminder" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("mail")}Wyślij przypomnienie o brakach</button></div>
+          <div class="card-foot"><button class="button button-secondary button-small" type="button" data-action="send-reminder" data-case-id="${caseItem.id}" ${state.mode === "live" ? `disabled title="Wysyłka przypomnień nie jest jeszcze dostępna"` : ""}>${icon("mail")}Wyślij przypomnienie o brakach</button>${state.mode === "live" ? `<span class="section-copy">Wysyłka przypomnień nie jest jeszcze dostępna.</span>` : ""}</div>
         </section>
         <aside class="side-stack">
           <section class="card section-card">
@@ -1181,7 +1211,7 @@
         </section>
         <aside class="side-stack">
           <div class="info-banner">${icon("history")}<div><strong>Historia sprawy a audyt</strong>${state.mode === "live" ? "Historia pokazuje zdarzenia zapisane przy tej sprawie. Odsłonięcie pola w przeglądarce nie tworzy trwałego wpisu w tej historii." : "Tu pokazujemy przykładowy przebieg obsługi i audyt demonstracyjny."}</div></div>
-          ${state.role === "admin" ? `<section class="card section-card"><div class="card-head"><div><h2>Operacje administracyjne</h2><p class="section-copy">Dostępne wyłącznie administratorowi.</p></div></div><div class="card-body"><button class="button button-danger" type="button" data-action="admin-correction" data-case-id="${caseItem.id}">Wprowadź korektę administracyjną</button></div></section>` : ""}
+          ${state.role === "admin" ? `<section class="card section-card"><div class="card-head"><div><h2>Operacje administracyjne</h2><p class="section-copy">${state.mode === "live" ? "Korekty nie są dostępne, dopóki nie powstanie bezpieczny zapis z audytem." : "Dostępne wyłącznie administratorowi."}</p></div></div>${state.mode === "demo" ? `<div class="card-body"><button class="button button-danger" type="button" data-action="admin-correction" data-case-id="${caseItem.id}">Wprowadź korektę administracyjną</button></div>` : ""}</section>` : ""}
         </aside>
       </div>`;
   }
@@ -1212,7 +1242,7 @@
         ${caseItem.detailsError ? `<div class="warning-banner"><div><strong>Nie udało się pobrać załączników i historii</strong><p>${escapeHTML(caseItem.detailsError)}</p><button class="button button-secondary" type="button" data-action="retry-details" data-case-id="${escapeHTML(caseItem.id)}">Spróbuj ponownie</button></div></div>` : ""}
         <section class="next-action-card">
           <div class="next-action-main"><span class="next-action-icon">${icon("arrow")}</span><span class="next-action-copy"><span>Następne działanie</span><strong>${escapeHTML(caseItem.nextAction)}</strong><small style="display:block;color:var(--ink-600);margin-top:2px">${escapeHTML(caseItem.nextActionDue)}</small></span></div>
-          ${caseItem.status !== "completed" ? `<button class="button button-primary button-small" type="button" data-action="complete-next" data-case-id="${caseItem.id}" ${state.mode === "live" ? "disabled" : ""}>${icon("check")}Oznacz jako wykonane</button>` : ""}
+          ${caseItem.status !== "completed" ? `<button class="button button-primary button-small" type="button" data-action="complete-next" data-case-id="${caseItem.id}" ${state.mode === "live" ? `disabled title="Oznaczenie zadania jako wykonanego nie jest jeszcze dostępne"` : ""}>${icon("check")}Oznacz jako wykonane</button>` : ""}
         </section>
         ${caseStage(caseItem)}
         ${caseTabs(caseItem, tab)}
@@ -1226,6 +1256,13 @@
       const tone = status === "active" ? "active" : status === "used" ? "complete" : "neutral";
       return statusBadge(tone, { [tone]: labels[status] || status });
     };
+    const emailStatusLabel = (status) => ({
+      sent: "E-mail wysłany",
+      failed: "E-mail niewysłany — przekaż link ręcznie",
+      not_configured: "Wysyłka e-maili wymaga konfiguracji",
+      pending: "Wysyłka w toku",
+      unknown: "Status e-maila nieznany"
+    }[status] || "");
     setBreadcrumbs([{ label: "Linki do ankiety" }]);
     dom.root.innerHTML = `
       <section class="page">
@@ -1235,17 +1272,17 @@
           subtitle: "Twórz bezpieczne, jednorazowe zaproszenia dla klientów.",
           actions: `<button class="button button-primary" type="button" data-action="new-invitation">${icon("plus")}Utwórz link</button>`
         })}
-        <div class="info-banner">${icon("shield")}<div><strong>Link jest jednorazowy</strong>Po poprawnym wysłaniu ankiety token zostaje wykorzystany. Nie wysyłaj linków przez kanały dostępne osobom postronnym.</div></div>
+        <div class="info-banner">${icon("shield")}<div><strong>Link jest jednorazowy</strong>${state.mode === "live" ? "Po podaniu e-maila panel wysyła klientowi indywidualny link. Bez adresu e-mail link zostanie utworzony do ręcznego przekazania." : "Po poprawnym wysłaniu ankiety token zostaje wykorzystany. Podgląd demonstracyjny nie wysyła wiadomości."}</div></div>
         <section class="card table-card">
           ${state.invitations.length ? `<div style="overflow-x:auto"><table class="data-table responsive-table">
             <thead><tr><th>Odbiorca</th><th>Utworzono</th><th>Wygasa</th><th>Status</th><th>Działania</th></tr></thead>
             <tbody>${state.invitations.map((item) => `
               <tr>
-                <td class="primary-cell"><strong>${escapeHTML(item.recipient)}</strong><span>${item.email ? `${escapeHTML(item.email)} · ` : ""}${escapeHTML(item.id)}</span>${item.inviteUrl ? `<label class="form-label">Link do ankiety — skopiuj przed opuszczeniem panelu<input class="field" type="text" readonly value="${escapeHTML(item.inviteUrl)}"></label>` : ""}</td>
+                <td class="primary-cell"><strong>${escapeHTML(item.recipient)}</strong><span>${item.email ? `${escapeHTML(item.email)} · ` : ""}${escapeHTML(item.id)}</span>${item.email && emailStatusLabel(item.emailStatus) ? `<span>${escapeHTML(emailStatusLabel(item.emailStatus))}</span>` : ""}${item.inviteUrl ? `<label class="form-label">Link do ankiety — skopiuj przed opuszczeniem panelu<input class="field" type="text" readonly value="${escapeHTML(item.inviteUrl)}"></label>` : ""}</td>
                 <td data-label="Utworzono">${escapeHTML(item.created)}</td>
                 <td data-label="Wygasa">${escapeHTML(item.expires)}</td>
                 <td data-label="Status">${invitationStatus(item.status)}</td>
-                <td data-label="Działania"><div class="row-actions"><button class="button button-secondary button-small" type="button" data-action="copy-invitation" data-invitation-id="${item.id}" ${(item.status !== "active" || (state.mode === "live" && !item.inviteUrl)) ? "disabled" : ""}>Kopiuj link</button><button class="button button-quiet button-small" type="button" data-action="send-invitation" data-invitation-id="${item.id}" ${state.mode === "live" || item.status !== "active" ? "disabled" : ""}>Wyślij</button></div></td>
+                <td data-label="Działania"><div class="row-actions"><button class="button button-secondary button-small" type="button" data-action="copy-invitation" data-invitation-id="${escapeHTML(item.id)}" ${(item.status !== "active" || (state.mode === "live" && !item.inviteUrl)) ? "disabled" : ""}>Kopiuj link</button><button class="button button-quiet button-small" type="button" data-action="hide-invitation" data-invitation-id="${escapeHTML(item.id)}">Usuń z historii</button></div></td>
               </tr>`).join("")}</tbody>
           </table></div>` : `<div class="empty-state"><span class="empty-state-icon">${icon("link")}</span><h2>Brak linków do ankiety</h2><p>Lista zapełni się po utworzeniu pierwszego zaproszenia.</p></div>`}
           <div class="pagination-bar"><span>${state.invitations.filter((item) => item.status === "active").length} aktywnych linków</span><span>${state.mode === "live" ? `Ważność: ${invitationValidityLabel()} · skopiuj link przed opuszczeniem panelu` : "Linki w podglądzie nie są wysyłane ani zapisywane na produkcji."}</span></div>
@@ -1364,12 +1401,12 @@
     setBreadcrumbs([{ label: "Administracja" }, { label: "Użytkownicy" }]);
     dom.root.innerHTML = `
       <section class="page">
-        ${pageHead({ eyebrow: "Role i dostęp", title: "Użytkownicy", subtitle: "Dostęp do panelu jest nadawany przez Cloudflare Access i dodatkowo ograniczany rolą w aplikacji.", actions: `<button class="button button-primary" type="button" data-action="add-user" ${state.mode === "live" ? "disabled" : ""}>${icon("plus")}Dodaj użytkownika</button>` })}
+        ${pageHead({ eyebrow: "Role i dostęp", title: "Użytkownicy", subtitle: "Dostęp do panelu jest nadawany przez Cloudflare Access i dodatkowo ograniczany rolą w aplikacji.", actions: state.mode === "live" ? `<span class="section-copy">Zarządzanie kontami: Cloudflare Access</span>` : `<button class="button button-primary" type="button" data-action="add-user">${icon("plus")}Dodaj użytkownika</button>` })}
         <div class="info-banner">${icon("shield")}<div><strong>Logowanie z MFA</strong>Panel nie przechowuje haseł. Tożsamość jest potwierdzana przez Cloudflare Access, a uprawnienia są sprawdzane przez prywatny Worker.</div></div>
         <section class="card">
           ${state.mode === "live" ? `
-            <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>Konto administratora w Cloudflare Access</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">Dostęp aktywny</strong><span style="color:var(--ink-500);font-size:10.5px">Role sprawdzane przy każdym żądaniu</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" disabled>Edytuj</button></div>
-            <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>Konto operatora w Cloudflare Access</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">Dostęp aktywny</strong><span style="color:var(--ink-500);font-size:10.5px">Bez sekcji administracyjnych</span></div><button class="button button-secondary button-small" type="button" data-action="edit-user" disabled>Edytuj</button></div>
+            <div class="user-row"><div class="user-profile"><span class="avatar">M</span><div><strong>Mariusz</strong><span>Konto administratora w Cloudflare Access</span></div></div><div>${statusBadge("active", { active: "Administrator" })}</div><div><strong style="display:block;font-size:12px">Dostęp aktywny</strong><span style="color:var(--ink-500);font-size:10.5px">Role sprawdzane przy każdym żądaniu</span></div><span class="section-copy">Zarządzane w Cloudflare Access</span></div>
+            <div class="user-row"><div class="user-profile"><span class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#633bc1)">A</span><div><strong>Ania</strong><span>Konto operatora w Cloudflare Access</span></div></div><div>${statusBadge("contacted", { contacted: "Operator" })}</div><div><strong style="display:block;font-size:12px">Dostęp aktywny</strong><span style="color:var(--ink-500);font-size:10.5px">Bez sekcji administracyjnych</span></div><span class="section-copy">Zarządzane w Cloudflare Access</span></div>
           ` : `<div class="empty-state"><span class="empty-state-icon">${icon("users")}</span><h2>Brak danych użytkowników</h2><p>Lista kont i ich aktywności jest dostępna po zalogowaniu do prywatnego panelu.</p></div>`}
         </section>
         <section class="card section-card"><div class="card-head"><div><h2>Zakres ról</h2><p class="section-copy">Podstawowa matryca uprawnień.</p></div></div><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Obszar</th><th>Operator</th><th>Administrator</th></tr></thead><tbody>
@@ -1482,30 +1519,41 @@
       confirm: "Utwórz bezpieczny link",
       body: `
         <div class="form-grid">
-          <label class="form-label">Imię i nazwisko klienta<input class="field" name="recipient" required placeholder="np. Jan Kowalski"></label>
-          <label class="form-label">Adres e-mail<input class="field" name="email" type="email" required placeholder="klient@example.com"></label>
+          <label class="form-label">Imię i nazwisko klienta<input class="field" name="recipient" required maxlength="160" placeholder="np. Jan Kowalski"></label>
+          <label class="form-label">Adres e-mail (opcjonalnie)<input class="field" name="email" type="email" maxlength="254" placeholder="klient@example.com"></label>
           ${live ? "" : `<label class="form-label">Ważność linku<select class="field" name="validity"><option value="14">14 dni</option><option value="7">7 dni</option><option value="3">3 dni</option><option value="1">24 godziny</option></select></label><label class="form-label">Prowadzący<select class="field" name="owner"><option>Ania</option><option>Mariusz</option><option>Nie przypisuj</option></select></label>`}
         </div>
-        <div class="info-banner" style="margin-top:15px">${icon("shield")}<div>${live ? `Ważność linku: ${invitationValidityLabel()}. Po utworzeniu skopiuj go od razu — pełnego tokenu nie można później odtworzyć z bazy.` : "To prototyp. Powstanie fikcyjny wpis i przykładowy link, ale żadna wiadomość nie zostanie wysłana."}</div></div>`,
+        <div class="info-banner" style="margin-top:15px">${icon("shield")}<div>${live ? `Jeśli podasz e-mail, wyślemy na niego link automatycznie. Bez adresu utworzymy link do ręcznego przekazania. Ważność: ${invitationValidityLabel()}. Pełnego tokenu nie będzie można później odtworzyć z bazy.` : "To prototyp. Powstanie fikcyjny wpis i przykładowy link, ale żadna wiadomość nie zostanie wysłana."}</div></div>`,
       handler: async (formData) => {
         const recipient = String(formData.get("recipient") || "").trim();
         const email = String(formData.get("email") || "").trim();
-        if (!recipient || !email) {
-          toast("Uzupełnij dane", "Imię i adres e-mail są wymagane.", "warning");
+        if (!recipient) {
+          toast("Uzupełnij dane", "Imię i nazwisko klienta są wymagane.", "warning");
+          return false;
+        }
+        if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+          toast("Sprawdź adres e-mail", "Wpisz prawidłowy adres albo pozostaw pole puste.", "warning");
           return false;
         }
         if (live) {
           const result = await apiRequest("/api/admin/invitations", {
             method: "POST",
-            body: JSON.stringify({ label: `${recipient} · ${email}` })
+            body: JSON.stringify({ label: recipient, email })
           });
           const invitation = mapInvitation(result.item, result.invite_url || "");
           invitation.recipient = recipient;
           invitation.email = email;
+          invitation.emailStatus = result.email_delivery?.status || result.item?.email_status || (email ? "unknown" : "not_requested");
           state.invitations.unshift(invitation);
           if (invitation.inviteUrl) state.lastInviteUrls.set(invitation.id, invitation.inviteUrl);
           const copied = invitation.inviteUrl && await copyInvitation(invitation.inviteUrl);
-          toast(copied ? "Link utworzony i skopiowany" : "Link utworzony", copied ? "Przekaż go klientowi bezpiecznym kanałem." : "Skopiuj link z pola na liście zaproszeń przed opuszczeniem panelu.", copied ? "success" : "warning");
+          if (email && invitation.emailStatus === "sent") {
+            toast("Zaproszenie wysłane", result.email_delivery?.message || `Link wysłano na ${email}.`, "success");
+          } else if (email) {
+            toast("Link utworzony, e-mail niewysłany", result.email_delivery?.message || "Skopiuj link z listy i przekaż go klientowi.", "warning");
+          } else {
+            toast(copied ? "Link utworzony i skopiowany" : "Link utworzony", copied ? "Przekaż go klientowi bezpiecznym kanałem." : "Skopiuj link z pola na liście zaproszeń przed opuszczeniem panelu.", copied ? "success" : "warning");
+          }
           navigate("#invitations");
           return true;
         }
@@ -1513,10 +1561,31 @@
         const createdAt = new Date();
         const validityDays = Number(formData.get("validity")) || 14;
         const expiresAt = new Date(createdAt.getTime() + validityDays * 24 * 60 * 60 * 1000);
-        state.invitations.unshift({ id, recipient, email, created: formatDate(createdAt.toISOString()), expires: formatDate(expiresAt.toISOString()), status: "active" });
+        state.invitations.unshift({ id, recipient, email, emailStatus: "not_requested", created: formatDate(createdAt.toISOString()), expires: formatDate(expiresAt.toISOString()), status: "active" });
         addAudit("Utworzono link do ankiety", `${id} · ${recipient}`);
         toast("Link demonstracyjny utworzony", "Możesz go skopiować z listy. Nie prowadzi do produkcyjnej ankiety.", "success");
         navigate("#invitations");
+        return true;
+      }
+    });
+  }
+
+  function hideInvitationModal(invitation) {
+    const active = invitation.status === "active";
+    openModal({
+      title: "Usuń link z historii",
+      eyebrow: "Link do ankiety",
+      confirm: "Usuń z historii",
+      danger: true,
+      body: `<div class="warning-banner">${icon("shield")}<div><strong>${active ? "Aktywny link zostanie unieważniony" : "Wpis zostanie ukryty na liście"}</strong>${active ? "Klient nie będzie mógł już użyć tego linku." : "Ten link zniknie z historii zaproszeń."} Zapisanej ankiety ani powiązanej sprawy nie usuniemy.</div></div>`,
+      handler: async () => {
+        if (state.mode === "live") {
+          await apiRequest(`/api/admin/invitations/${encodeURIComponent(invitation.id)}/history`, { method: "DELETE" });
+        }
+        state.invitations = state.invitations.filter((item) => item.id !== invitation.id);
+        state.lastInviteUrls.delete(invitation.id);
+        toast("Usunięto z historii", active ? "Link został unieważniony, a powiązana sprawa pozostała bez zmian." : "Wpis zniknął z listy; zapisane dane sprawy pozostały bez zmian.", "success");
+        render();
         return true;
       }
     });
@@ -1611,11 +1680,11 @@
     const liveUnavailable = new Set([
       "toggle-task", "cycle-document", "add-task", "add-creditor", "edit-creditor",
       "complete-next", "mock-save", "save-settings", "send-reminder",
-      "case-menu", "admin-correction", "export-report", "export-audit", "create-backup",
+      "admin-correction", "export-report", "export-audit", "create-backup",
       "add-user", "edit-user"
     ]);
     if (state.mode === "live" && liveUnavailable.has(action)) {
-      toast("Funkcja jeszcze nieaktywna", "Panel nie zapisze tej operacji, dopóki nie powstanie jej bezpieczny model w backendzie.", "warning");
+      toast("Funkcja niedostępna", "Ta czynność nie jest jeszcze dostępna w aktywnym panelu. Żadnych zmian nie zapisano.", "warning");
       return;
     }
     if (action === "workflow" && caseItem && state.mode === "live") {
@@ -1630,6 +1699,7 @@
       dom.notificationPanel.hidden = true;
       navigate(`#case/${button.dataset.caseId}/overview`);
     } else if (action === "new-invitation") newInvitationModal();
+    else if (action === "case-details" && caseItem) caseDetailsModal(caseItem);
     else if (action === "toggle-task" && caseItem) {
       const task = caseItem.tasks.find((item) => item.id === button.dataset.taskId);
       if (task) {
@@ -1712,21 +1782,31 @@
       }
       const copied = await copyInvitation(value);
       toast(copied ? "Link skopiowany" : "Nie udało się skopiować automatycznie", copied ? "Możesz przekazać go klientowi bezpiecznym kanałem." : "Zaznacz i skopiuj adres z pola na liście zaproszeń.", copied ? "success" : "warning");
-    } else if (action === "send-invitation") genericDemoAction("Wyślij zaproszenie", "Panel wyśle klientowi bezpieczny link do ankiety.", "Wyślij");
+    } else if (action === "hide-invitation") {
+      const invitation = state.invitations.find((item) => item.id === button.dataset.invitationId);
+      if (invitation) hideInvitationModal(invitation);
+    }
     else if (action === "mock-save" || action === "save-settings") {
       toast("Zmiany zapisane w prototypie", "Nie wysłano żadnych danych do produkcji.", "success");
       addAudit("Zapisano ustawienia demonstracyjne", "Prototyp Panelu 2.0");
     } else if (action === "send-reminder") genericDemoAction("Wyślij przypomnienie", "Panel przygotuje wiadomość zawierającą wyłącznie listę brakujących dokumentów.", "Wyślij przypomnienie");
     else if (action === "upload-file") genericDemoAction("Dodaj bezpieczny załącznik", "Plik zostanie zaszyfrowany i zapisany w prywatnym magazynie R2.", "Wybierz plik");
     else if (action === "mock-download") toast("Pobieranie zasymulowane", "W prototypie nie ma prawdziwego załącznika.");
-    else if (action === "case-menu") genericDemoAction("Pozostałe działania", "W finalnym panelu znajdą się tu: zmiana prowadzącego, eksport sprawy i zamknięcie sprawy.", "Rozumiem");
     else if (action === "admin-correction") genericDemoAction("Korekta administracyjna", "Każda korekta wymaga podania przyczyny i pozostawia trwały wpis w audycie.", "Przejdź dalej");
     else if (["export-report", "export-audit"].includes(action)) toast("Eksport przygotowany", "W prototypie plik nie zawiera prawdziwych danych.", "success");
     else if (action === "create-backup") genericDemoAction("Utwórz kopię zapasową", "Panel uruchomi kopię bazy i indeksu załączników.", "Utwórz kopię");
     else if (["add-user", "edit-user"].includes(action)) genericDemoAction(action === "add-user" ? "Dodaj użytkownika" : "Edytuj użytkownika", "Uprawnienia zostaną powiązane z tożsamością zweryfikowaną przez Cloudflare Access.", "Zapisz");
     else if (action === "profile") {
       dom.userPopover.hidden = true;
-      genericDemoAction("Moje konto", "Dane profilu i ustawienia sesji będą zarządzane przez bezpieczny moduł tożsamości.", "Zamknij");
+      if (state.mode === "live") {
+        openModal({
+          title: "Moje konto",
+          eyebrow: "Bieżąca sesja",
+          confirm: "Zamknij",
+          body: `<div class="summary-grid"><div class="summary-item"><span>Użytkownik</span><strong>${escapeHTML(state.session?.user?.name || "—")}</strong></div><div class="summary-item"><span>Adres e-mail</span><strong>${escapeHTML(state.session?.user?.email || "—")}</strong></div><div class="summary-item"><span>Rola</span><strong>${state.role === "admin" ? "Administrator" : "Operator"}</strong></div><div class="summary-item"><span>Ważność sesji</span><strong>${escapeHTML(formatDate(state.session?.expires_at))}</strong></div></div>`,
+          handler: () => true
+        });
+      } else genericDemoAction("Moje konto", "Dane profilu i ustawienia sesji będą zarządzane przez bezpieczny moduł tożsamości.", "Zamknij");
     } else if (action === "logout") {
       dom.userPopover.hidden = true;
       if (state.mode === "live") {
@@ -1757,6 +1837,11 @@
       }
     }
   }
+
+  dom.modalBody.addEventListener("click", (event) => {
+    const link = event.target.closest("a[data-close-modal]");
+    if (link) closeModal();
+  });
 
   dom.modalForm.addEventListener("submit", async (event) => {
     event.preventDefault();

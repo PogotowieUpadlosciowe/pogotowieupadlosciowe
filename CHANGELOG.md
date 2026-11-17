@@ -2,6 +2,13 @@
 
 Ten plik zbiera najważniejsze informacje ze starszych raportów i plików README. Szczegółowa historia każdej zmiany pozostaje dostępna w historii Git.
 
+## 2026-11-17 — podsumowanie spraw i wysyłka linków ankiet
+
+- przycisk „Więcej” w sprawie otwiera podsumowanie danych i skróty do ankiety oraz historii;
+- przy tworzeniu linku e-mail jest opcjonalny; jeśli go podano, API wysyła jednorazowy link i zapisuje status dostarczenia;
+- historia zaproszeń pozwala ukryć wpis; aktywne zaproszenie zostaje unieważnione, a zapisana ankieta i sprawa pozostają zachowane;
+- uporządkowano produkcyjne przyciski, które wcześniej wyglądały na aktywne mimo braku obsługi zapisu.
+
 ## 2026-09-24 — porządek nazw i dokumentacji
 
 - uproszczono nazwę aktywnego arkusza strony głównej do `home.css`;
