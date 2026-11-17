@@ -237,6 +237,9 @@ function routePolicy(pathname, method) {
   if (pathname === "/api/admin/invitations" && ["GET", "POST"].includes(method)) {
     return { roles: ["operator", "admin"], upstream: pathname.slice(4) };
   }
+  if (new RegExp(`^/api/admin/invitations/${uuid}/history$`, "i").test(pathname) && method === "DELETE") {
+    return { roles: ["operator", "admin"], upstream: pathname.slice(4) };
+  }
   if (new RegExp(`^/api/admin/invitations/${uuid}$`, "i").test(pathname) && method === "DELETE") {
     return { roles: ["operator", "admin"], upstream: pathname.slice(4) };
   }
