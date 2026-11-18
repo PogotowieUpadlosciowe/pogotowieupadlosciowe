@@ -62,7 +62,7 @@ let memoryRequestId = '';
 let invitationValidated = false;
 let attachmentConfig = {
   enabled: false,
-  maxBytes: 10 * 1024 * 1024,
+  maxBytes: 15 * 1024 * 1024,
   maxCount: 20,
   allowedTypes: new Set()
 };
@@ -97,6 +97,8 @@ const ATTACHMENT_MIME_BY_EXTENSION = Object.freeze({
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
   png: 'image/png',
+  heic: 'image/heic',
+  heif: 'image/heif',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 });
 
@@ -120,7 +122,7 @@ function validateAttachmentFiles(files) {
   for (const file of files) {
     const contentType = attachmentContentType(file);
     if (!attachmentConfig.allowedTypes.has(contentType)) {
-      return `„${file.name}” ma niedozwolony format. Wybierz PDF, JPG, PNG lub DOCX.`;
+      return `„${file.name}” ma niedozwolony format. Wybierz PDF, JPG, PNG, HEIC/HEIF lub DOCX.`;
     }
     if (!file.size) return `„${file.name}” jest pusty.`;
     if (file.size > attachmentConfig.maxBytes) {
@@ -152,7 +154,7 @@ function applyAttachmentConfig(config) {
 
   attachmentConfig = {
     enabled: config.attachment_upload_enabled === true,
-    maxBytes: Number.isFinite(maxBytes) && maxBytes > 0 ? maxBytes : 10 * 1024 * 1024,
+    maxBytes: Number.isFinite(maxBytes) && maxBytes > 0 ? maxBytes : 15 * 1024 * 1024,
     maxCount: Number.isFinite(maxCount) && maxCount > 0 ? maxCount : 20,
     allowedTypes: new Set(allowedTypes)
   };
@@ -160,7 +162,7 @@ function applyAttachmentConfig(config) {
   attachmentUploadBox.hidden = !attachmentConfig.enabled;
   attachmentInput.disabled = !attachmentConfig.enabled;
   if (attachmentConfig.enabled && attachmentHelp) {
-    attachmentHelp.textContent = `Możesz dodać do ${attachmentConfig.maxCount} plików PDF, JPG, PNG lub DOCX. Limit jednego pliku: ${formatAttachmentSize(attachmentConfig.maxBytes)}. Załącz tylko dokumenty potrzebne do przygotowania projektu.`;
+    attachmentHelp.textContent = `Możesz dodać do ${attachmentConfig.maxCount} plików PDF, JPG, PNG, HEIC/HEIF lub DOCX. Limit jednego pliku: ${formatAttachmentSize(attachmentConfig.maxBytes)}. Pliki są przesyłane bez zmiany jakości. Załącz tylko dokumenty potrzebne do przygotowania projektu.`;
   }
 }
 
