@@ -220,7 +220,7 @@ function routePolicy(pathname, method) {
     return { roles: ["operator", "admin"], upstream: pathname.slice(4), validate: "patch" };
   }
   if (new RegExp(`^/api/submissions/${uuid}$`, "i").test(pathname) && method === "DELETE") {
-    return { roles: ["admin"], upstream: pathname.slice(4) };
+    return { roles: ["admin"], upstream: pathname.slice(4), validate: "delete" };
   }
   if (new RegExp(`^/api/submissions/${uuid}/events$`, "i").test(pathname) && method === "GET") {
     return { roles: ["operator", "admin"], upstream: pathname.slice(4) };
@@ -255,6 +255,14 @@ function routePolicy(pathname, method) {
 
 async function validatedBody(request, policy, role) {
   if (!policy.validate) return request.body;
+  if (policy.validate === "delete") {
+    const match = new URL(request.url).pathname.match(/^\/api\/submissions\/([0-9a-f-]{36})$/i);
+    const confirmation = request.headers.get("X-Delete-Confirmation") || "";
+    if (!match || confirmation !== match[1]) {
+      throw Object.assign(new Error("Potwierdź usunięcie identyfikatorem sprawy."), { status: 400 });
+    }
+    return null;
+  }
   let body;
   try {
     body = await request.json();
