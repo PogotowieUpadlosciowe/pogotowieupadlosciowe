@@ -1201,6 +1201,18 @@
       </div>`;
   }
 
+  function adminDeleteSection(caseItem) {
+    if (state.mode !== "live" || state.role !== "admin") return "";
+    return [
+      '<section class="card section-card">',
+      '<div class="card-head"><div><h2>Trwałe usunięcie sprawy</h2><p class="section-copy">Dostępne wyłącznie administratorowi. Wymaga wpisania numeru sprawy.</p></div></div>',
+      '<div class="card-body">',
+      '<div class="warning-banner">' + icon("shield") + '<div><strong>Operacji nie można cofnąć.</strong> Usuniemy rekord sprawy, dowód akceptacji, historię i powiązane załączniki.</div></div>',
+      '<button class="button button-danger" type="button" data-action="delete-case" data-case-id="' + escapeHTML(caseItem.id) + '">Usuń sprawę trwale</button>',
+      '</div></section>'
+    ].join("");
+  }
+
   function renderHistory(caseItem) {
     return `
       <div class="split-layout">
@@ -1211,7 +1223,7 @@
         </section>
         <aside class="side-stack">
           <div class="info-banner">${icon("history")}<div><strong>Historia sprawy a audyt</strong>${state.mode === "live" ? "Historia pokazuje zdarzenia zapisane przy tej sprawie. Odsłonięcie pola w przeglądarce nie tworzy trwałego wpisu w tej historii." : "Tu pokazujemy przykładowy przebieg obsługi i audyt demonstracyjny."}</div></div>
-          ${state.role === "admin" ? `<section class="card section-card"><div class="card-head"><div><h2>Operacje administracyjne</h2><p class="section-copy">${state.mode === "live" ? "Korekty nie są dostępne, dopóki nie powstanie bezpieczny zapis z audytem." : "Dostępne wyłącznie administratorowi."}</p></div></div>${state.mode === "demo" ? `<div class="card-body"><button class="button button-danger" type="button" data-action="admin-correction" data-case-id="${caseItem.id}">Wprowadź korektę administracyjną</button></div>` : ""}</section>` : ""}
+          ${adminDeleteSection(caseItem)}
         </aside>
       </div>`;
   }
@@ -1591,6 +1603,45 @@
     });
   }
 
+  function deleteCaseModal(caseItem) {
+    if (state.mode !== "live" || state.role !== "admin") {
+      toast("Brak dostępu", "Trwałe usunięcie jest dostępne wyłącznie administratorowi.", "warning");
+      return;
+    }
+    const confirmationBody = [
+      '<div class="warning-banner">' + icon("shield") + '<div><strong>Usunięcie jest trwałe.</strong> Skasujemy sprawę, dowód akceptacji, historię zdarzeń i powiązane załączniki. Tej operacji nie można cofnąć.</div></div>',
+      '<p class="section-copy">Sprawa: <strong>' + escapeHTML(caseItem.ref) + '</strong></p>',
+      '<label class="form-label">Wpisz dokładnie numer sprawy, aby potwierdzić<input class="field" name="confirmation" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="' + escapeHTML(caseItem.ref) + '"></label>'
+    ].join("");
+    openModal({
+      title: "Potwierdź trwałe usunięcie",
+      eyebrow: "Sprawa " + caseItem.ref,
+      confirm: "Usuń sprawę na zawsze",
+      danger: true,
+      body: confirmationBody,
+      handler: async (formData) => {
+        if (state.mode !== "live" || state.role !== "admin") {
+          toast("Brak dostępu", "Sesja administratora nie jest już aktywna.", "warning");
+          return false;
+        }
+        const confirmation = String(formData.get("confirmation") || "").trim();
+        if (confirmation !== caseItem.ref) {
+          toast("Numer sprawy się nie zgadza", "Wpisz dokładnie numer podany w tym oknie.", "warning");
+          return false;
+        }
+        await apiRequest("/api/submissions/" + encodeURIComponent(caseItem.id), {
+          method: "DELETE",
+          headers: { "X-Delete-Confirmation": caseItem.id }
+        });
+        state.cases = state.cases.filter((item) => item.id !== caseItem.id);
+        state.revealed.clear();
+        navigate("#cases");
+        toast("Sprawa trwale usunięta", "Usunięto również jej historię, dowód akceptacji i załączniki.", "success");
+        return true;
+      }
+    });
+  }
+
   function addTaskModal(caseItem) {
     openModal({
       title: "Dodaj zadanie",
@@ -1687,7 +1738,9 @@
       toast("Funkcja niedostępna", "Ta czynność nie jest jeszcze dostępna w aktywnym panelu. Żadnych zmian nie zapisano.", "warning");
       return;
     }
-    if (action === "workflow" && caseItem && state.mode === "live") {
+    if (action === "delete-case" && caseItem) {
+      deleteCaseModal(caseItem);
+    } else if (action === "workflow" && caseItem && state.mode === "live") {
       workflowModal(caseItem, button.dataset.workflow);
     } else if (action === "upload-file" && caseItem && state.mode === "live") {
       uploadFileModal(caseItem);
