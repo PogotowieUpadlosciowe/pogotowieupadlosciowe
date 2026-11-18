@@ -131,6 +131,66 @@ test("Więcej w sprawie otwiera podsumowanie zamiast komunikatu o nieaktywnej fu
   dom.window.close();
 });
 
+test("trwałe usunięcie sprawy jest dostępne tylko administratorowi i wymaga wpisania jej numeru", async () => {
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const reference = "PU-2026-001";
+  let deleteRequest = null;
+  const dom = await openPanel(async (path, options = {}) => {
+    if (path === "/api/session") return json({ authenticated: true, user: { role: "admin", email: "admin@example.test", name: "Mariusz" } });
+    if (path === "/api/submissions" && options.method !== "DELETE") return json({ items: [{ id, reference, full_name: "Jan Kowalski", email: "jan@example.test", phone: "+48123123123", created_at: "2026-11-17T10:00:00.000Z", status: "new", payment_status: "awaiting", materials_status: "not_verified", order_price_gross_minor: 200000 }] });
+    if (path === `/api/submissions/${id}` && options.method === "DELETE") {
+      deleteRequest = { method: options.method, confirmation: options.headers.get("X-Delete-Confirmation") };
+      return json({ ok: true, deleted_id: id });
+    }
+    if (path === "/api/admin/invitations") return json({ items: [] });
+    if (path === "/api/health") return json({ invitation_validity_days: 14 });
+    if (path.endsWith("/attachments") || path.endsWith("/events")) return json({ items: [] });
+    return json({ items: [] });
+  });
+  const { document, location, Event } = dom.window;
+  location.hash = `#case/${id}/history`;
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  const deleteButton = document.querySelector('#view-root [data-action="delete-case"]');
+  assert.ok(deleteButton, "administrator should see the delete control");
+  deleteButton.click();
+  const modal = document.querySelector("#action-modal");
+  const confirmation = document.querySelector('#modal-body [name="confirmation"]');
+  assert.equal(modal.open, true);
+  assert.match(document.querySelector("#modal-body").textContent, /nie można cofnąć/i);
+
+  confirmation.value = "PU-2026-999";
+  document.querySelector("#action-modal-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(deleteRequest, null, "a different case reference must not call DELETE");
+  assert.equal(modal.open, true);
+
+  confirmation.value = reference;
+  document.querySelector("#action-modal-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await new Promise((resolve) => setTimeout(resolve, 25));
+  assert.deepEqual(deleteRequest, { method: "DELETE", confirmation: id });
+  assert.equal(location.hash, "#cases");
+  assert.doesNotMatch(document.querySelector("#view-root").textContent, /Jan Kowalski/);
+  dom.window.close();
+});
+
+test("operator nie widzi opcji trwałego usuwania sprawy", async () => {
+  const id = "11234567-89ab-4cde-8fab-0123456789ab";
+  const dom = await openPanel(async (path) => {
+    if (path === "/api/session") return json({ authenticated: true, user: { role: "operator", email: "ania@example.test", name: "Ania" } });
+    if (path === "/api/submissions") return json({ items: [{ id, reference: "PU-2026-002", full_name: "Anna Nowak", email: "anna@example.test", phone: "+48123123124", created_at: "2026-11-17T10:00:00.000Z", status: "new", payment_status: "awaiting", materials_status: "not_verified", order_price_gross_minor: 200000 }] });
+    if (path === "/api/admin/invitations") return json({ items: [] });
+    if (path === "/api/health") return json({ invitation_validity_days: 14 });
+    if (path.endsWith("/attachments") || path.endsWith("/events")) return json({ items: [] });
+    return json({ items: [] });
+  });
+  const { document, location } = dom.window;
+  location.hash = `#case/${id}/history`;
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(document.querySelector('#view-root [data-action="delete-case"]'), null);
+  dom.window.close();
+});
+
 test("adres e-mail do linku ankiety jest opcjonalny", async () => {
   const postBodies = [];
   const dom = await openPanel(async (path, options = {}) => {
