@@ -162,7 +162,7 @@ function applyAttachmentConfig(config) {
   attachmentUploadBox.hidden = !attachmentConfig.enabled;
   attachmentInput.disabled = !attachmentConfig.enabled;
   if (attachmentConfig.enabled && attachmentHelp) {
-    attachmentHelp.textContent = `Możesz dodać do ${attachmentConfig.maxCount} plików PDF, JPG, PNG, HEIC/HEIF lub DOCX. Limit jednego pliku: ${formatAttachmentSize(attachmentConfig.maxBytes)}. Pliki są przesyłane bez zmiany jakości. Załącz tylko dokumenty potrzebne do przygotowania projektu.`;
+    attachmentHelp.textContent = `Dodaj pliki tutaj razem z ankietą. Kliknij „Wyślij ankietę” tylko raz — ankieta i załączniki trafią do tej samej sprawy. Możesz dodać do ${attachmentConfig.maxCount} plików PDF, JPG, PNG, HEIC/HEIF lub DOCX; limit jednego pliku to ${formatAttachmentSize(attachmentConfig.maxBytes)}. Pliki przesyłamy bez zmiany jakości. Załącz tylko dokumenty potrzebne do przygotowania projektu.`;
   }
 }
 
@@ -244,8 +244,8 @@ if (attachmentInput) {
     renderAttachmentList();
     if (attachmentStatus) {
       attachmentStatus.textContent = files.length
-        ? `Wybrano ${files.length} ${files.length === 1 ? 'plik' : 'plików'}. Pozostaw tę kartę otwartą do końca przesyłania.`
-        : 'Ankieta zapisze się najpierw. Załączniki wyślemy po jej zapisaniu — pozostaw tę kartę otwartą do końca przesyłania.';
+        ? `Wybrano ${files.length} ${files.length === 1 ? 'plik' : 'plików'}. Kliknij „Wyślij ankietę” tylko raz; pliki dołączymy do tego samego zgłoszenia. Pozostaw kartę otwartą, aż pojawi się potwierdzenie.`
+        : 'Możesz dodać pliki do tej ankiety. Po kliknięciu „Wyślij ankietę” formularz wyśle ankietę i załączniki do tej samej sprawy. Kliknij przycisk tylko raz.';
     }
   });
 }
@@ -708,7 +708,7 @@ form.addEventListener('submit', async (event) => {
       } catch (uploadError) {
         if (retryAttachmentButton) retryAttachmentButton.hidden = false;
         if (attachmentStatus) attachmentStatus.textContent = `Nie udało się przesłać wszystkich plików: ${uploadError.message}`;
-        showStatus(`Ankieta została zapisana, ale nie wszystkie załączniki dotarły. Pozostaw tę kartę otwartą i naciśnij „Ponów wysyłanie załączników”. ${uploadError.message}`, 'error');
+        showStatus(`Ankieta została już zapisana — nie wypełniaj jej ponownie. Nie wszystkie załączniki dotarły. Pozostaw tę kartę otwartą i naciśnij „Ponów wysyłanie załączników”. ${uploadError.message}`, 'error');
       }
       return;
     }
