@@ -166,7 +166,7 @@ function applyAttachmentConfig(config) {
 
 async function uploadPendingAttachments() {
   if (!pendingAttachmentUpload) return;
-  const { submissionId, files, uploadedIndexes } = pendingAttachmentUpload;
+  const { submissionId, files, uploadedIndexes, uploadRequestIds } = pendingAttachmentUpload;
   let completed = uploadedIndexes.size;
 
   for (let index = 0; index < files.length; index += 1) {
@@ -186,7 +186,8 @@ async function uploadPendingAttachments() {
         headers: {
           'Content-Type': attachmentContentType(file),
           'X-File-Name': encodeURIComponent(file.name),
-          'X-Invitation-Token': INVITATION_TOKEN
+          'X-Invitation-Token': INVITATION_TOKEN,
+          'X-Upload-Request-Id': uploadRequestIds[index]
         },
         body: file
       });
@@ -687,7 +688,8 @@ form.addEventListener('submit', async (event) => {
       pendingAttachmentUpload = {
         submissionId: payload.id,
         files: attachmentFiles,
-        uploadedIndexes: new Set()
+        uploadedIndexes: new Set(),
+        uploadRequestIds: attachmentFiles.map(() => crypto.randomUUID())
       };
       Array.from(form.elements).forEach((element) => {
         if (element !== retryAttachmentButton) element.disabled = true;
