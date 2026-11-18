@@ -278,6 +278,14 @@
 <p class="field-help" id="order-scope-note">Usługa nie obejmuje porad prawnych ani reprezentacji. Dane do płatności zostaną przekazane e-mailem po potwierdzeniu przyjęcia zamówienia.</p>
 </div>
 <div class="form-grid">
+<div class="question full attachment-upload-box" id="attachment-upload" hidden>
+<label for="attachment-files">Załącz dokumenty do ankiety (opcjonalnie)</label>
+<p class="field-help" id="attachment-help">Dołącz wyłącznie dokumenty potrzebne do przygotowania projektu. Możesz wybrać pliki PDF, JPG, PNG lub DOCX.</p>
+<input accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="attachment-help" class="attachment-file-input" id="attachment-files" multiple type="file"/>
+<ul aria-live="polite" class="attachment-list" id="attachment-list"></ul>
+<p aria-live="polite" class="field-help" id="attachment-status">Ankieta zapisze się najpierw. Załączniki wyślemy po jej zapisaniu — pozostaw tę kartę otwartą do końca przesyłania.</p>
+<button class="button button-secondary attachment-retry" hidden id="retry-attachment-upload" type="button">Ponów wysyłanie załączników</button>
+</div>
 <div class="question full">
 <fieldset aria-describedby="special-category-data-help" class="special-category-fieldset">
 <legend>Czy w ankiecie lub załącznikach przekazujesz dane dotyczące zdrowia albo inne dane szczególnej kategorii? *</legend>
