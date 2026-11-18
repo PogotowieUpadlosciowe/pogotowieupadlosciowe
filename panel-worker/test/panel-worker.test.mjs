@@ -90,6 +90,14 @@ test("usunięcie linku z historii jest przekazywane wyłącznie dla operatora i 
   assert.equal(routePolicy(`/api/admin/invitations/${id}/history`, "GET"), null);
 });
 
+test("trwałe usunięcie sprawy jest ograniczone do administratora i wymaga potwierdzenia", () => {
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const policy = routePolicy(`/api/submissions/${id}`, "DELETE");
+  assert.deepEqual(policy.roles, ["admin"]);
+  assert.equal(policy.validate, "delete");
+  assert.equal(routePolicy(`/api/submissions/${id}`, "GET"), null);
+});
+
 test("sesja zwraca wyłącznie rolę i krótką nazwę konta", async () => {
   const { env, identity } = await envFor();
   const response = await handleRequest(request("/api/session", identity.token), env);
@@ -101,6 +109,17 @@ test("sesja zwraca wyłącznie rolę i krótką nazwę konta", async () => {
 test("operator nie ma dostępu do kopii administracyjnej", async () => {
   const { env, identity, upstreamCalls } = await envFor();
   const response = await handleRequest(request("/api/admin/backup", identity.token), env);
+  assert.equal(response.status, 403);
+  assert.equal(upstreamCalls.length, 0);
+});
+
+test("operator nie może trwale usunąć sprawy przez bezpośrednie API panelu", async () => {
+  const { env, identity, upstreamCalls } = await envFor();
+  const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  const response = await handleRequest(request(`/api/submissions/${id}`, identity.token, {
+    method: "DELETE",
+    headers: { "X-Delete-Confirmation": id }
+  }), env);
   assert.equal(response.status, 403);
   assert.equal(upstreamCalls.length, 0);
 });
@@ -190,15 +209,26 @@ test("żądanie zapisu spoza domeny panelu jest odrzucane", async () => {
   assert.equal(upstreamCalls.length, 0);
 });
 
-test("administrator może wykonać operację administracyjną", async () => {
+test("administrator usuwa sprawę po potwierdzeniu zgodnego identyfikatora", async () => {
   const { env, identity, upstreamCalls } = await envFor("mariusz@example.test");
   const id = "01234567-89ab-4cde-8fab-0123456789ab";
+  for (const confirmation of ["", "11234567-89ab-4cde-8fab-0123456789ab"]) {
+    const rejected = await handleRequest(request(`/api/submissions/${id}`, identity.token, {
+      method: "DELETE",
+      headers: confirmation ? { "X-Delete-Confirmation": confirmation } : {}
+    }), env);
+    assert.equal(rejected.status, 400);
+  }
+  assert.equal(upstreamCalls.length, 0);
+
   const response = await handleRequest(request(`/api/submissions/${id}`, identity.token, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: { "X-Delete-Confirmation": id }
   }), env);
   assert.equal(response.status, 200);
   assert.equal(upstreamCalls.length, 1);
   assert.equal(upstreamCalls[0].method, "DELETE");
+  assert.equal(upstreamCalls[0].headers.get("X-Delete-Confirmation"), id);
 });
 
 test("brak tokenu Access jest odrzucany przed zasobami panelu", async () => {
