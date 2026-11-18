@@ -42,6 +42,12 @@ const invitationGate = document.getElementById('invitation-gate');
 const invitationGateTitle = document.getElementById('invitation-gate-title');
 const invitationGateMessage = document.getElementById('invitation-gate-message');
 const invitationExpiry = document.getElementById('invitation-expiry');
+const attachmentUploadBox = document.getElementById('attachment-upload');
+const attachmentInput = document.getElementById('attachment-files');
+const attachmentHelp = document.getElementById('attachment-help');
+const attachmentList = document.getElementById('attachment-list');
+const attachmentStatus = document.getElementById('attachment-status');
+const retryAttachmentButton = document.getElementById('retry-attachment-upload');
 const specialCategoryConsentQuestion = document.getElementById('special-category-consent-question');
 const specialCategoryConsent = document.getElementById('special_category_consent');
 const specialCategoryChoices = Array.from(
@@ -54,6 +60,14 @@ let securityReady = false;
 let orderConfig = null;
 let memoryRequestId = '';
 let invitationValidated = false;
+let attachmentConfig = {
+  enabled: false,
+  maxBytes: 10 * 1024 * 1024,
+  maxCount: 20,
+  allowedTypes: new Set()
+};
+let pendingAttachmentUpload = null;
+let savedSubmissionMessage = '';
 
 
 function formatInvitationDate(value) {
@@ -76,6 +90,176 @@ function showInvitationGate(title, message, type = '', expiresAt = null) {
   invitationExpiry.textContent = expiresAt
     ? `Dostęp do ankiety jest ważny do: ${formatInvitationDate(expiresAt)}.`
     : '';
+}
+
+const ATTACHMENT_MIME_BY_EXTENSION = Object.freeze({
+  pdf: 'application/pdf',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+});
+
+function formatAttachmentSize(bytes) {
+  const megabytes = bytes / (1024 * 1024);
+  return `${megabytes < 0.1 ? '< 0,1' : megabytes.toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB`;
+}
+
+function attachmentContentType(file) {
+  const extension = String(file.name || '').split('.').pop().toLowerCase();
+  return ATTACHMENT_MIME_BY_EXTENSION[extension] || String(file.type || '').toLowerCase();
+}
+
+function validateAttachmentFiles(files) {
+  if (!files.length) return '';
+  if (!attachmentConfig.enabled) return 'Przesyłanie załączników jest obecnie niedostępne.';
+  if (files.length > attachmentConfig.maxCount) {
+    return `Możesz dołączyć maksymalnie ${attachmentConfig.maxCount} plików.`;
+  }
+
+  for (const file of files) {
+    const contentType = attachmentContentType(file);
+    if (!attachmentConfig.allowedTypes.has(contentType)) {
+      return `„${file.name}” ma niedozwolony format. Wybierz PDF, JPG, PNG lub DOCX.`;
+    }
+    if (!file.size) return `„${file.name}” jest pusty.`;
+    if (file.size > attachmentConfig.maxBytes) {
+      return `„${file.name}” przekracza limit ${formatAttachmentSize(attachmentConfig.maxBytes)}.`;
+    }
+  }
+
+  return '';
+}
+
+function renderAttachmentList() {
+  if (!attachmentList || !attachmentInput) return;
+  attachmentList.replaceChildren();
+  Array.from(attachmentInput.files || []).forEach((file) => {
+    const item = document.createElement('li');
+    item.textContent = `${file.name} · ${formatAttachmentSize(file.size)}`;
+    attachmentList.append(item);
+  });
+}
+
+function applyAttachmentConfig(config) {
+  if (!attachmentUploadBox || !attachmentInput) return;
+
+  const allowedTypes = Array.isArray(config.attachment_allowed_types)
+    ? config.attachment_allowed_types.map((type) => String(type).toLowerCase())
+    : Object.values(ATTACHMENT_MIME_BY_EXTENSION);
+  const maxBytes = Number(config.attachment_max_bytes);
+  const maxCount = Number(config.attachment_max_per_case);
+
+  attachmentConfig = {
+    enabled: config.attachment_upload_enabled === true,
+    maxBytes: Number.isFinite(maxBytes) && maxBytes > 0 ? maxBytes : 10 * 1024 * 1024,
+    maxCount: Number.isFinite(maxCount) && maxCount > 0 ? maxCount : 20,
+    allowedTypes: new Set(allowedTypes)
+  };
+
+  attachmentUploadBox.hidden = !attachmentConfig.enabled;
+  attachmentInput.disabled = !attachmentConfig.enabled;
+  if (attachmentConfig.enabled && attachmentHelp) {
+    attachmentHelp.textContent = `Możesz dodać do ${attachmentConfig.maxCount} plików PDF, JPG, PNG lub DOCX. Limit jednego pliku: ${formatAttachmentSize(attachmentConfig.maxBytes)}. Załącz tylko dokumenty potrzebne do przygotowania projektu.`;
+  }
+}
+
+async function uploadPendingAttachments() {
+  if (!pendingAttachmentUpload) return;
+  const { submissionId, files, uploadedIndexes } = pendingAttachmentUpload;
+  let completed = uploadedIndexes.size;
+
+  for (let index = 0; index < files.length; index += 1) {
+    if (uploadedIndexes.has(index)) continue;
+    const file = files[index];
+    if (attachmentStatus) {
+      attachmentStatus.textContent = `Wysyłamy załącznik ${completed + 1} z ${files.length}: ${file.name}`;
+    }
+
+    let response;
+    try {
+      response = await fetch(`${API_BASE}/submissions/${encodeURIComponent(submissionId)}/attachments`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        headers: {
+          'Content-Type': attachmentContentType(file),
+          'X-File-Name': encodeURIComponent(file.name),
+          'X-Invitation-Token': INVITATION_TOKEN
+        },
+        body: file
+      });
+    } catch {
+      throw new Error(`Nie udało się wysłać pliku „${file.name}”. Sprawdź połączenie i spróbuj ponownie.`);
+    }
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch {
+      // The file name below identifies which item did not upload.
+    }
+    if (!response.ok) {
+      throw new Error(`${file.name}: ${payload.error || `błąd HTTP ${response.status}`}`);
+    }
+
+    uploadedIndexes.add(index);
+    completed += 1;
+    if (attachmentStatus) {
+      attachmentStatus.textContent = `Przesłano ${completed} z ${files.length} załączników.`;
+    }
+  }
+}
+
+function finalizeSavedSubmission() {
+  const attachmentCount = pendingAttachmentUpload?.files.length || 0;
+  pendingAttachmentUpload = null;
+  if (retryAttachmentButton) retryAttachmentButton.hidden = true;
+  clearActiveRequestId();
+  form.reset();
+  attachmentList?.replaceChildren();
+  Array.from(form.elements).forEach((element) => { element.disabled = true; });
+  button.disabled = true;
+  button.textContent = 'Zamówienie złożone';
+  const attachmentInfo = attachmentCount
+    ? ' Wszystkie załączniki zostały bezpiecznie przesłane.'
+    : '';
+  showStatus(`${savedSubmissionMessage}${attachmentInfo}`, 'success');
+}
+
+if (attachmentInput) {
+  attachmentInput.addEventListener('change', () => {
+    const files = Array.from(attachmentInput.files || []);
+    const error = validateAttachmentFiles(files);
+    if (error) {
+      attachmentInput.value = '';
+      renderAttachmentList();
+      if (attachmentStatus) attachmentStatus.textContent = error;
+      return;
+    }
+    renderAttachmentList();
+    if (attachmentStatus) {
+      attachmentStatus.textContent = files.length
+        ? `Wybrano ${files.length} ${files.length === 1 ? 'plik' : 'plików'}. Pozostaw tę kartę otwartą do końca przesyłania.`
+        : 'Ankieta zapisze się najpierw. Załączniki wyślemy po jej zapisaniu — pozostaw tę kartę otwartą do końca przesyłania.';
+    }
+  });
+}
+
+if (retryAttachmentButton) {
+  retryAttachmentButton.addEventListener('click', async () => {
+    if (!pendingAttachmentUpload) return;
+    retryAttachmentButton.disabled = true;
+    try {
+      await uploadPendingAttachments();
+      finalizeSavedSubmission();
+    } catch (error) {
+      retryAttachmentButton.disabled = false;
+      if (attachmentStatus) attachmentStatus.textContent = `Nie udało się przesłać wszystkich plików: ${error.message}`;
+      showStatus(`Ankieta została zapisana, ale nie wszystkie załączniki dotarły. Możesz ponowić wysyłanie. ${error.message}`, 'error');
+    }
+  });
 }
 
 async function validateInvitation() {
@@ -357,6 +541,7 @@ async function initializeSecurity() {
     }
 
     applyOrderConfig(config.order || FALLBACK_ORDER_CONFIG);
+    applyAttachmentConfig(config);
     await loadTurnstileScript();
 
     turnstileWidgetId = window.turnstile.render(turnstileBox, {
@@ -417,6 +602,14 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
+  const attachmentFiles = Array.from(attachmentInput?.files || []);
+  const attachmentError = validateAttachmentFiles(attachmentFiles);
+  if (attachmentError) {
+    if (attachmentStatus) attachmentStatus.textContent = attachmentError;
+    showStatus(attachmentError, 'error');
+    return;
+  }
+
   const values = Object.fromEntries(new FormData(form).entries());
   values.privacy = Boolean(values.privacy);
   values.special_category_consent = Boolean(values.special_category_consent);
@@ -465,13 +658,11 @@ form.addEventListener('submit', async (event) => {
     }
 
     submittedSuccessfully = true;
-    clearActiveRequestId();
-    form.reset();
-    Array.from(form.elements).forEach((element) => { element.disabled = true; });
-    button.textContent = 'Zamówienie złożone';
     showInvitationGate(
       'Link został wykorzystany',
-      'Ankieta i zamówienie zostały zapisane. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.',
+      attachmentFiles.length
+        ? 'Ankieta i zamówienie zostały zapisane. Wysyłamy teraz załączniki — pozostaw tę kartę otwartą do końca przesyłania.'
+        : 'Ankieta i zamówienie zostały zapisane. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.',
       'success'
     );
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -486,10 +677,39 @@ form.addEventListener('submit', async (event) => {
       ? ' Potwierdzenie wysłaliśmy na podany adres e-mail.'
       : ' Potwierdzenie e-mail zostało przekazane do wysyłki.';
 
-    showStatus(
-      `Ankieta została wysłana. Dziękujemy — skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`,
-      'success'
-    );
+    savedSubmissionMessage =
+      `Ankieta została wysłana. Dziękujemy — skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`;
+
+    if (attachmentFiles.length) {
+      if (!payload.id) {
+        throw new Error('Ankieta została zapisana, ale nie otrzymaliśmy potwierdzenia sprawy potrzebnego do wysłania załączników. Skontaktuj się z nami, odpowiadając na e-mail z potwierdzeniem.');
+      }
+      pendingAttachmentUpload = {
+        submissionId: payload.id,
+        files: attachmentFiles,
+        uploadedIndexes: new Set()
+      };
+      Array.from(form.elements).forEach((element) => {
+        if (element !== retryAttachmentButton) element.disabled = true;
+      });
+      button.disabled = true;
+      button.textContent = 'Ankieta zapisana';
+      if (retryAttachmentButton) {
+        retryAttachmentButton.hidden = true;
+        retryAttachmentButton.disabled = false;
+      }
+      try {
+        await uploadPendingAttachments();
+        finalizeSavedSubmission();
+      } catch (uploadError) {
+        if (retryAttachmentButton) retryAttachmentButton.hidden = false;
+        if (attachmentStatus) attachmentStatus.textContent = `Nie udało się przesłać wszystkich plików: ${uploadError.message}`;
+        showStatus(`Ankieta została zapisana, ale nie wszystkie załączniki dotarły. Pozostaw tę kartę otwartą i naciśnij „Ponów wysyłanie załączników”. ${uploadError.message}`, 'error');
+      }
+      return;
+    }
+
+    finalizeSavedSubmission();
   } catch (error) {
     const message = error.name === 'AbortError'
       ? 'Przekroczono czas oczekiwania. Zgłoszenie mogło zostać zapisane. Sprawdź skrzynkę e-mail; ponowne wysłanie z tej karty użyje tego samego identyfikatora i nie powinno utworzyć duplikatu.'
