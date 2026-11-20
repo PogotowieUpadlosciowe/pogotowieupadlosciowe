@@ -320,8 +320,8 @@ if (attachmentInput) {
     renderAttachmentList();
     if (attachmentStatus) {
       attachmentStatus.textContent = files.length
-        ? `Wybrano ${files.length} ${formatAttachmentCount(files.length)}. Po wysłaniu ankiety dołączymy ${files.length === 1 ? 'go' : 'je'} do Twojej sprawy.`
-        : 'Możesz dodać dokumenty, które pomogą nam przygotować projekt wniosku.';
+        ? `Wybrano ${files.length} ${formatAttachmentCount(files.length)}. Załączone dokumenty zostaną wysłane razem z zamówieniem.`
+        : 'Załączone dokumenty zostaną wysłane razem z zamówieniem.';
     }
   });
 }
