@@ -190,7 +190,6 @@ textarea{min-height:124px;resize:vertical}
 input.attachment-file-input{min-height:0;padding:13px;border-style:dashed;background:#f7faff}
 .attachment-list{display:grid;gap:7px;margin:12px 0 0;padding:0;list-style:none}
 .attachment-list li{padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:#f7f9fc;color:var(--ink);font-size:.9rem;overflow-wrap:anywhere}
-.attachment-retry{margin-top:14px}
 input:focus,select:focus,textarea:focus{outline:3px solid rgba(22,116,232,.14);border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
 .checkbox-row{display:flex;align-items:flex-start;gap:12px}
 .checkbox-row input{flex:0 0 auto;width:19px;min-height:19px;margin-top:3px}

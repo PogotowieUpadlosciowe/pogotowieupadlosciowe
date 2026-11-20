@@ -47,7 +47,6 @@ const attachmentInput = document.getElementById('attachment-files');
 const attachmentHelp = document.getElementById('attachment-help');
 const attachmentList = document.getElementById('attachment-list');
 const attachmentStatus = document.getElementById('attachment-status');
-const retryAttachmentButton = document.getElementById('retry-attachment-upload');
 const specialCategoryConsentQuestion = document.getElementById('special-category-consent-question');
 const specialCategoryConsent = document.getElementById('special_category_consent');
 const specialCategoryChoices = Array.from(
@@ -157,6 +156,16 @@ function validateAttachmentFiles(files) {
   return '';
 }
 
+function formatAttachmentCount(count) {
+  const lastTwo = count % 100;
+  const lastDigit = count % 10;
+  if (count === 1) return 'plik';
+  if (lastTwo < 12 || lastTwo > 14) {
+    if (lastDigit >= 2 && lastDigit <= 4) return 'pliki';
+  }
+  return 'plików';
+}
+
 function renderAttachmentList() {
   if (!attachmentList || !attachmentInput) return;
   attachmentList.replaceChildren();
@@ -189,7 +198,65 @@ function applyAttachmentConfig(config) {
   attachmentUploadBox.hidden = !attachmentConfig.enabled;
   attachmentInput.disabled = !attachmentConfig.enabled;
   if (attachmentConfig.enabled && attachmentHelp) {
-    attachmentHelp.textContent = `Dodaj pliki tutaj razem z ankietą. Kliknij „Wyślij ankietę” tylko raz — ankieta i załączniki trafią do tej samej sprawy. Możesz dodać do ${attachmentConfig.maxCount} plików PDF, JPG, PNG, HEIC/HEIF lub DOCX; limit jednego pliku to ${formatAttachmentSize(attachmentConfig.maxBytes)}. Pliki przesyłamy bez zmiany jakości. Załącz tylko dokumenty potrzebne do przygotowania projektu.`;
+    attachmentHelp.textContent = `Dodaj dokumenty potrzebne do przygotowania projektu wniosku. Możesz załączyć do ${attachmentConfig.maxCount} plików PDF, JPG, PNG, HEIC/HEIF lub DOCX; maksymalny rozmiar jednego pliku to ${formatAttachmentSize(attachmentConfig.maxBytes)}. Wysyłamy je w oryginalnej jakości.`;
+  }
+}
+
+const MAX_ATTACHMENT_UPLOAD_ATTEMPTS = 3;
+const RETRYABLE_ATTACHMENT_HTTP_STATUSES = new Set([408, 425, 429]);
+
+function waitBeforeAttachmentRetry(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function uploadAttachmentFile(file, uploadId, index, total) {
+  for (let attempt = 1; attempt <= MAX_ATTACHMENT_UPLOAD_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(`${API_BASE}/submission-attachments`, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        referrerPolicy: 'no-referrer',
+        headers: {
+          'Content-Type': attachmentContentType(file),
+          'X-File-Name': encodeURIComponent(file.name),
+          'X-Invitation-Token': INVITATION_TOKEN,
+          'X-Upload-Id': uploadId
+        },
+        body: file
+      });
+    } catch {
+      if (attempt === MAX_ATTACHMENT_UPLOAD_ATTEMPTS) {
+        throw new Error(`Nie udało się wysłać pliku „${file.name}” z powodu problemu z połączeniem.`);
+      }
+      if (attachmentStatus) {
+        attachmentStatus.textContent = `Chwilowy problem z połączeniem. Automatycznie ponawiamy wysyłkę dokumentu ${index + 1} z ${total}…`;
+      }
+      await waitBeforeAttachmentRetry(800 * attempt);
+      continue;
+    }
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch {
+      // A successful response can still be accepted when it has no JSON body.
+    }
+    if (response.ok) return;
+
+    const isRetryable =
+      RETRYABLE_ATTACHMENT_HTTP_STATUSES.has(response.status) || response.status >= 500;
+    const errorMessage = payload.error || `błąd HTTP ${response.status}`;
+    if (!isRetryable || attempt === MAX_ATTACHMENT_UPLOAD_ATTEMPTS) {
+      throw new Error(`${file.name}: ${errorMessage}`);
+    }
+
+    if (attachmentStatus) {
+      attachmentStatus.textContent = `Chwilowy problem z serwerem. Automatycznie ponawiamy wysyłkę dokumentu ${index + 1} z ${total}…`;
+    }
+    await waitBeforeAttachmentRetry(800 * attempt);
   }
 }
 
@@ -205,60 +272,37 @@ async function uploadPendingAttachments() {
       uploadIds[index] = await createAttachmentUploadId(submissionId, file);
     }
     if (attachmentStatus) {
-      attachmentStatus.textContent = `Wysyłamy załącznik ${completed + 1} z ${files.length}: ${file.name}`;
+      attachmentStatus.textContent = `Wysyłamy dokument ${index + 1} z ${files.length}: ${file.name}`;
     }
 
-    let response;
-    try {
-      response = await fetch(`${API_BASE}/submission-attachments`, {
-        method: 'POST',
-        mode: 'cors',
-        credentials: 'omit',
-        cache: 'no-store',
-        referrerPolicy: 'no-referrer',
-        headers: {
-          'Content-Type': attachmentContentType(file),
-          'X-File-Name': encodeURIComponent(file.name),
-          'X-Invitation-Token': INVITATION_TOKEN,
-          'X-Upload-Id': uploadIds[index]
-        },
-        body: file
-      });
-    } catch {
-      throw new Error(`Nie udało się wysłać pliku „${file.name}”. Sprawdź połączenie i spróbuj ponownie.`);
-    }
-
-    let payload = {};
-    try {
-      payload = await response.json();
-    } catch {
-      // The file name below identifies which item did not upload.
-    }
-    if (!response.ok) {
-      throw new Error(`${file.name}: ${payload.error || `błąd HTTP ${response.status}`}`);
-    }
-
+    await uploadAttachmentFile(file, uploadIds[index], index, files.length);
     uploadedIndexes.add(index);
     completed += 1;
     if (attachmentStatus) {
-      attachmentStatus.textContent = `Przesłano ${completed} z ${files.length} załączników.`;
+      attachmentStatus.textContent = `Wysłano ${completed} z ${files.length} dokumentów.`;
     }
   }
+}
+
+function lockSubmittedForm() {
+  Array.from(form.elements).forEach((element) => { element.disabled = true; });
+  button.disabled = true;
 }
 
 function finalizeSavedSubmission() {
   const attachmentCount = pendingAttachmentUpload?.files.length || 0;
   pendingAttachmentUpload = null;
-  if (retryAttachmentButton) retryAttachmentButton.hidden = true;
   clearActiveRequestId();
   window.history.replaceState({}, document.title, window.location.pathname);
   form.reset();
   attachmentList?.replaceChildren();
-  Array.from(form.elements).forEach((element) => { element.disabled = true; });
-  button.disabled = true;
-  button.textContent = 'Zamówienie złożone';
+  lockSubmittedForm();
+  button.textContent = 'Ankieta wysłana';
+  if (attachmentCount && attachmentStatus) {
+    attachmentStatus.textContent = 'Dokumenty dołączono do tej sprawy.';
+  }
   const attachmentInfo = attachmentCount
-    ? ' Wszystkie załączniki zostały bezpiecznie przesłane.'
+    ? ' Dokumenty dołączono do tej sprawy.'
     : '';
   showStatus(`${savedSubmissionMessage}${attachmentInfo}`, 'success');
 }
@@ -276,23 +320,8 @@ if (attachmentInput) {
     renderAttachmentList();
     if (attachmentStatus) {
       attachmentStatus.textContent = files.length
-        ? `Wybrano ${files.length} ${files.length === 1 ? 'plik' : 'plików'}. Kliknij „Wyślij ankietę” tylko raz; pliki dołączymy do tego samego zgłoszenia. Pozostaw kartę otwartą, aż pojawi się potwierdzenie.`
-        : 'Możesz dodać pliki do tej ankiety. Po kliknięciu „Wyślij ankietę” formularz wyśle ankietę i załączniki do tej samej sprawy. Kliknij przycisk tylko raz.';
-    }
-  });
-}
-
-if (retryAttachmentButton) {
-  retryAttachmentButton.addEventListener('click', async () => {
-    if (!pendingAttachmentUpload) return;
-    retryAttachmentButton.disabled = true;
-    try {
-      await uploadPendingAttachments();
-      finalizeSavedSubmission();
-    } catch (error) {
-      retryAttachmentButton.disabled = false;
-      if (attachmentStatus) attachmentStatus.textContent = `Nie udało się przesłać wszystkich plików: ${error.message}`;
-      showStatus(`Ankieta została zapisana, ale nie wszystkie załączniki dotarły. Możesz ponowić wysyłanie. ${error.message}`, 'error');
+        ? `Wybrano ${files.length} ${formatAttachmentCount(files.length)}. Po wysłaniu ankiety dołączymy ${files.length === 1 ? 'go' : 'je'} do Twojej sprawy.`
+        : 'Możesz dodać dokumenty, które pomogą nam przygotować projekt wniosku.';
     }
   });
 }
@@ -338,7 +367,7 @@ async function validateInvitation() {
     showInvitationGate(
       'Dostęp potwierdzony',
       payload.duplicate_retry
-        ? 'Zgłoszenie mogło już zostać zapisane. Możesz ponowić wysłanie — system nie utworzy duplikatu.'
+        ? 'Wykryliśmy wcześniejszą próbę wysłania ankiety. Jeśli zgłoszenie dotarło, system nie utworzy drugiej sprawy.'
         : 'Dostęp do ankiety jest aktywny. Możesz ją teraz wypełnić.',
       'success',
       payload.expires_at
@@ -694,10 +723,10 @@ form.addEventListener('submit', async (event) => {
 
     submittedSuccessfully = true;
     showInvitationGate(
-      'Link został wykorzystany',
+      'Dziękujemy za wysłanie ankiety',
       attachmentFiles.length
-        ? 'Ankieta i zamówienie zostały zapisane. Wysyłamy teraz załączniki — pozostaw tę kartę otwartą do końca przesyłania.'
-        : 'Ankieta i zamówienie zostały zapisane. Ten link nie pozwoli na utworzenie kolejnego zgłoszenia.',
+        ? 'Przekazujemy teraz dodane dokumenty do Twojej sprawy.'
+        : 'Ankieta została wysłana. Potwierdzenie otrzymasz e-mailem.',
       'success'
     );
     const reference = payload.reference
@@ -711,11 +740,22 @@ form.addEventListener('submit', async (event) => {
       : ' Potwierdzenie e-mail zostało przekazane do wysyłki.';
 
     savedSubmissionMessage =
-      `Ankieta została wysłana. Dziękujemy — skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`;
+      `Ankieta została wysłana. Dziękujemy — nie musisz już nic robić. Skontaktujemy się z Tobą po jej weryfikacji.${reference}${duplicateInfo}${emailInfo} Po weryfikacji kompletności otrzymasz informację o przyjęciu zamówienia i dane do płatności.`;
 
     if (attachmentFiles.length) {
       if (!payload.id) {
-        throw new Error('Ankieta została zapisana, ale nie otrzymaliśmy potwierdzenia sprawy potrzebnego do wysłania załączników. Skontaktuj się z nami, odpowiadając na e-mail z potwierdzeniem.');
+        lockSubmittedForm();
+        button.textContent = 'Ankieta wysłana';
+        clearActiveRequestId();
+        window.history.replaceState({}, document.title, window.location.pathname);
+        if (attachmentStatus) {
+          attachmentStatus.textContent = 'Ankieta została zapisana. Nie możemy potwierdzić wysyłki dokumentów.';
+        }
+        showStatus(
+          'Ankieta została zapisana, ale nie możemy dołączyć dokumentów. Nie musisz wypełniać ankiety ponownie — skontaktuj się z nami pod adresem kontakt@pogotowieupadlosciowe.pl.',
+          'error'
+        );
+        return;
       }
       pendingAttachmentUpload = {
         submissionId: payload.id,
@@ -723,22 +763,20 @@ form.addEventListener('submit', async (event) => {
         uploadedIndexes: new Set(),
         uploadIds: Array(attachmentFiles.length).fill('')
       };
-      Array.from(form.elements).forEach((element) => {
-        if (element !== retryAttachmentButton) element.disabled = true;
-      });
-      button.disabled = true;
-      button.textContent = 'Ankieta zapisana';
-      if (retryAttachmentButton) {
-        retryAttachmentButton.hidden = true;
-        retryAttachmentButton.disabled = false;
-      }
+      lockSubmittedForm();
+      button.textContent = 'Wysyłamy dokumenty…';
       try {
         await uploadPendingAttachments();
         finalizeSavedSubmission();
-      } catch (uploadError) {
-        if (retryAttachmentButton) retryAttachmentButton.hidden = false;
-        if (attachmentStatus) attachmentStatus.textContent = `Nie udało się przesłać wszystkich plików: ${uploadError.message}`;
-        showStatus(`Ankieta została już zapisana — nie wypełniaj jej ponownie. Nie wszystkie załączniki dotarły. Pozostaw tę kartę otwartą i naciśnij „Ponów wysyłanie załączników”. ${uploadError.message}`, 'error');
+      } catch {
+        button.textContent = 'Ankieta wysłana';
+        if (attachmentStatus) {
+          attachmentStatus.textContent = 'Nie udało się przesłać wszystkich dokumentów. Ankieta została zapisana.';
+        }
+        showStatus(
+          'Ankieta została zapisana, ale nie udało się przesłać wszystkich dokumentów. Nie musisz wypełniać ankiety ponownie — skontaktuj się z nami pod adresem kontakt@pogotowieupadlosciowe.pl.',
+          'error'
+        );
       }
       return;
     }
